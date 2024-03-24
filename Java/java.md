@@ -1412,7 +1412,7 @@ this( ) 用来访问本类的构造方法（构造方法是类的一种特殊方
 
 ```java
 public abstract class Animal1T{
-    //这是一个抽象方法,代表吃东西,但是具体吃什么(大括号的内容)不确定。
+    //这是一个抽象方法,代表吃东西,但是具体是什么(大括号的内容)不确定。
     public abstract void eat();
     //这是普通的成员方法
     public void normalMethod();
@@ -1833,6 +1833,8 @@ public static final int NUM_NUT=20;
 接口名.常量名
 ```
 
+
+
 ## 多态
 
 extends继承或者implements实现,是多态性的前提。
@@ -1968,6 +1970,8 @@ public class DuoTai {
     }
 }
 ```
+
+
 
 #### instanceof关键字
 
@@ -2747,7 +2751,7 @@ i =i+ 5;//等号右边:将i对象转成基本数值(自动拆箱) i.intValue() +
 //加法运算完成后,再次装箱,把基本数值转成对象。
 ```
 
-## 基本类型与字符串之间的转转换
+## 基本类型与字符串之间的转换
 
 基本类型转换为String总共有三种方式
 
