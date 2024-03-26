@@ -3309,3 +3309,4 @@ public class Demoe6Generic {
 }
 ```
 
+## ajax&json
