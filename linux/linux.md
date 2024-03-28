@@ -505,23 +505,119 @@
      * 选顶， -R, 同chmod, 对文件夹内全部内容应用相同规则
      * 选项，用户，修改所属用户
      * 选项，用户组，修改所属用户组
-     * ：用于分隔用户和用户组
+     * `：`用于分隔用户和用户组
 
 ## Linux实用操作
 
 1. 各类快捷键
-2. 软件安全
+
+   * 强制停止:`ctrl+c`
+   * 退出、登出:`ctrl+d`
+   * 历史命令搜索
+      1. `history`
+      2. ==`！`命令前缀，自动执行上一次匹配前缀的命令==
+      3. `ctrl+r`:输入内容去匹配历史命令
+         * 回车键可以直接执行
+         * 键盘左右键，可以得到此命令（不执行）
+   * 光标移动
+      1. ctrl + a, 跳到命令开头
+      2. ctrl + e, 跳到命令结尾
+      3. ctrl +键盘左键，向左跳一个单词
+      4. ctrl +腱盘右键，向右跳一个单词
+   * 清屏
+      1. 通过快捷键 ctrl + l, 可以清空终端内容
+      2. 通过命令 clear 得到同样效果
+
+2. 软件安装
+
+   * 使用 yum 为 CentOS 系统安装软件
+      * yum 命令
+      * yum: RPM 包软件管理器，用于自动化安装配置 Linux软件，并可以自动解决依赖问题。
+      * 语法： `yum [-y ] (install | remove | search] 软件名称`
+      * 选项：`-y`自动确认，无需手动确认安装或卸载过程
+      * install: 安装
+      * remove: 卸载
+      * search: 搜索
+      * yum 命令需要 root 权限哦，可以 su 切换到 root, 或使用 sudo 提权。yum 命令需要朕网
+   * 使用 apt 为 Ubuntu 安装软件（扩展）
+      * 语法： `apt [-y ] (install | remove | search] 软件名称`
+
 3. systemctl控制软件启动关闭
+
+   * Linu ×系统很多软件（内置或第三方）均支持使用 systemctl 命令控制：启动、停止、开机自启
+   * 能够被 systemctl 管理的软件，一般也称之为：服务
+   * 语法： `systemctl [start | stop | status | enable | disable] 服务名`
+   * `start 启动`、`stop 关闭`、`status 查看状态`、`enable 开启开机自启`、`disable 关闭开机自启`
+   * 系统内置的服务比较多，比如：
+      * NetworkManager, 主网络服务
+      * network, 副网络服务
+      * firewalld, 防火墙服务
+      * sshd, ssh 服务（ Fina [ Shell 远程登录 Linu ×使用的就是这个服务）
+
 4. 软链接
+
+   * 使用 ln 命令创建软连接
+   * 在系统中创建软链接，可以将文件、文件夹链接到其它位置。类似 Windows 系统中的《快捷方式》
+   * 语法： `ln -s 参数1 参数2`
+      * -s 选项，创建软连接
+      * 参数 1 ：被链接的文件或文件夹
+      * 参数 2 ：要链接去的目的地
+
 5. 日期和时区
+
+   * date 命令查看日期时间
+
+      * 通过 date 命令可以在命令行中查看系统的时间
+      * 语法： `date [-d][+格式化字符串]`
+      * d 按照给定的字符串显示日期，一般用于日期计算
+      * 格式化字符串：通过特定的字符串标证来控制显示的日期格式
+      * `%Y 年`、`%y 年份后两位数字（00..99）`、`%m 月份（01..12）`、`%d 日（01..31）`、`%H 小时（00..23）`、`%M 分钟（00..59）`、`%S 秒（00..60）`、`%s 自1970-01-01 00：00：00 UTC 到现在的秒数`
+
+   * 修改 Linux 系统的时区
+
+      * 使用 root 权限，执行如下命令，修改时区为东八区时区
+
+         ```
+         rm -f /etc/localtime 
+         ln -S /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+         ```
+
+   * 使用 ntp 进行时间同步和校准
+
+      * 我们可以通过 ntp 程序自动校准系统时间
+      * 安装 ntp: `yum -y install ntp`
+      * 启动并设置开机自启：
+         * systemctl start ntpd
+         * systemctl enable ntpd
+         * 当 ntpd 启动后会定期的帮助我们联网校准系统的时间
+         * 也可以手动校准（需 root 权限）： `ntpdate -u ntp.aliyun.com`
+         * 通过阿里云提供的服务网址配合 ntpdate （安装 ntp 后会附带这个命令）命令自动校准
+
 6. IP地址和主机名
+
+   * IP 地址`ipconfig`
+   * 主机名`hostname`修改主机名`hostnamectl set-hostname 主机名，修改主机名`（需root）
+   * 域名解析
+
 7. 配置 Linux 固定 IP 地址
+
+   * 在 VMware Workstation 中配置 Linux 系统的固定IP地址（用于 Windows 系统）
+      1. 在 VMwa re W0rkstation （或 Fusion ）中配置IP地址网关和网段（IP地址的范围）
+      2. 在 Linu ×系统中手动修改配置文件，固定IP
+   * 在 VMware Fusion 中配置 Linux 系统的固定 IP 地址（用于 MacOS 系统）
+
 8. 网络请求和下载
+
 9. 端口
+
 10. 进程管理
+
 11. 主机状态监控
+
 12. 环境变量
+
 13. Linux文件的上传和下载
+
 14. 压缩和解压
 
 ## 实战软件部署
