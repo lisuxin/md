@@ -316,7 +316,7 @@
       
                * 开始，通常用于文件的保存、退出。
       
-               ![image-20240327161655843](..\typoratuxiang\linux\vigzms.png)
+               ![image-20240327161655843](../typoratuxiang/linux/vigzms.png)
          
          3. 通过 `vi/vim` 命令编辑文件，会打开一个新的窗口，此时这个窗口就是：命令模式窗口，命令模式是 vi 编辑器的入口和出口，
          
@@ -694,9 +694,9 @@
        * t键，按下 t 键，切换显示 CPU 态信息
        * m键，按下 m 键，切换显示内存信息
        
-       ![image-20240329162540879](..\typoratuxiang\linux\top.png)
+       ![image-20240329162540879](../typoratuxiang/linux/top.png)
        
-       ![image-20240402160828567](..\typoratuxiang\linux\top1.png)
+       ![image-20240402160828567](../typoratuxiang/linux/top1.png)
        
     * PID: 进程id
 
@@ -822,6 +822,49 @@
        * rz 找到文件
 
 14. 压缩和解压
+
+    1. linux压缩格式tar、gzip
+    2. tar命令
+       * .tar, 称之为 tarball, 归档文件，即简单的将文件组装到一个.tar 的文件内，并没有太多文件体积的减少，仅仅是简单的封装
+       * .gz, 也常见为，`.tar.gz `，gzip 格式压缩文件，即使用 gzip 压缩算法将文件压缩到一个文件札可以极大的减少压缩后的体积
+       * 针对这两种格式，使用 tar 命令均可以进行压缩和解压缩的操作
+       * 语法：`tar [-c -v -x -f -z -C]参数1 参数2 ....参数N`
+          * -c：创建压缩文件，用于压缩模式
+          * -v：显示压缩、解压过程，用于查看进度
+          * -x：解压模式
+          * -f： 要创建的文件，或要解压的文件，-f 选项必须在所有选项中位置处于最后一个
+          * -z：gzip 模式，不使用-z就是普通的tarball格式
+          * -C：选择解压的目的地用于解压模式
+       * **示例：**
+       * 压缩
+       * `tar -cvf test.tar 1.txt 2.txt 3.txt`
+       * 将 1.txt 2.txt 3.txt 压缩到 test.tar 文件内
+       * `tar -zcvf test.tar.gz 1.txt 2.txt 3.txt`
+       * 将 1.txt 2.txt 3.txt 压缩到 test.tar.gz 文件内，使用 gzip 模式
+       * 解压
+       * `tar -xvf test.tar`
+       * 解压 test.tar, 将文件解压至当前目录
+       * `tar -xvf test.tar -C /home/itheima`
+       * 解压 test.tar, 将文件解压至指定目录 (/home/itheima ）
+       * `tar -zxvf test.tar.gz -C /home/itheima`
+       * 以 Gzip 模式解压 test.tar.gz, 将文件解压至指定目录（ /home/itheima ）
+    3. zip 命令压缩文件
+       * 使用 zip 命令，压缩文件为 zip 压缩包
+       * 语法：`zip [-r] 参数1 参数2 ....参数N`
+          * -r：被压缩的包含文件夹的时候，需要使用-r 选和 rm 、 cp 等命令的 -r 效果一致
+       * **示例：**
+       * `zip test.zip a.txt b.txt c.txt`
+       * 将 a.txt b.txt c.txt 压缩到 test.zip 文件内
+       * `zip -r test.zip test itheima a.txt`
+       * 将 test 、 itheima 两个文件夹和 a.txt 文件，压缩到 test.zip文件内
+    4. unzip 命令解压文件
+       * 使用 unzip 命令，可以方便的解压 zip 压缩包
+       * 语法：`unzip [-d] 参数`
+          * -d：指定要解压去的位置，同 tar 的 -C 选项
+          * 参数，被解压的 zip 压缩包文件
+       * **示例：**
+       *  `unzip test.zip`, 将 test .zip 解压到当前目录
+       * `unzip test.zip -d /home/itheima`, 将 test.zip 解压到指定文件夹内 (/home/itheima)
 
 ## 实战软件部署
 
