@@ -2708,8 +2708,29 @@ public class Test01 {
 ### Collections集合
 
 1. 工具类的方法
-   * addAll
-   * shuffle
+   * addAll：`public static <T> boolean addAll(Collection<T>c,T....elements)`往集合里添加一些元素
+   
+   * shuffle：`public static void shuffle(List<?> list)`打乱集合顺序
+   
+   * sort：`public static <T> void sort(List<T> list)`将集合中元素按照默认规则悱序
+   
+      * 被排序的集合里面存储元素，必须实现Comparable，重写接口中的方法compare To定义排序接口排序规则：排序规则`自己(this)-参数：升序`
+   
+      ```java
+      //原始用法
+      ArrayList<String> list =new ArrayList<>();
+      list.add("a");
+      list.add("b");
+      //addAll
+      Collections.addAll(list,"a","b","c");
+      //shuffle
+      Collections.shuffle(list);
+      //sort
+      Collections.sort(list);
+      System.out.println(list);
+      ```
+   
+      
 
 ### Map集合
 
@@ -3033,7 +3054,7 @@ public class Demoe5Generic {
 }
 ```
 
-#通配符高级使用----受限泛型
+#### 通配符高级使用----受限泛型
 
 之前设置泛型的时候，实际上是可以任意设置的，只要是类就可以设置。但是在JAVA的泛型中可以指定一个泛型的==上限==和==下限==。
 
