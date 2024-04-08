@@ -5,33 +5,40 @@
 ## 基础
 
 1. 二进制
+
    1. ==十进制转换为二进制：除二取余，结果从下向上排列==
    2. ==二进制转换为十进制：从右到左依次序乘以位权==
 
 2. 存储单元
+
    * 字节是我们常见计算机中最小存储单元，计算机存储的任何数据，都是以字节形式存储的
    * 8 bit (二进制位) 0000-0000表示为一个字节，1byte或者1B
    * ==8bit  =1B=1byte==、==1024B =1KB==、==1024KB=1MB==、==1024MB=1GB==、==1024GB=1T==
 
 3. `JVM`
+
    * `java`虚拟机。所有的Java代码都运行在`jvm`上。
    * Java虚拟机本身不具有跨平台的功能，每个操作系统上都有不同版本的虚拟机
 
 4. `JRE`和`JDK``
+
    * `jre：`Java运行时环境，包含`jvm`和运行时所需要的核心类库。
    * `jdk：`Java程序开发工具包。
 
 5. Java开发程序的三个步骤
+
    * 编写源代码--->编译源程序--->运行
    * javac.exe编译器;Java.exe解释器
 
 6. 注释
+
    * `//`单行注释
    * `/**/`多行注释
 
 7. 关键字的概念与特征:完全小写的字母;在增强版的记事本，也就是开发工具中带颜色的字体
 
 8. 标识符的概念与规则
+
    * 标识符：是指程序中，我们自己定义的类容
    * 命名规则: `硬性规则`
      * 包含`英文字母26个（区分大小写）`、`0-9`、`$(美元符号)`和`_(下划线)`。
@@ -41,7 +48,7 @@
      * 类命名规范：首字母大写，后面每个单词首字母大写(大驼峰)
      * 变量命名规范：首字母小写，后面每个单词首字母大写(小驼峰)
      * 方法命名规范：同变量名
-   
+
 9. 四种权限修饰符:Java中有四种权限修饰符,能访问的权限。
 
    |              | public | > protected | > (default) 表示不写 | > private |
@@ -56,9 +63,9 @@
    基本类型转换为String总共有三种方式
 
    ```java
-   基本类型直接与””相连接即可;如:34+""
-   Integer.toString(12)
-   String.valueOf(12)
+基本类型直接与””相连接即可;如:34+""
+Integer.toString(12)
+String.valueOf(12)
    ```
 
    String转换成对应的基本类型除了Character类之外,其他所有包装类都具有parseXxx静态方法可以将字符串参数转换为对应的基本类型:
@@ -72,21 +79,21 @@
    * `public static boolean parseBoolean (String s)` :将字符串参数转换为对应的boolean基本类型。
 
    ```java
-   package baozhuanglei;
-   
-   public class Test02 {
-       public static void main(String[] args) {
-           //数据类型转换字符串
-           int s = 12;
-           String q = s+"";
-           String w = Integer.toString(s);
-           String e = String.valueOf(s);
-           System.out.println(q+12+w+12+e+12);
-           //字符串转换数据类型
-           Integer str = Integer.parseInt("12");
-           System.out.println(str+12);
-       }
-   }
+package baozhuanglei;
+
+public class Test02 {
+    public static void main(String[] args) {
+        //数据类型转换字符串
+        int s = 12;
+        String q = s+"";
+        String w = Integer.toString(s);
+        String e = String.valueOf(s);
+        System.out.println(q+12+w+12+e+12);
+        //字符串转换数据类型
+        Integer str = Integer.parseInt("12");
+        System.out.println(str+12);
+    }
+}
    ```
 
 
@@ -206,7 +213,7 @@ Java的数据类型分为两类：
 
 3. 赋值调用：`int number = sum(10,20);`
 
-3. 快捷键：快速打印for如循环`参数.fori`
+4. 快捷键：快速打印for如循环`参数.fori`
 
    ```java
    public class Demoe2MethodDefine {
@@ -224,7 +231,6 @@ Java的数据类型分为两类：
        }
    }
    ```
-   
 
 ### 重载
 
@@ -2708,33 +2714,56 @@ public class Test01 {
 ### Collections集合
 
 1. 工具类的方法
+
    * addAll：`public static <T> boolean addAll(Collection<T>c,T....elements)`往集合里添加一些元素
-   
+
    * shuffle：`public static void shuffle(List<?> list)`打乱集合顺序
-   
+
    * sort：`public static <T> void sort(List<T> list)`将集合中元素按照默认规则悱序
-   
-      * 被排序的集合里面存储元素，必须实现Comparable，重写接口中的方法compare To定义排序接口排序规则：排序规则`自己(this)-参数：升序`
-   
-      ```java
-      //原始用法
-      ArrayList<String> list =new ArrayList<>();
-      list.add("a");
-      list.add("b");
-      //addAll
-      Collections.addAll(list,"a","b","c");
-      //shuffle
-      Collections.shuffle(list);
-      //sort
-      Collections.sort(list);
-      System.out.println(list);
-      ```
-   
-      
+
+     * 被排序的集合里面存储元素，必须实现`Comparable`，重写接口中的方法`compareTo`定义排序接口排序规则：排序规则`自己(this)-参数：升序`
+
+     ```java
+     //原始用法
+     ArrayList<String> list =new ArrayList<>();
+     list.add("a");
+     list.add("b");
+     //addAll
+     Collections.addAll(list,"a","b","c");
+     //shuffle
+     Collections.shuffle(list);
+     //sort
+     Collections.sort(list);
+     System.out.println(list);
+     ```
+
+   * sort：`public static <T> void sort(List<T> list,Comparator<? super T>)`将集合中元素按照指定观则排序
+
+     * Comparable：目己（this）和别人（参数），自己需要实现Comparable接口，重写比较的规则`compareTo`方法
+     * Comparator：相于找一个第三万的裁判，比较两个
+
+     ```java
+     ArrayList<String> list =new ArrayList<>();
+     Collections.sort(list,new Collections<Integer>(){
+         @Override
+         public int compare(Integer 01,Integer 02){
+             return 01-02;//升序
+             return 02-01;//降序
+         }
+     });
+     ```
 
 ### Map集合
 
-
+1. Map 常用子类
+2. Map 接囗中的用方法
+3. Map 集合遍历键找值方式
+4. Entry 键值对对象
+5. Map 集合遍历键值对方式
+6. HashMap 存储自定义类型键值
+7. LinkedHashMap
+8. JDK9对集合添加的优化
+9. Debug追踪
 
 ## 迭代
 
@@ -3095,4 +3124,10 @@ public class Demoe6Generic {
     public static void getElement2(Collection<? super Number> coll){}
 }
 ```
+
+## 异常
+
+### 异常的分类
+
+### 异常产生过程解析
 
