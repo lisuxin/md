@@ -2756,13 +2756,145 @@ public class Test01 {
 ### Map集合
 
 1. Map 常用子类
+
+   1. `java.util.Map<k,v>`集合
+      * Map集合的特点
+      * Map集合是一个双列集台，一个元幸包吉两个值（一个key ，一个value）
+      * Map集合中的元素，key和value的据类型可以相同，也可以不同
+      * Map集合中的元素，key是不允许重复的，value是可以重复的
+      * Map集合中的元素，key 和value一一对应
+   2. `java.util.HashMap<k,v>`集合`implements Map<K,V>`接口
+      * HashMap集合的特点
+      * HashMap集底层罡唁希表：查询的速度特别的快
+        * JDK 1.8 之前：数组+单项列表
+        * JDK 1.8 之后：数组+单向链表/红黑树（链表的长度超过8）：提高查询的速度 。
+      * HashMap集合是一个无序的集台，存储元素和取出元素的顺序有可能不一致
+   3. `java.util.LinkedHashMap<k,v>`集合`extends HashMap<K,V>`接口
+      * LinkedHashMap集合的特点
+      * LinkedHashMap集合底层是哈希表+链表（保证迭代的顺序）
+      * LinkedHashMap集合是一个有序的集合，存储元素和取出元素的顺序是一致的
+
 2. Map 接囗中的用方法
+
+   1. `public v put(K key, v value)` ：把指定的键与指定的值添加到 Map 集合中。
+
+   2. `public v remove(0bject key)` ：把指定的键所对应的键值对元素在 Map 集合中删除，返回被除元素的值
+
+   3. `public v get(Object key)` 根据指定的键，在 Map 集合中获取对应的值。
+
+   4. `boolean containsKey(0bject key)` 判断集合中是否包含指定的键。
+
+   5. `public Set<K> keyset()` ．获取 Map 合中所有的，存储到 Set 集合中。
+
+   6. `public Set<Map.Entry<K,V>> entryset()` 获取到 Map 集合中所有的腱值对对象的集合（ Set 集合 ).
+
+      ```java
+      //创建Map对象
+      HashMap<String ,String> map = new HashMap<String,String>();
+      //多态写法 
+      Map<String ,String> map = new HashMap<>();
+      
+      //添加元素到集合
+      map.put("q","a");
+      map.put("w","s");
+      map.put("e","d");
+      map.put("r","f");
+      
+      //public v remove(0bject key)
+      System.out.println(map.remove("w"));
+      
+      //public v get(Object key)
+      System.out.println(map.get("q"));
+      
+      //boolean containsKey(0bject key)
+      System.out.println(map.containsKey("w"));
+      ```
+
 3. Map 集合遍历键找值方式
+
+   1. 键找值方式：即通过元素中的键，获取键所对应的值
+
+      1. 获取 Map 集中所有的集，由于键是唯一的，所以返回一个 Set 集合存储所有的踺。方法提示：`keyset()`
+      2. 遍历键的 Set集合，得到每一个键
+      3. 根据键，获取键所对应的值，方法提示： `get(K key)`
+
+      ```java
+      //创建Map对象
+      //HashMap<String ,String> map = new HashMap<String,String>();
+       Map<String,String> map = new HashMap<>();
+      
+      //添加元素到集合
+      map.put("q","a");
+      map.put("w","s");
+      map.put("e","d");
+      map.put("r","f");
+      
+      //获取所有键
+      Set<String> keys = map.keySet();
+      //遍历得到每一个键
+      for (String key: keys){
+          String value = map.get(key);
+          System.out.print(value);
+      }
+      ```
+
 4. Entry 键值对对象
+
+   1. `Map.Entry<K,V>`:在Map接口中有一个内部接囗Entry
+   2. 作用：当 Map 集合一创建，那么就会在 Map 集合中创建一个 Entry 对象，用来记录健与值（键值对对象，键与值的关系映射）
+   3. `getKey()`获取 Entry 对象中的键
+   4. `getValue()`获取 Entry 对象中的值
+
 5. Map 集合遍历键值对方式
+
+   1. Map集合中的方法：`Set<Map.Entry<K,V>> entrySet()` 返回此映射中包含的映射关系的 Set 视图。
+
+   2. 使用Entry对象遍历
+
+      1. 使用Map集合中的方法`entrySet()` ，把Map集合中多个 Entry 对象取出来，存储到一个 set 集合中
+      2. 遍历 set 集合，获取每一个 Entry 对象
+      3. 使用 Entry 对象中的方法 getKey()和 getValue() 获取键与值
+
+      ```java
+      //创建Map对象
+      //HashMap<String ,String> map = new HashMap<String,String>();
+       Map<String,String> map = new HashMap<>();
+      
+      //添加元素到集合
+      map.put("q","a");
+      map.put("w","s");
+      map.put("e","d");
+      map.put("r","f");
+      
+      //使用Map集合中的方法`entrySet()` ，把Map集合中多个 Entry 对象取出来，存储到一个 set 集合中
+      Set<Map.Entry<String,String>> keys = map.entrySet();
+      
+      //增强for
+      for ( Map.Entry<String,String> Key : keys){
+          String value = Key.getKey();
+          String values = Key.getValue();
+          System.out.print(value);
+          System.out.print(values);
+      }
+      
+      //迭代器
+      Iterator<Map.Entry<String,String>> it = keys.iterator();
+      while (it.hasNext()){
+          Map.Entry<String,String> entry = it.next();
+          String value = entry.getKey();
+          String values = entry.getValue();
+          System.out.println(value+values);
+      }
+      ```
+
 6. HashMap 存储自定义类型键值
-7. LinkedHashMap
-8. JDK9对集合添加的优化
+
+7. LinkedHashMap集合
+
+8. Hashtable集合
+
+9. JDK9对集合添加的优化
+
 9. Debug追踪
 
 ## 迭代
