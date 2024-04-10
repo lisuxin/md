@@ -2889,13 +2889,64 @@ public class Test01 {
 
 6. HashMap 存储自定义类型键值
 
+   1. Map保证key是唯一的
+
+      * 作为key元素，必须重写hashCode方法和equals方法，以保证key唯一
+      * 重写快捷键`Alt+Insert`、然后一直下一步
+      * 谁在前面谁是key
+
+      ```java
+      @Override
+      public boolean equals(Object o) {
+          if (this == o) return true;
+          if (o == null || getClass() != o.getClass()) return false;
+          Paream paream = (Paream) o;
+          return age == paream.age && Objects.equals(name, paream.name);
+      }
+      
+      @Override
+      public int hashCode() {
+          return Objects.hash(name, age);
+      }
+      ```
+
 7. LinkedHashMap集合
+
+   1. `java.util.LinkedHashMap<K,V> entends HashMap<k,v>`
+   2. Map接口的哈希表和链接列表实现，具有可预知的迭代顺序
+   3. 原理：哈希表+链表（记录元素的顺序）
 
 8. Hashtable集合
 
+   1. 此类实现一个哈希表，该哈希表将键映射到相应的值。任何非 null 对象都可以用作键或值。
+   2. 线程同步，单线程，线程安全，速度慢。
+
 9. JDK9对集合添加的优化
 
-9. Debug追踪
+   1. List 接口， set 接口，Map 接口：里边增加了一个静态的方法of，可以给集合一次性舔加多个元素
+
+   2. `static <E> List<E> Of (E…elements)`
+
+   3. 使用前提：当集合中存储的元素的个已经确定了，不在改变时使用
+
+   4. 注意:
+
+      * of方法只适用于 list 接口， set 接囗，Map 接囗，不适用于接接口的实现类
+      * of方法的返回值是一个不能改变的集合,集合不能再使用。add方法，put方法添加元素,会抛出异常
+      * Set接口和Map方法在调用of方法的时候,不能有重复的元素,否则会抛出异常
+
+      ```java
+      List<String> list = List.of("1","2","3");
+      Set<String> set = Set.of("1","2","3");
+      Map<String,String> map = Map.of("1","Q","2","W");
+      ```
+
+10. Debug追踪
+
+    1. 使用IDEA 的断点调试功能，查看程序的运行过程
+    2. 双击行号红色圆点。右键Debug
+    3. `ctrl+f12`终止Debug
+    4. console 控制台模式
 
 ## 迭代
 
