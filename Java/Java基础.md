@@ -3310,7 +3310,253 @@ public class Demoe6Generic {
 
 ## 异常
 
+==指的是程序在执行过程中，出现的非正常的情况，是终会导砌 VM 的非正常停止。==
+
+1. 异常体系
+   * 异常根类：`java.lang.Throwable`其下两个子类
+     * `java.lang.Error`**Error**:严重错误 Error ，无法通过处理的错误，只能事先避免、修改代码。
+     * `java.lang.Exception`**Exception**:表示异常，异常产生后程序员可以通过代码方式纠正，使程序继续运行，是必须要处理的。
+
 ### 异常的分类
 
-### 异常产生过程解析
+1. 编译时异常 checked 异常。在编译时，就会检查如果没有处理异常，则编译失败。（如日期格式化异常）
 
+2. 运行时期异常 runtime 在运行时期，检查异常．在编译时期，运行异常不会被编译器检测（不报错 ). （如数学异常）
+
+   ![image-20240410231229441](../typoratuxiang/java/yichang.png)
+
+3. 异常的两种处理方式
+
+   * `throws ParseException`：抛出异常、交给虚拟机处理，如果与虚拟机格式不匹配，还是会报异常
+
+   * `try{可能会出现异常代码}catch(ParseException e){异常处理逻辑}`
+
+   * 异常产生的过程
+
+     ![image-20240411002841663](../typoratuxiang/java/yichangguoc.png)
+
+### 异常处理
+
+java异常处理的五个关键字： try、 catch, finally、 throw、 throws
+
+1. throw关键字:==用来在指定的方法中抛出一个指定的异常对==
+
+   * 使用格式
+
+     * `throw new xxxException("产生异常的原因")`
+
+   * 注意
+
+     * throw关键字必须写在方法内部
+
+     * throw关键字后边new的对象必须是Exception或者Exception的子类对象
+
+     * throw关键字抛出指定的异常对象，我们就必须处理这个异常对象
+
+       * throw关键字后边创建的是RuntimeException或者RuntimeException的子类对象，我们可以不处理，交给jvm处理
+       * throw关键字后边创建的是编译时异常，我们就必须处理，要么throws,要么try…catch
+
+       ```java
+       if (arr == null) {
+           throw new NullPointerException("arr为空");
+       }
+       ```
+
+2. Object非空判断requireNonNull
+
+   * `public static <T> T requireNonNull(T obj)` ：查看指定引用对象不是null。
+
+     ```java
+     //requireNonNull源码
+     public static <T> T requireNonNull(T obj){
+         if (obj == null) {
+             throw new NullPointerException();
+         }
+     }
+     //使用方式
+     Objects.requireNonNull(arr);
+     ```
+
+3. trows异常处理第一种方式
+
+   * 声明异常，声明异常格式:==当法内部抛出异常对象的时候，那么我们就必须处理个异常对象==
+
+     ```java
+     修饰符 返回值类型 方法名（参数） thnows 异常类名1，异常类名2...{}
+     ```
+
+   * throws关键字必须写在方法声明处
+
+   * throws关键字后边声明的异常必须是 Exception或者Exception的子类
+
+   * 方法内部如果抛出多个异常对象,那么trows后边必须也明多个异常
+
+     * 如果出的多个异常对象有子父类关系，那么直接明父类异常即可
+
+   * 调用了一个声明抛出异常的方法,我们就必须的处理声明的异常
+
+     * 要么继续使用throws声明抛出，交给方法的调用者处理,最终交给jvm==快捷键==`alt+回车`
+     * 要么 try…catch己处理异常
+
+     ```java
+     public static void main(String[] args) throws FileNotFoundException {
+           readFile("d:\\a.txt");
+         }
+     public static void readFile(String fileName) throws FileNotFoundException {
+         if (!fileName.equals("c:\\a.txt")){
+             throw new FileNotFoundException("传递路径错误");       
+         } 
+     }
+     ```
+
+4. try…catch异常处理第二种方式
+
+   * **捕获异常**：java中对异常有针对性的浯句进行捕获，可以对出现的异常进行指定方式的处理。
+
+     ```java
+     try {
+         编写可能会出现异常的代码
+     }catch (异常类型 e){
+         处理异常的代码
+         //记录日志、打印异常信息、继续抛出异常
+     }
+     ```
+
+     ```java
+     public static void main(String[] args) throws FileNotFoundException {
+         try {       
+             readFile("d:\\a.txt");   
+         } catch (FileNotFoundException e) {        
+         }
+     }
+     ```
+
+5. Throwable 中的处理异常方法
+
+   * `public void printStackTrace()` ：打印异常的跟踪栈信息并输出到控制台==包含了异常的娄型，异常的原因，还包括异常出现的位置，在开发和调试阶段，都使用printStackTrace==
+
+   * `public string getMessage()` ：获取异常的描还信息，原因：提示给用户的时候，就提示错误原因。
+
+   * `public string toString()` ：获取异常的类型和异常描述信息（不用 )
+
+     ```java
+     try { 
+     } catch (异常类型 e) {        
+     e.printStackTrace()
+     e.getMessage()
+     e.toString()
+     }
+     ```
+
+6. finally代码块
+
+   * 有一些特定的代码无论异常是否发生，都需要执行；finally就是解决这个问题的，在finall代码块中存放的代码都是一定会被执行的。
+
+   * 语法`try...catch...finally`
+
+     ```java
+     try { } catch (异常类型 e) {        
+     }finally{
+         无论是否异常都执行
+     }
+     ```
+
+   * finally如果有return语句，那么永远返回finally中的结果
+
+   * 如果父类抛出了多个异常，子类重写父类方法时，抛出和父类相同异常或者是父类异常的子类或者不抛出异常
+
+   * 父类方法没有抛出异常，子类重写父类该方法时也不可抛出异常。此时子类产生该异常，只能捕获处理，不能声明抛出。
+
+7. 多异常捕获
+
+   * 格式：异常存在子父类关系，子类写在父类上边
+
+     ```java
+     try { 
+         可能出现异常的代码
+     } catch (异常类型A e) {
+         处理异常代码
+     } catch (异常类型B e) {
+         处理异常代码
+     }
+     ```
+
+8. 自定义异常类
+
+   * 必须继承Exception或者RuntimeException
+
+     ```java
+     public class xxxExcption extends (Exception/RuntimeException){
+         //空参数构造方法
+         //带异常信息的构造方法
+     }
+     
+     public class RegisterExcption extends Exception{
+         public RegisterExcption(){
+         //空参数构造方法
+             super();
+         }
+         public RegisterExcption(String mages){
+             //带异常信息的构造方法
+             super(mages);
+         }
+     }
+     ```
+
+   * 案例
+
+     ```java
+     package com.Map.yichang;
+     
+     import java.util.Scanner;
+     
+     public class Gongju {
+         static String[] usernames = {"一","二","三"};
+     
+         public static void main(String[] args) {
+             seca();
+         }
+     
+         public static void seca()  {
+             Scanner scanner = new Scanner(System.in);
+             System.out.println("输入名字");
+             String username = scanner.next();
+             sec(username);
+         }
+     
+         public static void sec(String username)  {
+             for (String name : usernames){
+                 if (name.equals(username)){
+                     try {
+                         throw new RegisterExcption("已注册");
+                     } catch (RegisterExcption e) {
+                         seca();
+                     }
+                 }
+             }
+             System.out.println("成功");
+         }
+     }
+     ```
+
+# 多线程
+
+1. 并发与并行
+
+   * 并发：指两个或多个事件在**同一个时间段内**发生。任务交替执行
+
+   * 并行：指两个或多个事件在**同一时刻**发生（同时发生）。任务同时执行
+
+     ![image-20240411031022622](../typoratuxiang/java/bingfabingxing.png)
+
+2. 进程概念
+
+   * 进程：是指一个内存中运行的应用程序，每个进程都有一个独立的内存空间，一个应用程序可以同时运行多个进程；进程也是程序的一次执行过程，是系统运行程序的基本单位；系统运行一个程序即是一个进程从创建、运行到消亡的过程。
+
+## 线程
+
+1. 线程概念
+   * 线程：线程是迸程中的一个执行单元，负当前进程中程序的执行，一个进程中至少有一个线程。一个进程中是可以有多个线程的，这个应用程序也可以称之为多线程程序
+   * 简而言之：一个程序运行后至少有一个进程，一个进程中可以包含多个线程
+2. 线程调度
+3. 主线程
