@@ -3558,5 +3558,139 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
 1. 线程概念
    * 线程：线程是迸程中的一个执行单元，负当前进程中程序的执行，一个进程中至少有一个线程。一个进程中是可以有多个线程的，这个应用程序也可以称之为多线程程序
    * 简而言之：一个程序运行后至少有一个进程，一个进程中可以包含多个线程
+
 2. 线程调度
+
+   * **分时调度：**所有线程轮流使用 CPU 的使用权，平均分配每个线程占用 CPU 的时间。
+   * **抢占式调度：**优先让优先级高的线程使用 CPU ，如果线程的优先级相同，那么会随机选择一个（线程随机性），java 使用的为抢占式调度。
+
 3. 主线程
+
+   * JVM执行main方法，main方法会进入到栈内存，JVM会找操作系统开辟一条main方法通向CPU的执行路径，CPU就可以通过这个路径来执行main方法，这个路径叫main(主线程)
+
+4. 创建多线程第一种方式
+
+   1. 定义Thread类的子类，并重写该类的 run() 方法，该 run() 方法的方法体就代表了线程需要完成的任务，因此吧 run() 方法称为线程执行体
+
+   2. 创建Thread子类的实例，即创建了线程对象
+
+   3. 调用线程对象的 start() 方法来启动该线程
+
+      ```java
+      MyThread myThread = new MyThread();
+      myThread.start();//执行run()方法，开辟新的栈空间
+      for (int i = 0; i <20 ; i++) {            
+          System.out.println("一");
+      }
+      
+      public class MyThread extends Thread{
+          @Override
+          public void run(){
+              for (int i = 0; i <20 ; i++) {
+                  System.out.println(i);
+              }
+          }
+      }
+      ```
+
+   4. Thread类
+
+      * **构造方法**
+
+      * `public Thread()` ：分配一个新的线程对象
+
+      * `public Thread(String  name）`：分配一个指定名字的新的线程对象
+
+      * `public Thread(Runnable target) `：分配一个带有指定目标新的线程对象
+
+      * `public Thread(Runnable target,string name ）`：分配一个带有指定目标新的线程对象并指定名字。
+
+      * **常用方法**
+
+      * `public String getName()` ：获取当前线程名称
+
+      * `public void start()` ：导致此线程开始执行：Java 虚拟机调用此线程的 run 方法．
+
+      * `public void run()` ：此线程要执行的任务在此处定义代码
+
+      * `public static void sleep(long millis)` ：使当前正在执行的线程以指定的毫秒数暂停（暂时停止执行）
+
+         ```java
+         //有异常
+         类名.sleep(时间);
+         ```
+
+      * `public static Thread currentThread()` ：返回对当前正在执行的线程对象的引用。
+
+      * **改变线程名称**
+
+         ```java
+         //方法一.直接改
+         setName("");
+         //方法二.调用构造方法
+         new 构造方法名("").start//开启线程
+         ```
+
+5. 创建线程的第二种方式
+
+   1. 声明Runnable接口类，重写run()方法。
+
+      ```java
+      public class Runr implements Runnable{
+          @Override
+          public void run() {             
+          }
+      }
+      
+      Runr runr = new Runr();
+      Thread thread = new Thread(runr);
+      thread.start();
+      ```
+
+6. Thread 和 RunnabIe 的区别
+
+   * 如里一个类承 Thread 孬则不适台资源共享。但是如实现了 Runnab 接口的话，则很容易的实现资共享。
+   * 实现 Runnab 接口比继承 Thread 类所具有的优势
+      1. 适合多个相同的程序代码的线程去共享同一个资源
+      2. 可以避免 java 中的单承的局限性
+      3. 增加程序的健壮性．实现解藕憬作，代码可以被多个线程共享，代码和线程独立。
+      4. 线程池只能放入实现 Runnable 或 Callable 类线程，不能直接放入继承 Thread 的类。
+
+7. 匿名内部类方式实现线程创建
+
+   * 匿名内部类：格式`new 父类/接口（）{重写方法}`
+
+      ```java
+      public static void main(String[] args) {
+          Thread thread =new Thread(new Runnable(){    
+              public void run(){        
+                  for (int i = 0; i < 20; i++) {            
+                      System.out.println(i);              
+                  }          
+              }        
+          });    
+          thread.start();    
+          System.out.println(thread.getName());    
+      }
+      ```
+
+8. 解决线程安全
+
+   * 同步代码块
+
+      * `synchronized`关键字可以用于方法中的某个区块中，表示只对这个区块的资源实行互斥访问
+
+         ```java
+         创建一个锁对象
+         synchronized(同步锁){
+             需要同步操作的代码
+         }
+         ```
+
+   * 同步方法
+
+      * 静态同步方法
+
+   * Lock锁
+
+   * 
