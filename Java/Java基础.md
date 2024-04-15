@@ -3746,11 +3746,134 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
          * `notify`：唤醒单个线程
          * `notifyAll`唤醒所有线程
 
-## 等待唤醒机制
+### 等待唤醒机制
 
-## 线程池
+1. 线程间通信
+   * 多个线程在处理同一个资源但是处理的动作（线程的任务）却不相同。
+2. 等待唤醒机制
+   * 调用 wait 和 noti 方法需要注意的节
+     1. wait方法与notify 方法必须要由同一个锁对象调用。因为：对应的锁对象可以过 notify 唤醒使用同一个锁对象调用的 wait 方法后的线程
+     2. wait方法与notify 方法是属于 Object 类的方法的。因为：锁对象可以是任意对象，而任意对象的所属类都是继承了 Object 类的
+     3. wait方法与notify 方法必须要在同步代码块或者是同步函数中使用。因为：之须要过锁对象调用这 2 个方法。
 
-## Lambda表达式
+### 线程池
+
+1. 概念
+
+   * 其实就是一个容纳多个线程的容器，其中的线程可以反复使用。省去了频繁创建线程对象的操作，无需反复创建线程而消耗过多资源。
+
+2. 使用
+
+   * 使用线程池中线对象的步骤
+
+     1. 创建线程池对象
+     2. 创建Runnable接口子类对象。(task)
+     3. 提交Runnable 接口子类对象。 (take task)
+     4. 关闭线程池（一般不做 )
+
+     ```java
+     public class XianChengChi {
+         public static void main(String[] args) {
+             //1创建对象
+             ExecutorService executorService = Executors.newFixedThreadPool(2);
+             //3使用线程
+             executorService.submit(new ZiLei());
+         }
+     }
+     //2创建子类对象
+     public class ZiLei implements Runnable{
+         @Override
+         public void run() {
+             System.out.println(Thread.currentThread().getName());//获取当前线程名称
+         }
+     }
+     ```
+
+3. 相关方法
+
+   * `submit()`获取线程池中的某一个线程对并执行
+   * `newFixedThreadPool()`返回线程池对象。（创建的是有界线程池，也就是池中的线程个数可以定最大数量）
+
+### Lambda表达式
+
+1. 函数式编程思
+
+   * 只要能取到结果，谁去做的，怎么做的都不重要，重视的是结果，不重视过程
+
+2. 冗余的`Runnable`代码
+
+   1. 传统写法
+
+      ==当需要启动一个线程去完成任务时，通常会通过`java.lang.Runnable` 接口来定义任务内容，并使用`java.lang.Thread` 类来启动该线程、代码如下：==
+
+      ```java
+      public class Dome {
+          public static void main(String[] args) { 
+              //匿名内部类
+              Runnable task = new Runnable() {
+                  @Override
+                  public void run() {//覆盖重写抽象方法
+                      System.out.println(Thread.currentThread().getName());
+                  }
+              };
+              new Thread(task).start();//启动线程
+          }
+      }
+      
+      
+      //lambda表达式
+      new Thread(() -> System.out.println(Thread.currentThread().getName())).start();
+      ```
+
+#### Lambda
+
+1. 标准格式
+
+   1. Lambda 省去面向对象的条条框框,格式由 3 部分组成
+
+      * 一些参数
+      * 一个箭头
+      * 一段代码
+
+   2. 标准格式
+
+      `(参数类型 参数名称) -> {代码语句}`
+
+   3. 格式说明
+
+      * 小括号内的浯法与传统方法参数列表一致：无参数则留空：多个参数则用逗号分隔。
+      * `->`是新引入的浯法式代表指向动作。
+      * 大括号内的浯法与传统方法体要求基本一致。
+
+2. 无参数无返回值
+
+   1. 案例：定义一个接口，内含一个抽象方法，且无参数，无返回值；调用方法进行输出。
+
+      ```java
+      //定义一个接口，内含一个抽象方法，且无参数，无返回值
+      public interface Chi {
+          void fangfa();
+      }
+      //调用方法进行输出。
+      public class XianChengChi {
+          public static void main(String[] args) {
+              fa(() -> System.out.println("123"));
+          }
+          public static void fa(Chi chi){
+              chi.fangfa();
+          }
+      }
+      ```
+
+3. 省略规则
+
+   * 在 Lambda 标准格式的基础上，使用省略写法的规则为：
+     1. 小括号内参数的类型可以省略
+     2. 如果小括号内有且仅有一个参，则小括号可以省略。
+     3. 如果大活号内有且仅有一个语句，则无论是否有返回匾．都可以省略大括号、 return 关键字及浯句分号。
+   * 使用 Lambda 前提
+     1. 用 Lambda 必须貝有接口，且要求接口中有且仅有一个抽象方法。
+     2. 到 Lambda 必须具有上下又推断。
 
 # Flie类
 
