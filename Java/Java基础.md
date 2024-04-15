@@ -3689,8 +3689,68 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
 
    * 同步方法
 
-      * 静态同步方法
+      * 同步方法：**使用步骤**
+
+         1. 把访问了共享数据的代码抽取出来，放到一个方法中
+
+         2. 在方法上添加`synchronized`修饰符、
+
+         3. 锁对象是`this`
+
+         4. 格式：定义方法的格式
+
+            ```java
+            修饰符 synchronized 返回值类型 方法名（参数列表）{
+                可能会出现线程安全问题的代码（访问了共享数据的代码）
+            }
+            ```
+
+      * 静态同步方法：加上static关键字，锁对象是`.class`类对象
 
    * Lock锁
 
-   * 
+      1. Lock中的方法
+
+         * `void lock()`获取锁
+         * `void nulock()`释放锁
+         * `java.util.concurrent.locks.Lock implements ReentrantLock `
+
+      2. 使用步骤
+
+         1. 创建`ReentrantLock`对象：`Lock l = new ReentrantLock();`
+
+         2. 在线程安全前调用`lock`
+
+         3. 在线程安全后调用`nulock`
+
+            ```java
+            Lock l = new ReentrantLock();//多态用法
+            l.lock();
+            try {    
+                 有问题的代码
+            }catch (数据类型 e){            
+                    解决方法
+            }finally {
+                l.nulock();   
+            }
+            ```
+
+9. 线程状态
+
+   ![image-20240415165643054](../typoratuxiang/java/xianchengzhuangtai.png)
+
+   * Object类中wait带参方法和notifyAll方法
+      1. wait
+         * `wait(毫秒)`：线程进入睡眠状态
+      2. notify
+         * `notify`：唤醒单个线程
+         * `notifyAll`唤醒所有线程
+
+## 等待唤醒机制
+
+## 线程池
+
+## Lambda表达式
+
+# Flie类
+
