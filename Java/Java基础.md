@@ -3875,5 +3875,39 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
      1. 用 Lambda 必须貝有接口，且要求接口中有且仅有一个抽象方法。
      2. 到 Lambda 必须具有上下又推断。
 
-# Flie类
+# File类
 
+==`java.io.File`：是文件和目录路径名的抽象表示，主要用于文件和目录的创建、查找和删除等作==
+
+1. 构造方法
+
+   * `public File(String pathname)`：通过将给定的**路径名字符串**转换为抽象路径来创建新的File实例
+   * `public File(String parent,String child)`：从**父路径名字符串和子路径名字符串**创建File实例
+   * `public File(File parent,String child)`：从**父抽象路径名和子路径名字符串**创建File实例
+
+   ```java
+   String filestring = "D:\\aaa";
+   File file = new File(filestring);
+   
+   File file = new File(父路径名,子路径名);
+   
+   File file = new File(filestring,子路径名);
+   ```
+
+2. 静态成员变量
+
+   * `pathSeparator`:路径分隔符、Windows分号`;`、Linux冒号`:`
+   * `separator`:文件名称分隔符、Windows反斜杠`;`、Linux正斜杠`:`
+
+3. 获取功能方法
+
+   * `public String gitAbsolutePath()`
+   * `public String gitPath()`
+   * `public String gitName()`
+   * `public long length()`
+
+4. 判断功能方法
+
+5. 创建删除功能方法
+
+6. 遍历（文件夹）目录功能 
