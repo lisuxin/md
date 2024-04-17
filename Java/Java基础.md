@@ -49,6 +49,8 @@
      * 变量命名规范：首字母小写，后面每个单词首字母大写(小驼峰)
      * 方法命名规范：同变量名
 
+9. 三元运算符：`(关系表达式) ? 表达式1 : 表达式2;`
+
 9. 四种权限修饰符:Java中有四种权限修饰符,能访问的权限。
 
    |              | public | > protected | > (default) 表示不写 | > private |
@@ -3978,9 +3980,95 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
       * 方法` boolean accept(File pathname)`：测试指定抽象路径是否应该包含在某个路径名列表中
       * 参数：
          * `pathname`使用ListFile方法遍历目录，得到每一个文件对象
+      
    * FileNameFilter使用lamdba优化
       * 方法`boolean accept(File dir,String name)`：测试指定文件是否应该包含在某一文件列表中。
       * 参数：
          * `dir`构造方法在传递的被遍历对象
          * `name`使用ListFile方法遍历目录，获取的每一个文件或文件名对象
+      
    * 两个过滤器接口是没有实现类的，需要我们自己写实现类，重写过滤方法`accept()`在方法中自己定义过滤规则
+   
+      ```java
+      //实现类
+      public class ShiXianL implements FileFilter {
+          @Override
+          public boolean accept(File pathname) {
+              return true;
+              return pathname.getName().toLowerCase().endsWith(".png");//返回后缀名为.png文件
+          }
+      }
+      
+      //方法
+      public class GuoLvQ {
+          public static void main(String[] args) {
+              File file = new File("D:\\杨攀\\简历");
+              gitAllFile(file);
+          }
+      
+          private static void gitAllFile(File file) {
+              File[] files = file.listFiles(new ShiXianL());//返回true会保存地址到数组，返回false，则返回false
+              //使用匿名内部类
+              File[] files = file.listFiles(new FileDilter(){
+                   @Override    
+                  public boolean accept(File pathname) {      
+                      if (pathname.isDirectory()){          
+                          return true;                      
+                      }      
+                      return pathname.getName().toLowerCase().endsWith(".png");   
+                  }
+              });
+              //Lambda表达式
+              File[] files = file.listFiles(pathname ->  pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".png"));
+              for ( File f : files){
+                  if (f.isDirectory()){
+                      gitAllFile(f);
+                  }else {
+                      System.out.println(f);
+                  }
+              }
+          }
+      }
+      ```
+
+# IO流
+
+1. 分类
+   * 输入流：把数据从其他设备上读取到内存中的流。
+   * 输出流：把数据从内存中写出到其他设备上的流
+   * 格局数据的类型分为**字节流**和**字符流**
+
+## 字节输出流
+
+1. OutputStream
+
+   * ==`java.io.0utputStream`抽象类是表示字节输出流的所有类的超类，将指定的字节信息写出到目的地。它定义了字节输出流的基本共性功能方法。==
+
+     * `public void close()` ：关闭此输出流并释放与此流相关联的任何系统资源。
+
+     * `public void flush()` ：刷新此输出流并强制任何缓冲的输出字节被写出。
+     * `public void write(byte[] b) `：将 b.length 字节从指定的字节数组写入此输出流。
+     * `public void write(byte[] b, int off, int len)` ：从指定的字节数组写入len字节，从偏移量 off 开始输出到此输出流。
+     * `public abstract void write(int b)` ：将指定的字节输出流。
+
+   * 写入数据到文件
+
+     * 使用步骤
+
+       1. 创建`FileOutputStream`对象，构造方法传递写入数据的目的地
+       2. 调用`write()`方法，写入数据
+       3. 释放资源
+
+       ```java
+       FileOutputStream fileOutputStream = new FileOutputStream("D:\\杨攀\\简历\\a.txt");      
+       fileOutputStream.write(789);//存储为二进制
+       fileOutputStream.close();
+       //写入字符串
+       byte[] as = "".getBytes()//将字符串转换为字符数组
+       //追加写
+       FileOutputStream fileOutputStream = new FileOutputStream("D:\\杨攀\\简历\\a.txt",true);
+       //换行写
+       fileOutputStream.write("\r\n".getBytes());
+       ```
+
+## 字节输入流

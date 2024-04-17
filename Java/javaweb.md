@@ -72,7 +72,5 @@
       * 本地:`<!DOCTYPE 根标签名SYSTEM "dtd文件的位置">`
       *  网络:`<!DOCTYPE 根标签名PUBLIC "dtd文件名字”"dtd文件的位置URL">`
 
-683
-
 ### Servlet
 
