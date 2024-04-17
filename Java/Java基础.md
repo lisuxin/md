@@ -3901,13 +3901,86 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
 
 3. 获取功能方法
 
-   * `public String gitAbsolutePath()`
-   * `public String gitPath()`
-   * `public String gitName()`
-   * `public long length()`
+   * `public String gitAbsolutePath()`：返回此 File 的绝对路径名字符串
+   * `public String gitPath()`：将此 FiIe 转换为路径名字符串
+   * `public String gitName()`：返回由此 Flle 表示的文件或目录的名你
+   * `public long length()`：返回由此 File 表示的文件的长度
 
-4. 判断功能方法
+   ```java
+   File file = new File("D:/d/d/d.txt");
+   System.out.println(file.getAbsoluteFile());//绝对路径
+   System.out.println(file.getPath());//构造路径
+   System.out.println(file.getName());//名称
+   System.out.println(file.length());//长度
+   ```
+
+4. 判断功能方法：路径必须存在否则返回false
+
+   * `public boolen exisit()`：此 File 表示的文件或目录是否实际存在
+   * `public boolen isDirectory()`：此 File 表示的是否为目录
+   * `public boolen isFile`：此 File 表示的是否为文件
+
+   ```java
+   File file = new File("D:/d/d/d.txt");
+   System.out.println(file.exisit());//是否存在
+   System.out.println(file.isDirectory());//是否为目录
+   System.out.println(file.isFile());//是否为文件
+   ```
 
 5. 创建删除功能方法
 
+   * `public boolen createNewFile()`：当且仅当具有该名称的文件尚不存在时，创建一个新的空文件
+   * `public boolen delete()`：删除由此 File 表示的文件或目录。
+   * `public boolen mkdir()`：创建由此 File 表示的目录
+   * `public boolen mkdirs()`：创建由此 FiIe 表示的目录．包括任何必需但不存在的父目录
+
+   ```java
+   file.createNewFile()
+   file.delete()
+   file.mkdir()
+   file.mkdirs()
+   ```
+
 6. 遍历（文件夹）目录功能 
+
+   * `public String[] list() `：返回一个 String 数组，表示该 File 目录中的所有子文件或目录
+   * `publlc File[] listFiles()`：返回一个 File 数组，表示该 FiIe 目录中的所有的子文件或目录。
+
+   ```java
+   String[] list = file.list()
+   for(String fileName : list){
+       System.out.println(fileName);
+   }
+   
+   File[] list = file.listFiles()
+   for(String fileName : list){
+       System.out.println(fileName);
+   }
+   ```
+
+7. 递归
+
+   * ==指在当前方法内调用自己的这种现象==
+   * 递归分类：
+      * 递归分为两种， 直接递归和间接递归
+      * 直接递归称为方法自身调用自已
+      * 间归递归可以 A 方法调用 B 方法， B 方法调用 C 方法，C方法调用 A 方法
+   * 注意事项
+      * 递归一定 要有条件限定，保证递归能够停止下来，否则会发生栈内存溢出
+      * 在递归中虽然有限定条件，但是递归次数不能太多。否则也会发生栈内存溢出。
+      * 构造方法，禁止递归
+   * 什么时候使用
+      * 方法体不变，参数变化
+
+8. 过滤器
+
+   * FileFilter
+      * 方法` boolean accept(File pathname)`：测试指定抽象路径是否应该包含在某个路径名列表中
+      * 参数：
+         * `pathname`使用ListFile方法遍历目录，得到每一个文件对象
+   * FileNameFilter使用lamdba优化
+      * 方法`boolean accept(File dir,String name)`：测试指定文件是否应该包含在某一文件列表中。
+      * 参数：
+         * `dir`构造方法在传递的被遍历对象
+         * `name`使用ListFile方法遍历目录，获取的每一个文件或文件名对象
+   * 两个过滤器接口是没有实现类的，需要我们自己写实现类，重写过滤方法`accept()`在方法中自己定义过滤规则
