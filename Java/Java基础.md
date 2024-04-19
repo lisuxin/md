@@ -4072,3 +4072,56 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
        ```
 
 ## 字节输入流
+
+`java.io.InputStream`抽象类是表示字节输入流的所有类的超类，可以读取字节信息到内存中，它定义了字节输入流的基本共性功能方法。
+
+* `publlc void close()`：关闭此输入流并释放与此流相关的任何系统资源
+* `public abstract int read()`：从输入流读取数据的下一个字节
+* `public int read(byte[] b)` ：从输入流中读取一些字节数，并将它们存储到字节数组 b 中
+
+==close方法,当完成流的作时，必须调用此方法，释放系统资源==
+
+1. FileInputStream类
+
+   * `java.io.FileInputStream` 类是文件输入流，从文件中读取字节
+
+   * 构造方法
+
+      * `FileInputStream(File file)`：通过打开与实际文件的连接来创建一个 FilelnputStream ，该文件由文件系统中 File 对象 file 命名
+      * `FileInputStream(String name)`：通过打开与实际文件的连接来创建一个 FilelnputStream ，该文件由文件系统中的路径名 name 命名
+
+   * 使用步骤
+
+      1. 创建对象
+
+      2. 会把FileInputStream对象指定构造方法中要读取的文件
+
+         ```java
+         package com.io.sur;
+         
+         import java.io.FileInputStream;
+         import java.io.IOException;
+         
+         public class SuRu {
+             public static void main(String[] args) throws IOException {
+                 //创建对象
+                 FileInputStream fileInputStream = new FileInputStream("D:\\下载\\123\\1.txt");
+                 int len = 0;//一个字节转义
+                 while ((len = fileInputStream.read()) != -1){
+                     System.out.print((char)len);
+                 }
+                 //释放资源
+                 fileInputStream.close();
+             }
+         }
+         ```
+
+   * 读取多个字节
+
+      * String类工作方法
+      * `String(byte[] bytes)`：把字节数组转换为字符串
+      * `String(byte[] bytes,int offset,int lengtf)`：把一部分字节数组转换为字符串
+
+   * 读取中文乱码
+
+   * 
