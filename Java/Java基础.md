@@ -4073,7 +4073,7 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
 
 ## 字节输入流
 
-`java.io.InputStream`抽象类是表示字节输入流的所有类的超类，可以读取字节信息到内存中，它定义了字节输入流的基本共性功能方法。
+`java.io.InputStream`抽象类是表示用于读取字节输入流的所有类的超类，可以读取字节信息到内存中，它定义了字节输入流的基本共性功能方法。
 
 * `publlc void close()`：关闭此输入流并释放与此流相关的任何系统资源
 * `public abstract int read()`：从输入流读取数据的下一个字节
@@ -4119,9 +4119,84 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
    * 读取多个字节
 
       * String类工作方法
+   
       * `String(byte[] bytes)`：把字节数组转换为字符串
+
       * `String(byte[] bytes,int offset,int lengtf)`：把一部分字节数组转换为字符串
 
-   * 读取中文乱码
+        ```java
+        //创建对象
+        FileInputStream fileInputStream = new FileInputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+        byte[] bytes = new byte[2];//数组一般定义1024,1kb
+        int len = fileInputStream.read(bytes);//读取一定数量的字节，并存入缓冲区数组
+        System.out.println(len);
+        System.out.println(new String(bytes,0,len));
+        //释放资源
+        fileInputStream.close();
+        }
+        }
+        ```
+   
+      * 文件复制
+   
+        1. 记录毫秒`System.currentTimeMillis()`
+   
+           ```java
+           package com.io.shuru;
+           
+           import java.io.FileInputStream;
+           import java.io.FileOutputStream;
+           import java.io.IOException;
+           
+           public class FuZhi {
+               public static void main(String[] args) throws IOException {
+                   long s =System.currentTimeMillis();
+                   //输入流
+                   FileInputStream fileInputStream = new FileInputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\杨攀简历.png");
+                   //输出流
+                   FileOutputStream fileOutputStream = new FileOutputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\shuru\\2.png");
+                   byte[] bytes = new byte[1024];
+                   int len =0;
+                   while ((len = fileInputStream.read(bytes)) != -1){
+                       fileOutputStream.write(bytes,0,len);
+                   }
+                   fileInputStream.close();
+                   fileOutputStream.close();
+                   long e =System.currentTimeMillis();
+                   System.out.println(e-s);
+               }
+           }
+           ```
 
-   * 
+### 字符输入
+
+1. `java.io.Reader`抽象类是表示用于读取字符输入流的所有类的超类，可以读取字符信息到内存中，它定义了字符输入流的基本共性功能方法。
+
+   * `publlc void close()`：关闭此流并释放与此流相关的任何系统资源
+
+   * `public int read()`：从输入流读取个字符
+
+   * `public int read(char[] cbuf)` ：从输入流中读取一些字符，并将它们存储到字节数组 cbuf 中
+
+     ```java
+     FileReader fileReader = new FileReader("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+     char[] chars=new char[1024];
+     int len = 0;
+     while ((len = fileReader.read())!=-1){
+         System.out.print((char) len);    
+     }
+     fileReader.close();
+     ```
+
+### 字符输出
+
+
+
+### 其他
+
+1. `try...catch...finally`处理流中的异常
+2. jdk9处理流异常
+3. 使用`Properties`集合，存储、遍历取出集合中的数据
+   1. 方法
+      * `store`
+      * `load`
