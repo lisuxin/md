@@ -12,6 +12,8 @@
 | :--: | :--: |
 | ` git config --global user.name ~~~~ ` | 初始化用户名 |
 | `git config --global user.email ~~~~` | 初始化邮箱 |
+| `git config user.name` | 查看用户名 |
+| `git config user.email` | 查看邮箱 |
 | `git config --list` | 查看配置信息 |
 | `git config --global core.editor "code -w"` | 将`vsCode`设为默认编辑器 |
 
