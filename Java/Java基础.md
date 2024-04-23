@@ -4073,7 +4073,7 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
 
 ## 字节输入流
 
-`java.io.InputStream`抽象类是表示字节输入流的所有类的超类，可以读取字节信息到内存中，它定义了字节输入流的基本共性功能方法。
+`java.io.InputStream`抽象类是表示用于读取字节输入流的所有类的超类，可以读取字节信息到内存中，它定义了字节输入流的基本共性功能方法。
 
 * `publlc void close()`：关闭此输入流并释放与此流相关的任何系统资源
 * `public abstract int read()`：从输入流读取数据的下一个字节
@@ -4119,9 +4119,423 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
    * 读取多个字节
 
       * String类工作方法
+   
       * `String(byte[] bytes)`：把字节数组转换为字符串
+
       * `String(byte[] bytes,int offset,int lengtf)`：把一部分字节数组转换为字符串
 
-   * 读取中文乱码
+        ```java
+        //创建对象
+        FileInputStream fileInputStream = new FileInputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+        byte[] bytes = new byte[2];//数组一般定义1024,1kb
+        int len = fileInputStream.read(bytes);//读取一定数量的字节，并存入缓冲区数组
+        System.out.println(len);
+        System.out.println(new String(bytes,0,len));
+        //释放资源
+        fileInputStream.close();
+        }
+        }
+        ```
+   
+      * 文件复制
+   
+        1. 记录毫秒`System.currentTimeMillis()`
+   
+           ```java
+           package com.io.shuru;
+           
+           import java.io.FileInputStream;
+           import java.io.FileOutputStream;
+           import java.io.IOException;
+           
+           public class FuZhi {
+               public static void main(String[] args) throws IOException {
+                   long s =System.currentTimeMillis();
+                   //输入流
+                   FileInputStream fileInputStream = new FileInputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\杨攀简历.png");
+                   //输出流
+                   FileOutputStream fileOutputStream = new FileOutputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\shuru\\2.png");
+                   byte[] bytes = new byte[1024];
+                   int len =0;
+                   while ((len = fileInputStream.read(bytes)) != -1){
+                       fileOutputStream.write(bytes,0,len);
+                   }
+                   fileInputStream.close();
+                   fileOutputStream.close();
+                   long e =System.currentTimeMillis();
+                   System.out.println(e-s);
+               }
+           }
+           ```
 
-   * 
+## 字符输入
+
+1. `java.io.Reader`抽象类是表示用于读取字符输入流的所有类的超类，可以读取字符信息到内存中，它定义了字符输入流的基本共性功能方法。
+
+   * `publlc void close()`：关闭此流并释放与此流相关的任何系统资源
+
+   * `public int read()`：从输入流读取个字符
+
+   * `public int read(char[] cbuf)` ：从输入流中读取一些字符，并将它们存储到字节数组 cbuf 中
+
+     ```java
+     FileReader fileReader = new FileReader("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+     char[] chars=new char[1024];
+     int len = 0;
+     while ((len = fileReader.read())!=-1){
+         System.out.print((char) len);    
+     }
+     fileReader.close();
+     ```
+
+## 字符输出
+
+1. `java.io.writer` 抽象类是表示用于与出字符流的所有奎的超类将指定的字符信与出到目的地。它定义了字节输出流的基本共性功能方法。
+
+   * `void witer(int c)`写入单个字符。
+   * `void write(char[] cbuf)` 写入字符数组
+   * `abstract void write(char[] cbuf, int Off,int len)`的字符个数。
+   * `void write(String str)` 写入字符串
+   * `void writer(String str,int off,int len)`写入字符串的某一部分， off 字符串的开始索引 ,len 写的字符个数
+   * ` void flush()` 刷新该流的缓冲。
+   * `void close()` 关闭此流但要先刷新它.
+
+2. `FileWriter`
+
+   * `File writer(Fi1e file) `：创建一个新的 FileWriter ，给定要读取的 FiIe 对象。
+
+   * `Filewriter(String fileName ）`：创一个新的 FiIeWriter ，给定要读取的文件的名称
+
+     ```java
+     //创建对象
+     //写入数据
+     //刷新到文件，释放资源
+     FileWriter fileWriter  = new FileWriter("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");      
+     fileWriter.write(97);
+     fileWriter.close();//先刷新再关闭
+     //其他方法
+     char[] cs = {'a','s','d','f','g','h','j'};
+     fileWriter.write(cs);     
+     fileWriter.write(cs,1,3);
+     String len = "asdfghjk";
+     fileWriter.write(len);
+     fileWriter.write(len,1,6);
+     ```
+
+3. 续写换行
+
+   * `FileWriter(String fileName,boolean append)`写入数据的目的地
+
+   * `FileWriter(File file,boolean append)`true续写
+
+   * 换行win`\r\n`linunx`/n`mac`/r`
+
+     ```java
+     public class Zifushuc {
+         public static void main(String[] args) throws IOException {
+             FileWriter fileWriter  = new FileWriter("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+             fileWriter.write(97+"\r\n");
+             char[] cs = {'a','s','d','f','g','h','j'};
+             fileWriter.write(cs);
+             fileWriter.write("\r\n");
+             fileWriter.write(cs,1,3);
+             fileWriter.write("\r\n");
+             String len = "asdfghjk";
+             fileWriter.write(len+"\r\n");
+             fileWriter.write(len+"\r\n",1,3);
+             fileWriter.close();
+         }
+     }
+     ```
+
+     
+
+### 其他
+
+1. `try...catch...finally`处理流中的异常
+
+   ```java
+   public class Try {
+       public static void main(String[] args) {
+           FileWriter fileWriter = null;
+           try {
+               fileWriter = new FileWriter("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+               for (int i = 0; i < 20; i++) {
+                   fileWriter.write("我不爱你");
+               }
+           }catch (IOException e){
+               System.out.println(e);
+           }finally {
+               if(fileWriter != null){
+                   try {
+                       fileWriter.close();
+                   } catch (IOException e) {
+                       e.printStackTrace();
+                   }
+               }
+           }
+       }
+   }
+   ```
+
+2. jdk9处理流异常
+
+   ```java
+   //jdk7
+   public class Try {
+       public static void main(String[] args) {
+           try(FileWriter fileWriter = new FileWriter("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");){
+               for (int i = 0; i < 20; i++) {
+                   fileWriter.write("我不爱你");
+               }
+           }catch (IOException e){
+               System.out.println(e);
+           }
+       }
+   }
+   //jdk9
+   public class Try {
+       public static void main(String[] args) throws IOException {
+           FileWriter fileWriter = new FileWriter("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+           try(fileWriter){
+               for (int i = 0; i < 20; i++) {
+                   fileWriter.write("我不爱你");
+               }
+           }catch (IOException e){
+               System.out.println(e);
+           }
+       }
+   }
+   ```
+
+3. 使用`Properties`集合，存储、遍历取出集合中的数据
+   1. `java.util.Properties集合 extends Hashtable<k,v> impelements Map<k,v>`
+   
+      * Properties类表示一个持久的属性集。Properties可以保存在流中或者从流中加载
+      * Properties集合是唯一一个和IO流相结合的集合
+      * 属性列表中每个键及其对应的值都是一个字符串：==Properties集含是一个双列隼合，key和value默认都是字符串==
+   
+   1. 方法
+      
+      * `store`：把集合中的临时数据，持久化写入到硬盘中存储
+      
+        ```java
+        void store(OutpuntStream out,String commrnts)
+        void store(Writer writer,String commrnts)
+        OutpuntStream out:字节输出流，不能写中文
+        Writer writer：字符输出流，可以写中午
+        String commrnts：Unicode编码，一般使用“”空字符串
+        //
+            FileWriter fileWriter = new FileWriter("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+                properties.store(fileWriter,"iwv");
+                fileWriter.close();
+        ```
+      
+      * `load`：把硬盘中保存的文件（键值对），读取到集合中使用
+      
+        ```java
+        void load(InputStream inStream):字节输入不能含中文
+        void load(Reader reader)：字节输入，可以有中文
+        健与值可以使用=、空格连接
+        可以使用#注释
+        默认字符串不用再加引号
+        // 
+        FileInputStream fileInputStream = new FileInputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+                Properties pro = new Properties();
+                pro.load(fileInputStream);
+                Set<String> strings = pro.stringPropertyNames();
+                for (String key : strings){
+                    //通过key获取value
+                    String property = pro.getProperty(key);
+                    System.out.println(key+"="+property);
+                }
+                fileInputStream.close();
+            }
+        ```
+      
+      * `Object setProperty(String key, String value)  `调用 Hashtable 的方法 put。
+      
+      * `String getProperty(String key)`通过key找到value值，此方法相当于Map 集合中的get(key)方法
+      
+      * `Set<String> stringPropertyNames()`返回此属性列表中的键集，其中该键及其对应值是字符串,此方法相当于Map集合中的keyset方法
+      
+      ```java
+      private static void shot01() {
+          Properties properties = new Properties();
+          properties.setProperty("a","a1");
+          properties.setProperty("b","b1");
+          properties.setProperty("c","c1");
+          properties.setProperty("d","d1");
+          //取出的键存到set集合中
+          Set<String> strings = properties.stringPropertyNames();
+          //遍历集合
+          for (String key : strings){    
+              //通过key获取value        
+              String property = properties.getProperty(key);        
+              System.out.println(key+"="+property);        
+          }    
+      }
+      ```
+
+## 缓冲流
+
+对基本流的增强，增加了缓冲区
+
+### 字节缓冲流
+
+1. 输入流`BufferedInputStream(InputStream in)`
+
+2. 输出流`BufferedOutputStream(OutputStream out)`
+
+   ```java
+    private static void shout02() throws IOException {
+           //输入
+           FileInputStream fileInputStream = new FileInputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+           BufferedInputStream inputStream = new BufferedInputStream(fileInputStream,1024);
+           byte[] bytes =new byte[1024];
+           int len = 0;
+           while ((len = inputStream.read(bytes))!=-1){
+               System.out.println(new String(bytes,0,len));
+           }
+           inputStream.close();
+           //输出
+           FileOutputStream fileOutputStream = new FileOutputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+           BufferedOutputStream outputStream = new BufferedOutputStream(fileOutputStream,1024);
+           outputStream.write("写入".getBytes());
+           outputStream.close();
+       }
+   ```
+
+### 字符缓冲流
+
+1. 输入流`BufferedReader(Reader reader)`
+
+   * `void readLine`读取一行文本
+
+2. 输出流`BufferedWriter(Writer witer)`
+
+   * `void newLine()`换行
+
+   ```java
+   private static void shuru01() throws IOException {
+           //输入
+           FileReader fileReader = new FileReader("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+           BufferedReader reader = new BufferedReader(fileReader,1024);
+           String lin;
+           while ((lin=reader.readLine())!= null){
+               System.out.println(lin);
+           }
+           reader.close();
+           //输出
+           FileWriter fileWriter = new FileWriter("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt");
+           BufferedWriter writer = new BufferedWriter(fileWriter,1024);
+           char[] chares = {'我','爱','学','习','啊'};
+           for (int i = 0; i < 10; i++) {
+               writer.write(chares);
+               writer.newLine();
+           }
+           writer.close();
+       }
+   ```
+
+### 转换流
+
+1. 字符编码和字符集
+
+   * **字符编码**：`character Encoding` ：就是一套自然语言的字符与二进制数之间的对应规则。编码：生活中文字和计算机中二进制的对应规则
+   * **字符集**： `Charset` ：也叫编码表。是一个系支持的所有字符的集合，包括各国家文字、标点符号、图形符号、数字等
+
+2. `InputStreamReader`和`OutputStreamWriter`：字节的操作
+
+   * 流转流`java.io.InputStreamReader`  是Reader 的子类，是从字节流到字符流的桥梁。它读取字节并使用指定的字符地将其解码为字符，它的字符集可以由名称指定，也可以平台的默认字符集
+
+   * 构造方法
+
+     * `InputStreamReader(InputStrean in) `：创建一个使用默认字符集的字符流．
+     * `InputStrearReader(InputStrean in ,String charsetNane)` ：创建一个。指定字符集的字符流。
+
+     ```java
+     package com.io.huanchong;
+     
+     import java.io.*;
+     
+     public class ZuanHuan {
+         public static void main(String[] args) throws IOException {
+            show01();//写入
+             show02();//输出
+         }
+     
+         private static void show02() throws IOException {
+             OutputStreamWriter streamWriter = new OutputStreamWriter(new FileOutputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt"),"utf-8");
+             streamWriter.write("我和你在一起");
+             streamWriter.close();
+         }
+     
+         private static void show01() throws IOException {
+             InputStreamReader isr = new InputStreamReader(new FileInputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt"),"UTF-8");
+             int lin = 0;
+             while ((lin = isr.read())!= -1){
+                 System.out.print((char) lin);
+             }
+             isr.close();
+         }
+     }
+     ```
+
+3. 序列化和反序列化
+
+   * 序列化：把对象以流的方式写入到文件中保存
+
+   * 构造方法
+
+     * `ObjectOutputStream(OutputStream out)`
+     * 特有成员方法
+     * `writeObject(Object obj)`将指定的对象写入 `0bject0utputStream`
+
+     ```java
+     //使用步骤
+     //创建对象，传递字节流
+     //使用writeObject方法，把对象写入文件中，创建对象；对象必须实现Serializable接口
+     //释放资源
+     private static void show04() throws IOException {
+             ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt"));
+             stream.writeObject(new Oerson("我",18));
+             stream.close();
+         }
+     ```
+
+   * 反序列化：把文件在保存的对象以流的方式读取出来
+
+   * 构造方法
+
+     * `ObjectInputStream(InputStream in)`
+     * 特有成员方法
+     * `readObject()`：从`ObjectInputStream`中读取对象
+
+     ```java
+     private static void show03() throws IOException, ClassNotFoundException {
+             ObjectInputStream act = new ObjectInputStream(new FileInputStream("D:\\IdeaProjects\\javase\\javase\\src\\com\\io\\1.txt"));
+             Object o = act.readObject();
+             act.close();
+             System.out.println(o);//直接输出调用toString方法
+             Oerson p = (Oerson)o;
+             System.out.println(p.getAge()+p.getName());
+         }
+     ```
+
+4. transient关键字-瞬态关键字
+
+   * 修饰成员变量，不能被序列化
+   * 反序列化时，序列号不一样会报`InvaliClassEXception`:可以在成员类中定义序列号：`private static final long serialVersionUID = 42l;`
+
+# 网络编程
+
+## 文件上传
+
+
+
+## 模拟B/S
+
+# 函数式接口
+
+# 流思想Stream
