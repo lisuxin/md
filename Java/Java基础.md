@@ -998,7 +998,7 @@ public class ArrayList01 {
 
 3. 截取方法
 
-   1. `public String substring(int index)`:截取从参数位置一直到字符串末尾,返回新字符串。
+   1. `public String substring(int index)`:截取从参数位置一直到字符串末尾,返回新字符串。从左到右依次删除个数
 
    2. `public String substring(int begin, int end)`:截取从begin开始,一直到end结束,中间的字符串。
 
@@ -4530,7 +4530,7 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
 
 # 网络编程
 
-## 文件上传
+## 服务器客户端通信
 
 * 通信步骤：服务器先启动服务器不会主动的请求客户端，必须使用客户请求服务器，客户端和服务器端就会立建立一个逻辑连接，这个链接包含一个对象，这个对象就可以就是==IO==对象，客户端和服器端就可以使用==IO==对象通信，通信的对象不仅仅是字符，所有==IO==对象是字节流对象
 
@@ -4572,7 +4572,7 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
       6. 释放资源
 
       ```java
-      package com.wl.kh;
+      package com.io.wl.kh;
       
       import java.io.IOException;
       import java.io.InputStream;
@@ -4584,10 +4584,11 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
               Socket socket = new Socket("127.0.0.1",8888);
               OutputStream outputStream = socket.getOutputStream();
               outputStream.write("你好".getBytes());
+              socket.shutdownOutput();//对于 TCP 套接字，任何以前写入的数据都将被发送，并且后跟 TCP 的正常连接终止序列
               InputStream inputStream = socket.getInputStream();
               byte[] bytes = new byte[1024];
-              int len = inputStream.read();
-              System.out.println(bytes,0,len)
+              int len = inputStream.read(bytes);
+              System.out.println(new String(bytes,0,len));
               socket.close();
           }
       }
@@ -4613,31 +4614,8 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
    6. 使用wite，回写数据
    7. 释放资源。
 
-   ```
-   ```
-
-   ```
-   package com.wl.kh;
-   
-   import java.io.IOException;
-   import java.io.InputStream;
-   import java.io.OutputStream;
-   import java.net.Socket;
-   
-   public class Doemkh {
-       public static void main(String[] args) throws IOException {
-           Socket socket = new Socket("127.0.0.1",8888);
-           OutputStream outputStream = socket.getOutputStream();
-           outputStream.write("你好".getBytes());
-           InputStream inputStream = socket.getInputStream();
-           byte[] bytes = new byte[1024];
-           int len = inputStream.read(bytes);
-           System.out.println(new String(bytes,0,len));
-           socket.close();
-       }
-   }
-   
-   package com.wl.fw;
+   ```java
+   package com.io.wl.fw;
    
    import java.io.IOException;
    import java.io.InputStream;
@@ -4645,14 +4623,20 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
    import java.net.ServerSocket;
    import java.net.Socket;
    
-   public class Doem02 {
+   public class Doemfw {
        public static void main(String[] args) throws IOException {
            ServerSocket server = new ServerSocket(8888);
            Socket socket = server.accept();
            InputStream in = socket.getInputStream();
            byte[] bytes = new byte[1024];
-           int len = in.read(bytes);
-           System.out.println(new String (bytes));
+           int len = 0;
+           //启动服务器会调用一次read()方法，因数组(bety[] b)中没有可用字节数，会报IOException并存储到数组中
+           //read()方法读取完客户端传的数据，已读取输入数据len的请求数量、检测到文件结束标记、抛出异常前，默认实现将一直阻塞，因为IOException，存在数组中没有抛出。
+           while ((len = in.read(bytes))!= -1){
+               System.out.println(new String(bytes,0,len));
+           }
+   //        int len = in.read(bytes);
+   //        System.out.println(new String (bytes,0,len));
            OutputStream out = socket.getOutputStream();
            out.write("xiexie".getBytes());
            server.close();
@@ -4662,9 +4646,180 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
    }
    
    ```
+   
+* `public int read()`
 
-## 模拟B/S
+* 从输入流中读取数据的下一个字节。返回 0 到 255 范围内的 int 字节值。如果因为已经到达流末尾而没有可用的字节，则返回值 -1。在输入数据可用、检测到流末尾或者抛出异常前，此方法一直阻塞。
+
+* **“如果已经到达流末尾而没有可用的字符，则返回值 -1”**
+
+   这意味着当调用`read(byte[] b)`方法尝试从某个输入流（如文件流、网络流等）读取数据时，如果当前流的位置已经处于数据的末尾，即所有有效数据已被读取完毕，没有更多的字节可供读取，那么该方法会返回一个特殊的值`-1`。这个返回值标识了流的“结束状态”，告诉调用者已经没有更多的数据可读，无需继续尝试。
+
+   **“在输入数据可用、检测到流末尾或者抛出异常前，此方法一直阻塞”**
+
+   这句话说明了该方法在执行过程中的阻塞特性。当调用`read(byte[] b)`方法时，如果当前流中没有立即可用的数据（即数据尚未到达或尚未准备好），该方法不会立即返回。相反，它会进入阻塞状态，即暂停执行，等待数据变为可用。阻塞会持续到以下三种情况之一发生：
+
+   1. **输入数据可用：** 当有新的字节数据到达输入流，方法解除阻塞，读取这些数据到提供的字节数组`b`中，并返回实际读取的字节数。
+
+   2. **检测到流末尾：** 如果在阻塞期间，系统检测到流已经到达末尾（如文件已全部读取或网络连接已关闭），则方法立即解除阻塞，返回值为`-1`，表示没有更多数据可读。
+
+   3. **抛出异常：** 在等待数据期间，如果遇到无法恢复的错误（如磁盘故障、网络中断、权限问题等），方法会抛出相应的异常（如`IOException`），终止阻塞状态。此时，程序需要捕获并妥善处理这些异常。
+
+   总结来说，`public int read(byte[] b)`方法在读取输入流时具有阻塞特性，它会在没有可用数据时等待，直到有数据到来、检测到流已结束或发生异常。当流结束且没有可用字符时，方法返回`-1`，以此告知调用者流已读完。在实际编程中，应充分理解并正确处理这种阻塞行为以及可能出现的异常情况。
+
+### 文件上传
+
+* 案例：客户端
+
+  ```java
+  package com.io.wl.shnagchuanxiazai;
+  
+  import java.io.FileInputStream;
+  import java.io.IOException;
+  import java.io.InputStream;
+  import java.io.OutputStream;
+  import java.net.Socket;
+  
+  public class Khd {
+      public static void main(String[] args) throws IOException {
+          // 1.创建一个本地字节输入流FileInputStream对象,构造方法中绑定要读取的数据源
+          FileInputStream fileInputStream = new FileInputStream("D:\\测试\\本地\\杨攀简历.pdf");
+          // 2.创建一个客户端Socket对象,构造方法中绑定服务器地址和端囗号
+          Socket socket = new Socket("127.0.0.1", 8888);
+          // 3.使用Socket中的方法get0utputStream获取网络字节输出流0utputStream对象
+          OutputStream outputStream = socket.getOutputStream();
+          // 4.使用本地字节输入流FileInputStream对象中的方法read读取本地文件
+          byte[] bytes = new byte[1024];
+          int len = 0;
+          while ((len = fileInputStream.read(bytes)) != -1){
+              // 5.使用网络字节输出流0utputStream对象中的方法write,就把读取到的文件上传到服务器
+              outputStream.write(bytes,0,len);
+          }
+          socket.shutdownOutput();
+          // 6.使用Socket中的万法getInputStream,获取网络字节输入流IntputStream对象
+          InputStream inputStream = socket.getInputStream();
+          // 7.使用网络字节输入流IntputStream对象中的方法read读取服务器回写的数据
+          while ((len = inputStream.read(bytes)) != -1){
+              System.out.println(new String(bytes,0,len));
+          }
+          // 8.释放资源（FileIntputStream,Socket）
+          fileInputStream.close();
+          socket.close();
+      }
+  }
+  ```
+
+* 服务器
+
+  ```java
+  package com.io.wl.shnagchuanxiazai;
+  
+  import java.io.*;
+  import java.net.ServerSocket;
+  import java.net.Socket;
+  
+  // 1.创建一个本地字节输入流FileInputStream对象,构造方法中绑定要读取的数据源
+  public class Fwq {
+      public static void main(String[] args) throws IOException {
+          // 1.创建一个服务器端ServerSocket对象,和系统要指定的端囗
+          ServerSocket serverSocket = new ServerSocket(8888);
+          // 2.使用ServerSocket中的方法accept,获取客户端Socket对象
+          Socket socket = serverSocket.accept();
+          // 3.使用Socket中的方法getInputStream获取网络字节输入流InputStream对象
+          InputStream inputStream = socket.getInputStream();
+          // 4.判断文件夹是否纯在，不存在则创建
+          File file = new File("D:\\测试\\服务器");
+          if (file.exists()){
+              file.mkdirs();
+          }
+          // 5.创建一个本地字节输出流FileOutputStream对象,构造方法中绑定要读要输出的目的地
+          FileOutputStream fileOutputStream = new FileOutputStream(file+"\\1.pdf");
+          // 6.使用网络字节输入流InputStream对象中的方法read,读取客户端上传的文件
+          byte[] bytes = new byte[1024];
+          int len = 0;
+          while ((len = inputStream.read(bytes))!= -1){
+              // 7.使用本地字节输出流File0utputStream对象中的方法write,把读取到的文件保存到服务器
+              fileOutputStream.write(bytes,0,len);
+          }
+          // 8.使用Socket中的万法getOutputStream,获取网络字节输出流OuttputStream对象
+          // 9.使用网络字节输出流OutputStream对象中的方法wite，给客户端会写数据
+          socket.getOutputStream().write("上传成功".getBytes());
+          socket.shutdownOutput();
+          // 10.释放资源(FileOutputStream,Socket,ServerSocket)
+          fileOutputStream.close();
+          socket.close();
+          serverSocket.close();
+      }
+  }
+  ```
+
+* 优化服务器端代码
+
+  1. 写一个文件命名规则
+  2. 服务器处于一直开启状态
+  3. 使用多线程，多个客户端开启访问速度变快，但run方法是继承接口不能抛出异常只能try{}.记得开启多线程`.start()`
+
+  ```java
+  package com.io.wl.shnagchuanxiazai;
+  
+  import java.io.*;
+  import java.net.ServerSocket;
+  import java.net.Socket;
+  
+  // 1.创建一个本地字节输入流FileInputStream对象,构造方法中绑定要读取的数据源
+  public class Fwq {
+      public static void main(String[] args) throws IOException {
+          // 1.创建一个服务器端ServerSocket对象,和系统要指定的端囗
+          ServerSocket serverSocket = new ServerSocket(8888);
+          while (true){
+              // 2.使用ServerSocket中的方法accept,获取客户端Socket对象
+              Socket socket = serverSocket.accept();
+              new Thread(new Runnable() {
+                  @Override
+                  public void run() {
+                      try {
+                          // 3.使用Socket中的方法getInputStream获取网络字节输入流InputStream对象
+                          InputStream inputStream = socket.getInputStream();
+                          // 4.判断文件夹是否纯在，不存在则创建
+                          File file = new File("D:\\测试\\服务器");
+                          if (file.exists()){
+                              file.mkdirs();
+                          }
+                          // 5.创建一个本地字节输出流FileOutputStream对象,构造方法中绑定要读要输出的目的地
+                          String st = "love"+System.currentTimeMillis()+".pdf";
+                          FileOutputStream fileOutputStream = new FileOutputStream(file+"\\"+st);
+                          // 6.使用网络字节输入流InputStream对象中的方法read,读取客户端上传的文件
+                          byte[] bytes = new byte[1024];
+                          int len = 0;
+                          while ((len = inputStream.read(bytes))!= -1){
+                              // 7.使用本地字节输出流File0utputStream对象中的方法write,把读取到的文件保存到服务器
+                              fileOutputStream.write(bytes,0,len);
+                          }
+                          // 8.使用Socket中的万法getOutputStream,获取网络字节输出流OuttputStream对象
+                          // 9.使用网络字节输出流OutputStream对象中的方法wite，给客户端会写数据
+                          socket.getOutputStream().write("上传成功".getBytes());
+                          socket.shutdownOutput();
+                          // 10.释放资源(FileOutputStream,Socket,ServerSocket)
+                          fileOutputStream.close();
+                          socket.close();
+                      }catch (IOException e){
+                          System.out.println(e);
+                      }
+                  }
+              }).start();
+          }
+      }
+  }
+  ```
+
+### 模拟B/S
+
+
+
+
 
 # 函数式接口
+
+
 
 # 流思想Stream
