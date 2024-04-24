@@ -4532,7 +4532,136 @@ java异常处理的五个关键字： try、 catch, finally、 throw、 throws
 
 ## 文件上传
 
+* 通信步骤：服务器先启动服务器不会主动的请求客户端，必须使用客户请求服务器，客户端和服务器端就会立建立一个逻辑连接，这个链接包含一个对象，这个对象就可以就是==IO==对象，客户端和服器端就可以使用==IO==对象通信，通信的对象不仅仅是字符，所有==IO==对象是字节流对象
 
+   ![image-20240424113640799](../typoratuxiang/java/tx.png)
+
+   服务器必须明确的两件事
+
+   * 多个客户端同时和服务器进行交互，服务器必须明确和那个客户端进行的交互在服务器端有一个方叫 `accept` 客户端获取到请求的客户端对象
+   * 多个客户端同时和服务器进行交互，就需要使用多个==IO==流对象
+      1. 服务器是没有==IO==流的，服务器可以获取到请求的客户揣对象 Socket，使用每个客户端 Socket 中提供的==IO==流和客户端进行交互
+      2. 服务器使用客户端的字节输入流读取客户端发送的数倨
+      3. 服务器使用客户端的字节输出流给客户端回写数据
+
+### Socket类
+
+* 客户端`java.net.Socket`：创建 Socket 对象，向服务端发出连接请求，服务端响应请求，两者建立链接开始通信。
+
+   * 实现了套接字：包含了IP地址和端口号的网络单位
+
+   * 构造方法
+
+      * `Socket(String host,int port)`创建一个流套接字并将其链接到指定服务器端口
+      * `String host`：服务器主机名/IP地址
+      * `int port`：服务器端口号
+
+   * 成员方法
+
+      * `OutputStream getOutputStream()` 返回此套接字的输出流
+      * `InputStream getInputStream()` 返回此套接字的输入流
+      * `void close()` 关闭此套接字
+
+   * 实现步骤
+
+      1. 创建Socket对象,绑定服务器ip,端口
+      2. 获取对象//输出流，输出给服务器
+      3. 使用对象方法write，给服务器发送数据
+      4. 获取对象//输入流，输入给本地
+      5. 使用read，读取服务器回写数据
+      6. 释放资源
+
+      ```java
+      package com.wl.kh;
+      
+      import java.io.IOException;
+      import java.io.InputStream;
+      import java.io.OutputStream;
+      import java.net.Socket;
+      
+      public class Doemkh {
+          public static void main(String[] args) throws IOException {
+              Socket socket = new Socket("127.0.0.1",8888);
+              OutputStream outputStream = socket.getOutputStream();
+              outputStream.write("你好".getBytes());
+              InputStream inputStream = socket.getInputStream();
+              byte[] bytes = new byte[1024];
+              int len = inputStream.read();
+              System.out.println(bytes,0,len)
+              socket.close();
+          }
+      }
+      
+      ```
+
+* 服务器`java.net.ServerSocket`：创建 serversocket 对象，相当于开启一个服务，并等待客户端的链接。
+
+   * 构造方法
+   * `ServerSocket(int port)`创建绑定的套接字
+
+* 成员方法
+
+   * `Socket accept()`侦听并接收此套接字
+
+* 实现步骤
+
+   1. 创建对象，指定端口
+   2. 使用对象方法，获取客户端请求对象
+   3. 获取网络输入流
+   4. 使用read方法，读取数据
+   5. 使用输出流，获取输出流
+   6. 使用wite，回写数据
+   7. 释放资源。
+
+   ```
+   ```
+
+   ```
+   package com.wl.kh;
+   
+   import java.io.IOException;
+   import java.io.InputStream;
+   import java.io.OutputStream;
+   import java.net.Socket;
+   
+   public class Doemkh {
+       public static void main(String[] args) throws IOException {
+           Socket socket = new Socket("127.0.0.1",8888);
+           OutputStream outputStream = socket.getOutputStream();
+           outputStream.write("你好".getBytes());
+           InputStream inputStream = socket.getInputStream();
+           byte[] bytes = new byte[1024];
+           int len = inputStream.read(bytes);
+           System.out.println(new String(bytes,0,len));
+           socket.close();
+       }
+   }
+   
+   package com.wl.fw;
+   
+   import java.io.IOException;
+   import java.io.InputStream;
+   import java.io.OutputStream;
+   import java.net.ServerSocket;
+   import java.net.Socket;
+   
+   public class Doem02 {
+       public static void main(String[] args) throws IOException {
+           ServerSocket server = new ServerSocket(8888);
+           Socket socket = server.accept();
+           InputStream in = socket.getInputStream();
+           byte[] bytes = new byte[1024];
+           int len = in.read(bytes);
+           System.out.println(new String (bytes));
+           OutputStream out = socket.getOutputStream();
+           out.write("xiexie".getBytes());
+           server.close();
+           out.close();
+   
+       }
+   }
+   
+   ```
 
 ## 模拟B/S
 

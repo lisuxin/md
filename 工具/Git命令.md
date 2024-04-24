@@ -516,13 +516,20 @@ git push origin master
    git add .   //git status查看当前状态
    ```
 
-4. 添加注释提交
+4. 消除本地与远程仓库之间的异差
+
+   ```shell
+   :q!强制退出vim
+   git pull origin main 
+   ```
+
+5. 添加注释提交
 
    ```
    git commit -m '注释信息'
    ```
 
-5. 创建SSH KEY
+6. 创建SSH KEY
 
    ```
    ssh-keygen -t rsa -C "地址" //不做修改一直回车
