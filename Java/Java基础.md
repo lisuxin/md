@@ -4867,6 +4867,120 @@ public class fwq {
 
 # 函数式接口
 
+函数式接口在 java 中是指：==有且仅有一个油象方法的接口==。
 
+函数式接口，即适用于函数式编程场景的接口。而 java 中的函数式编程体现就是 Lambda ，所以函数式接口就是可以用于 Lambda 使用的接口。只有确保接口中有且仅有一个抽象方法， Java 中的 Lambda 才能顺利地进行推导。
+
+* 格式
+
+  ```java
+  @FunctionalInterface
+  public interface MyLambda {
+      public abstract void method();
+  }
+  ```
+
+* `@FunctionalInterface `注解
+
+  1. 作用，检测一个接口是否为函数式接口
+  2. 是：编译成功
+  3. 否：编译失败（接口中没有抽象方法，或者抽象方法不止一个）
+
+* 函数式接口使用：一般作为方法的参数和返回值类型
+
+  * 实现接口是三种方式
+
+    1. 定义一个方法，参数使用函数式接口、调用该方法、创建一个实现类
+
+       ```java
+       //实现类
+       public class MyLambdaimper implements MyLambda{
+       
+           @Override
+           public void method() {
+               System.out.println();
+           }
+       }
+       //测试类
+       public class Doem {
+           public static void main(String[] args) {
+               show(new MyLambdaimper());
+           }
+       }
+       ```
+
+    2. 调用实现方法、使用匿名内部类
+
+       ```java
+       public class Doem {
+           public static void main(String[] args) {
+               //匿名内部类应该与接口同名
+               show(new MyLambda(){
+                   @Override
+                   public void method(){
+                       System.out.println("");
+                   }
+               });
+           }
+           //实现方法
+           private static void show(MyLambda myLambda) {
+               myLambda.method();
+           }
+       }
+       ```
+
+    3. 使用lambda
+
+       ```java
+       show(()->System.out.println());
+       //实现方法
+       private static void show(MyLambda myLambda) {
+               myLambda.method();
+           }
+       ```
+
+### 常用函数式接口
+
+在`java.util.function`包中
+
+* 所有操作步骤
+  1. 创建方法
+  2. 调用方法，使用Lambda表达式
+
+1. Supplier接口
+
+   * 指定接口的泛型是什么类型，那么接口中的`get()`方法就返回什么类型的数据
+
+   ```java
+   //方法
+   private static String getStrings(Supplier<String> sup) {
+           return sup.get();
+       }
+   //Lambda表达式
+   getStrings(()->"aaa")；
+   ```
+
+2.   Consumer接口
+
+   * 接收一个类型为 `T` 的参数，并对其执行某种操作
+
+   ```java
+   //方法
+   private static void method(String name,Consumer<String> con) {
+           con.accept(name);
+       }
+   //Lambda表达式
+   method("阿打算",(String name)-> System.out.println(name));
+   //默认方法：andThen可以连接多个Consumer，在对数据进行操作
+   private static void method(String name,Consumer<String> con1,Consumer<String> con1) {
+           con1.andThen.con2.accept(name);
+       }
+   ```
+
+3. Predicate接口
+
+   * 对某种数据类型的数据进行判断，从而得到一个Boolean值
+
+4. Function接口
 
 # 流思想Stream
