@@ -4960,7 +4960,7 @@ public class fwq {
    getStrings(()->"aaa")；
    ```
 
-2.   Consumer接口
+2. Consumer接口
 
    * 接收一个类型为 `T` 的参数，并对其执行某种操作
 
@@ -4977,10 +4977,257 @@ public class fwq {
        }
    ```
 
+   * 默认方法
+
+   * andThen
+
+      * 可以连接多个Consumer，在对数据进行操作
+
+      ```java
+      private static void method(String name,Consumer<String> con1,Consumer<String> con1) {     
+          con1.andThen.con2.accept(name);    
+      }
+      ```
+
 3. Predicate接口
 
    * 对某种数据类型的数据进行判断，从而得到一个Boolean值
 
+   ```java
+   private static boolean show(String s,Predicate<String> pr) {     
+       return pr.test(s);    
+   }
+   
+   String s = "helloWorld";
+   boolean b = show(s,srt->srt.length()>5);
+   System.out.println(b);
+   
+   //抽象方法
+   test//符合条件返回true 不符合返回false
+   ```
+
+   * 默认方法
+
+   * and
+
+      * 表示并且关系，联系两个判断条件
+
+      ```java
+      //方法
+      private static boolean show(String s,Predicate<String> pr1,Predicate<String> pr2) {     
+          return pr1.and(pr2).test(s);
+      }
+      //Lambda
+      boolean b = show(s,(srt)->srt.length()>5,(str)->str.contains("a"));
+      ```
+
+   * or
+
+      * 表示逻辑或。有一个true为true,只有全为false才为false
+
+      ```java
+      //方法
+      private static boolean show(String s,Predicate<String> pr1,Predicate<String> pr2) {     
+          return pr1.or(pr2).test(s);
+      }
+      //Lambda
+      boolean b = show(s,(srt)->srt.length()>5,(str)->str.contains("a"));
+      ```
+
+   * negate
+
+      * 表示取反，结果为true则返回false
+
+      ```java
+      //方法
+      private static boolean show(String s,Predicate<String> pr1,Predicate<String> pr2) {     
+          return pr1.or(pr2).negate().test(s);
+      }
+      //Lambda
+      boolean b = show(s,(srt)->srt.length()>5,(str)->str.contains("a"));
+      ```
+
 4. Function接口
 
+   * 将一个类型的数据转换为另一个类型的数据
+
+   ```java
+   private static void showe(String se, Function<String,Integer> s) {     
+       Integer sa= s.apply(se);    
+       System.out.println(se+10);    
+       System.out.println(sa+10);
+   }
+   
+   String ss = "10";
+   showe(ss,in-> Integer.parseInt(in));
+   ```
+
+   * 默认方法
+
+   * andThen
+
+      * 链接多个Function，对数据进行操作
+
+      ```java
+      private static void showe(String se, Function<String,Integer> s1,Function<Integer,String> s2) {     
+          String ss= s1.andThen(s2).apply(se);
+      }
+      ```
+
 # 流思想Stream
+
+它提供了对集合、数组或其他数据源元素进行高效、灵活的处理方式。`Stream` 不是数据结构，而是一种数据处理管道，通过一系列的中间操作（Intermediate Operations）把数据源中的数据转换成另一种形式，最后通过终止操作（Terminal Operation）得出最终结果。
+
+* `Stream` 的主要特点包括：
+
+   1. **延迟计算（Lazy evaluation）**：只有在真正需要的时候才执行计算，而不是一次性加载所有数据，有助于提高性能和节省资源。
+   2. **链式操作（Method chaining）**：支持多步骤操作的链接，形成流水线式的处理流程。
+   3. **内部迭代（Internal iteration）**：不同于传统的外部迭代（如for-each循环），Stream API采用内部迭代，简化了代码并提升了代码的可读性和简洁性。
+
+* 使用流的步骤，==获取一个数据源—>数据转换—>执行操作获取结果==
+
+* 获取流的两种方式
+
+   1. **从集合（Collection）获取Stream：**
+      所有的实现了`Collection`接口的类（如`List`, `Set`, `Queue`等）都提供了默认方法`stream()`，可以直接调用此方法来获取对应集合元素的Stream流。
+
+      ```java
+      List<String> list = Arrays.asList("A", "B", "C");
+      Stream<String> streamFromList = list.stream();
+      
+      Set<Integer> set = new HashSet<>(Arrays.asList(1, 2, 3));
+      Stream<Integer> streamFromSet = set.stream();
+      ```
+
+   2. **从数组获取Stream：**
+      Java 8的`Stream`接口提供了静态方法`Stream.of()`，可以将一组值转化为Stream流。
+
+      ```java
+      Integer[] array = {1, 2, 3, 4, 5};
+      Stream<Integer> streamFromArray = Stream.of(array);
+      // 或者直接传入数组元素
+      Stream<Integer> streamFromArrayDirect = Stream.of(1, 2, 3, 4, 5);
+      ```
+
+   3. **从Map获取Stream：**
+      可以通过Map的keySet(), values()或entrySet()方法获得键、值或键值对的集合，再调用stream()方法获取Stream。
+
+      ```java
+      Map<String, Integer> map = new HashMap<>();
+      // 获取键的Stream
+      Stream<String> keysStream = map.keySet().stream();
+      // 获取值的Stream
+      Stream<Integer> valuesStream = map.values().stream();
+      // 获取键值对（Map.Entry）的Stream
+      Stream<Map.Entry<String, Integer>> entriesStream = map.entrySet().stream();
+      ```
+
+   4. **生成无限流：**
+      除了从现有集合或数组获取流之外，还可以通过Stream API中的`generate()`、`iterate()`等方法生成无限流。
+
+      ```java
+      // 生成一个无限递增的整数流
+      Stream<Integer> infiniteStream = Stream.iterate(0, n -> n + 1);
+      ```
+
+### 常用方法
+
+==分为延迟方法和终结方法：除了`count`和`forEach`都是延迟方法==
+
+1. **创建Stream的方法：**
+
+   - `Arrays.stream(array)`：从数组创建流。
+   - `Collection.stream()`：从集合（如List、Set等）创建流。
+   - `Stream.of(elements...)`：从一组值创建流。
+   - `IntStream.range(start, end)` 和 `LongStream.rangeClosed(start, end)`：创建范围内的数值流。
+   - `Stream.generate(supplier)` 和 `IntStream.generate(supplier)` 等：生成无限流。
+   - `Stream.iterate(seed, predicate)`：基于初始值和一个生成下一项的函数迭代创建流。
+
+2. **中间操作（Intermediate Operations）：**
+   这些方法会返回一个新的Stream，并不会执行任何操作，直到遇到终止操作。
+   - `filter(predicate)`：过滤出满足条件的元素。
+
+      ```java 
+      Stream<String> stream = Stream.of("张三","李四","王五","杨六","赵七");
+      Stream<String> sa = stream.filter(name->name.startsWith("张"));
+      sa.forEach(System.out::println);//方法引用
+      ```
+
+   - `map(func)`：对每个元素应用一个函数，生成新的Stream。
+
+      ```java
+      Stream<String> stream = Stream.of("1","2","3","4","5");
+      Stream<Integer> sa = stream.map(s->Integer.parseInt(s));
+      sa.forEach(System.out::println);//方法引用
+      ```
+
+   - `flatMap(func)`：扁平化映射，将每个元素转换成多个元素，并将所有结果合并到同一个Stream中。
+
+   - `distinct()`：去除重复元素。
+
+   - `sorted()`：对流中的元素进行排序。
+
+   - `peek(consumer)`：允许对每个元素进行预览式的消费，通常用于调试。
+
+   - `limit(n)`：限制Stream的最大长度，只保留前n个元素。
+
+      ```java
+      Stream<String> stream = Stream.of("1","2","3","4","5");
+      Stream<String> stream1 = stream.limit(2);
+      stream1.forEach(System.out::println);
+      ```
+
+   - `skip(n)`：跳过Stream中的前n个元素。
+
+      ```java
+      Stream<String> stream = Stream.of("1","2","3","4","5");
+      Stream<String> stream1 = stream.skip(2);
+      stream1.forEach(System.out::println);
+      ```
+
+3. **短路操作（Short-circuiting Operations）：**
+   - `anyMatch(predicate)`：如果流中至少有一个元素匹配给定的谓词，则返回true。
+   - `allMatch(predicate)`：如果流中所有元素都匹配给定的谓词，则返回true。
+   - `noneMatch(predicate)`：如果流中没有元素匹配给定的谓词，则返回true。
+   - `findFirst()` 和 `findAny()`：找到并返回第一个满足条件的元素（非确定性操作，可能在并行流中有差异）。
+
+4. **终止操作（Terminal Operations）：**
+   这些操作会消耗Stream并产生结果，执行完后Stream不能再被使用。
+   - `forEach(consumer)`：遍历并消费流中的每一个元素。
+
+      ```java
+      Stream stream = Stream.of("张三","李四","王五","杨六","赵七");        
+      stream.forEach(name-> System.out.println(name));
+      ```
+
+   - `forEachOrdered(consumer)`：确保遍历顺序与流的自然顺序或排序顺序一致。
+
+   - `toArray()`：将Stream转换为数组。
+
+   - `collect(collector)`：收集Stream到某种形式的结果，例如收集到集合、构建汇总结果等。
+
+   - `reduce(identity, accumulator, combiner)`：对流中的元素应用累加器函数来累积一个单一结果。
+
+   - `min(Comparator)` 和 `max(Comparator)`：查找流中的最小或最大元素。
+
+   - `count()`：计算流中元素的数量，返回值为`long`。
+
+      ```java
+      Stream<String> stream = Stream.of("1","2","3","4","5");
+      System.out.println(stream.count());
+      ```
+
+5. **并行流操作：**
+   Java Stream API还支持将流的操作并行化，提高大规模数据处理性能，但上述分类中的大部分方法都可以在并行流上使用，并不需要单独归类。例如，可以通过调用`.parallel()`方法将串行流转换为并行流。
+
+6. **组合**
+
+   * `concat`：将两个流组成一个新流
+
+      ```java
+      Stream<String> stream = Stream.of("1","2","3","4","5");
+      Stream<String> stream1 = Stream.of("张三","李四","王五","杨六","赵七");
+      Stream<String> stream2 = Stream.concat(stream1,stream);
+      ```
+
+## 方法引用
