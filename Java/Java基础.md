@@ -29,6 +29,8 @@
 
    * 编写源代码--->编译源程序--->运行
    * javac.exe编译器;Java.exe解释器
+   * 编译：`javac 类名`
+   * 反编译：`javap 类名.class`
 
 6. 注释
 
@@ -5231,3 +5233,438 @@ public class fwq {
       ```
 
 ## 方法引用
+
+ 双冒号`::`为引用运符，而它所在的表达式被称为方法引用·如果 Lambda 要表达的函方已经存在于早个方法的实现中，那么则可以通过双冒号睾引用该方法作为 Lambda 的替代者
+
+* Lambda表达式写法：`s->System.out.println(s)`
+* 方法引用写法：`System.out::println`
+
+第一种浯义是指：拿到参数之后经 Lambda 之手，继而传递给 `system.out.println` 方法去处理
+
+第二种等效写法的浯义是指：接让 `system.out` 对象中的 `println` 方 法来取 代 `Lambda`。 两种与法的执行戏果完全一样，而第二种方法引用的写法复用了已有方案
+
+1. 通过对象名引用成员方法
+
+   ```java
+   //接口
+   @FunctionalInterface
+   public interface Doem03 {
+       void show01(String sm);
+   }
+   //对象类
+   public class Deom01 {
+       public void shost(String str) {
+           System.out.println(str.toUpperCase());
+       }
+   }
+   //实现类
+   public class Demot {
+       public static void main(String[] args) {
+           Deom01 b = new Deom01();
+           showe(b::shost);
+       }
+   
+       public static void showe(Doem03 de) {
+           de.show01("Hell");
+       }
+   }
+   ```
+
+2. 通过类名称引用静态方法
+
+   ```java
+   //接口
+   int show(int nam);
+   //实现类
+   System.out.println(shem(-20, Math::abs));
+   public static int shem(int nam, Doem03 de) {
+           return de.show(nam);
+       }
+   ```
+
+3. 通过 super 引用父类成员方法
+
+   ```java
+   //static修饰的方法可以继承，但是不能被子类重写
+   //super通过方法引用时需要使用父类方法，所以使用super的方法不能被static修饰
+   //子类
+   public class Demot extends Deom01{
+       public static void main(String[] args) {
+           new Demot().ss();
+       }
+       private  void ss() {
+           showe(super::shost);
+       }
+       public static void showe(Doem03 de) {
+           de.show01("Hell");
+       }
+       @Override
+       public void shost(String str){
+           System.out.println(str.toUpperCase());
+       }
+   }
+   //父类
+   public class Deom01 {
+       public  void shost(String str) {
+           System.out.println(str.toUpperCase()+"父");
+       }
+   }
+   //接口
+   @FunctionalInterface
+   public interface Doem03 {
+       void show01(String sm);
+   }
+   ```
+
+4. 通过 this 引用成员方法
+
+   ```java
+   //与super引用一样
+   private  void ss() {
+           showe(this::shost);
+       }
+   ```
+
+5. 类的构造器引用
+
+   * 由于构造器的名称与类名完全一样，并不固定。所以构造器引用使用`类名称::new`的格式表示。首先是一个简单的 `Person` 类
+
+   ```java
+   //接口
+   @FunctionalInterface
+   public interface PersonImper {
+       Person show(String name);
+   }
+   //对象类
+   public class Person {
+       private String name;
+   
+       public Person(String name) {
+           this.name = name;
+       }
+   
+       public Person() {
+       }
+   
+       public String getName() {
+           return name;
+       }
+   
+       @Override
+       public String toString() {
+           return "Person{" +
+                   "name='" + name + '\'' +
+                   '}';
+       }
+   
+       public void setName(String name) {
+           this.name = name;
+       }
+   }
+   //实现类
+   public class PersonExten {
+       public static void main(String[] args) {
+           //lambda
+           showe("哈妮克孜",(name)->new Person(name));
+           //方法引用
+           showe("陈卓璇",Person::new);
+       }
+   
+       private static void showe(String naem,PersonImper pi) {
+           Person person =pi.show(naem);
+           System.out.println(person.getName());
+       }
+   }
+   ```
+
+6. 数组的构造器引用
+
+   * 数组也是`Object`的子类对象，所以同样具有构造器，只是语法稍有不同。如果对应到 `Lambda`的使用场景中时．要一个函数式接口
+
+   ```java
+   //接口
+   @FunctionalInterface
+   public interface PersonImper {
+       //Person show(String name);
+       int[] intle(int len);
+   }
+   //实现类
+   public class ShuZu {
+       public static int[] keke(int lent,PersonImper pd){
+           return pd.intle(lent);
+       }
+   
+       public static void main(String[] args) {
+           System.out.println(keke(6, s -> new int[s]).length);
+           System.out.println(keke(7, int[]::new).length);
+   
+       }
+   }
+   ```
+
+## Junit单元测试
+
+### 白盒测试（也称为结构测试或透明盒测试）
+
+**概念**：白盒测试是一种测试方法，其中测试人员对被测软件的内部结构、代码逻辑和实现细节有深入的了解。测试的重点在于检查代码路径、逻辑分支、循环、条件语句等是否按照预期工作，以及是否存在逻辑错误、安全漏洞或性能问题。
+
+**特点**：
+- 测试者需要访问源代码。
+- 设计测试用例时依据的是代码结构、控制流程图、逻辑覆盖等。
+- 目标是达到尽可能高的代码覆盖率，包括语句覆盖、分支覆盖、路径覆盖等。
+- 适合于早期发现开发阶段的错误，因为可以在代码编写完成后立即进行。
+
+### 黑盒测试（也称为功能测试或行为测试）
+
+**概念**：黑盒测试是从最终用户的角度出发，测试软件的功能和行为，而不考虑内部结构或实现细节。测试者仅依据软件的需求规范和功能描述来设计测试用例，验证软件的输入与输出是否符合预期。
+
+**特点**：
+- 测试者无需了解内部代码，只需知道软件的输入、输出及功能要求。
+- 测试用例设计基于功能规格、用户故事或业务流程。
+- 重点在于验证软件是否满足用户需求，界面操作是否正确，以及系统间的交互是否符合预期。
+- 适用于验证软件的整体功能表现，接近用户实际使用场景。
+
+### Junit使用
+
+1. 定义一个测试类（测试用例）
+   * 测试类名：被测试的类名Test
+   * 包名：xxx.xxx.test
+2. 测试方法
+   * 方法名：test测试方法名
+   * 返回值：void
+   * 参数列表：空参数
+3. 给方法添加：`@Test`
+4. 断言：`Assert.assertEquals(21,a)`
+5. `@Before`在所有方法执行前都先执行该方法
+6. `@After`在所有方法执行后都执行该方法
+
+## 反射
+
+Java反射（Reflection）是一种强大的特性，它允许程序在运行时检查和操作类、接口、字段和方法的信息。这意味着你可以在程序执行过程中动态地创建对象、调用方法、改变字段值等，即便这些操作在编写原始代码时并未明确指定。反射为Java程序提供了高度的灵活性和动态性。以下是Java反射机制的一些核心功能和用途：
+
+1. **获取类的信息**：
+   
+   - 你可以使用 `Class.forName(String className)` 静态方法，通过提供类的全限定名来获取一个 `Class` 对象，这个对象包含了关于类的全部信息。
+   - 也可以通过对象的 `.getClass()` 方法或基本类型的 `.class` 属性来获取 `Class` 对象。
+   
+2. **创建对象**：
+   - 利用 `Class` 对象的 `newInstance()` 方法（对于有默认构造函数的类）创建类的新实例。
+   
+   - 使用 `getConstructor()` 或 `getDeclaredConstructor()` 获取构造函数对象，并通过它传递参数来创建实例。
+   
+   - 获取构造方法
+   
+     * `Constructor<?>[] getConstructors()`
+   
+     * `Constructor<T> getConstructor(类<?>...parameterTypes)`
+   
+     * `Constructor<T> getDeclaredConstructor(类<?>...parameterTypes)`
+   
+     * `Constructor<?>[] getDeclaredConstructors()`
+   
+       ```java
+       Class personClass = Person.class;
+       Constructor constructor = personClass.getConstructor(String.class,int.class);
+       Object obj = constructor.newInstance("张三",24);
+       System.out.println(obj);
+       ```
+   
+     * 创建对象：`T newInstance(Object...initargs)`
+   
+     * 创建空参对象：`personClass.newInstance`
+   
+3. **访问和修改字段（Field）**：
+   - 使用 `getDeclaredField(String name)` 获取类的指定字段（包括私有字段），然后通过 `setAccessible(true)` 方法解除私有访问限制，最后调用 `getField()` 或 `setField()` 方法访问或修改字段值。
+
+   - 获取成员变量的值
+   
+     * `Field[] getFields()`
+   
+       ```java
+       Class personClaa = Person.class;        
+       Field[] fields = personClaa.getFields();  //获取所有被public修饰的成员变量     
+       for (Field field : fields) {
+           System.out.println(field);
+       }
+       ```
+   
+     * `Field[] getField(String name)`
+   
+       ```java
+       Field b = personClaa.getField("a");    //  获取叫“a”的成员变量且被public修饰
+       Person person =new Person();           //获取对象
+       Object value = b.get(person);          //获取成员变量的值
+       System.out.println(b);
+       ```
+   
+     * `Field[] getDeclaredFields()`
+   
+       ```java
+       Field[] fields = personClaa.getDeclaredFields(); //获取所有成员变量
+       for (Field field : fields) {
+           System.out.println(field);    
+       }
+       ```
+   
+     * `Field[] getDeclaredFields()`
+   
+       ```java
+       Field fields = personClaa.getDeclaredField("age");//获取叫“age”的成员变量
+       //忽略访问修饰符的安全检测
+       fields.setAccessible(true);//暴力反射
+       Person person =new Person();
+       Object value = fields.get(person);
+       System.out.println(value);
+       ```
+   
+     * 设置值：`void set(Object obj,Object value)`
+   
+     * 获取值：`get(Object obj)`
+   
+     * 暴力反射：`fields.setAccessible(true)`
+   
+4. **调用方法（Method）**：
+   
+   - 利用 `getMethod(String name, Class<?>... parameterTypes)` 或 `getDeclaredMethod(String name, Class<?>... parameterTypes)` 获取方法对象，之后调用 `invoke(Object obj, Object... args)` 方法在特定对象上调用该方法。
+   
+   - 获取成员方法
+   
+     * `Method[] getMethod()`
+   
+     * `Method[] getMethod(String name, Class<?>... parameterTypes)`
+   
+     * `Method[] getDeclaredMethod()`
+   
+     * `Method[] getDeclaredMethod(String name, Class<?>... parameterTypes)`
+   
+       ```java
+       Class personClass = Person.class;
+       Method method = personClass.getMethod("eat");
+       Person p = new Person();
+       method.invoke(p);
+       ```
+   
+     * 执行方法：`Object invoke(object obj,object...args)`
+   
+     * 获取方法名称：`String getName`
+   
+5. **处理注解（Annotation）**：
+   
+   - 可以通过反射读取类、方法、字段上的注解信息，这对于运行时配置和元数据处理非常有用。
+   
+6. **生成动态代理**：
+   - 利用 `java.lang.reflect.Proxy` 类可以为任意接口生成动态代理对象，这对于实现AOP（面向切面编程）、日志记录、权限控制等非常有用。
+
+尽管反射提供了极大的灵活性，但也有一些注意事项：
+- 性能开销：反射操作比直接的Java代码执行要慢。
+
+- 安全性：反射可以绕过Java的访问控制机制，可能引入安全风险。
+
+- 使用时机：应当谨慎使用反射，因为它可能导致代码难以理解和维护，通常在框架开发、插件系统或需要高度动态性的场景中使用更为合适。
+
+  * 获取class对象的方式
+
+    1. `Class.forName("全类名")`
+
+       ```java
+       Class cls = Class.forName("包名.类名")
+       ```
+
+    2. `类名.class`
+
+       ```java
+       Class cls = 类名.class
+
+    3. `对象.getClass()`
+
+       ```java
+       类名 p = new 类名（）
+       Class cls = p.getClass
+       ```
+
+## 注解
+
+### JDK内置注解
+
+1. **`@Override`**:
+   - 用于标明一个方法是重写父类中的方法或者实现接口中的方法。编译器会检查带有此注解的方法是否确实存在与父类或接口中，有助于避免因拼写错误导致的未正确重写问题。
+2. **`@Deprecated`**:
+   - 标记已过时的类、方法或字段，表明这些元素由于各种原因（如安全性、性能或有更好的替代方案）不建议使用。编译器会发出警告，提示开发者应避免使用这些过时的元素。
+3. **`@SuppressWarnings`**:
+   - 用于抑制编译器产生的警告信息。开发者可以指定想要抑制的警告类型，例如“unchecked”常用于抑制泛型未检查的警告。
+4. **`@FunctionalInterface`** (从JDK 1.8开始):
+   - 用于标注一个接口为函数式接口，即接口中只有一个抽象方法。如果接口不符合此规则，编译器会报错。这个注解帮助确保接口符合Lambda表达式的使用要求。
+
+### 自定义注解
+
+1. 格式
+   * 元注解：`public @interface 注解名{}`
+   * 属性：接口中可以定义的成员方法。
+     * 接口中的抽象方法：要求
+     * 返回值类型
+       * 基本数据类型
+       * String
+       * 枚举
+       * 注解
+       * 以上类型的数组
+     * 定义了属性，在使用时需要给属性赋值
+       * 如果定义属性时，使用 default 关字给属性默认初始化值，则使用注解时，可以不进行属性的赋值。
+       * 如果只有一个属性需要赋值，并且属性的名称是 value ，则 va1ue 可以省略， 直接定义值即可。
+       * 数组赋值时，值使用{}包裹。如果数组中只有一个值，则{}可以省略
+
+### 定义自定义注解
+
+1. **使用`@interface`关键字**：定义注解类型就像定义一个接口一样，但需使用`@interface`关键字。
+
+2. **注解元素**：在注解体内可以定义元素（也叫成员变量），这些元素的类型必须是基本类型、String、Class、枚举、注解或者这些类型的数组。每个元素都需要指定默认值。
+
+3. **元注解**：自定义注解本身可以被其他注解所修饰，这些用来修饰注解的注解被称为元注解。常用的元注解包括：
+   - `@Retention`：指定注解的生命周期，可选值有`SOURCE`（源码级别，编译时会被丢弃）、`CLASS`（编译时级别，保留在.class文件中，但JVM不保留）、`RUNTIME`（运行时级别，可通过反射访问）。
+   - `@Target`：指定注解可以应用的元素类型，如`METHOD`、`FIELD`、`TYPE`等。
+   - `@Documented`：指示这个注解应该被包含在生成的JavaDoc文档中。
+   - `@Inherited`：指示子类可以继承父类的该注解。
+
+### 示例
+
+下面是一个简单的自定义注解示例，该注解用于标记一个方法的日志级别：
+
+```java
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.annotation.ElementType;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Loggable {
+    String level() default "INFO";
+}
+```
+
+### 使用自定义注解
+
+1. **应用注解**：自定义注解可以应用于它所声明的元素类型上。
+
+```java
+public class MyClass {
+    @Loggable(level = "DEBUG")
+    public void myMethod() {
+        // 方法实现
+    }
+}
+```
+
+2. **处理注解**：要读取和响应自定义注解，通常需要通过反射API。例如，在运行时检查方法是否带有特定注解并读取其值：
+
+```java
+public class AnnotationProcessor {
+    public static void process(Class<?> clazz) {
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (method.isAnnotationPresent(Loggable.class)) {
+                Loggable loggable = method.getAnnotation(Loggable.class);
+                System.out.println("Method " + method.getName() + " should be logged at level: " + loggable.level());
+            }
+        }
+    }
+}
+```
