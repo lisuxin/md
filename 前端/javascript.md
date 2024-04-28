@@ -621,7 +621,7 @@ Function：函数（方法）对象
      console.log(arr[getRandom(0, arr.length - 1)]);
      ```
 
-### 日期对象
+### 日期对象Date
 
 1. 日期对象的使用
 
@@ -918,13 +918,29 @@ Function：函数（方法）对象
      console.log(stu.name); // 输出结果 ：小红
      ```
 
+### Function对象
+
 ### RegExp正则表达式对象
 
 1. 定义字符串组成规则
 1. 
 
-### BOM
+## BOM
 
 
 
-### DOM
+## DOM
+
+
+
+## 事件
+
+## Cookie
+
+## JSP
+
+## EL
+
+## JSTL
+
+## JQuery

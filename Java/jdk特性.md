@@ -31,10 +31,6 @@
    Math.sqrt();--------------->sqrt();
    ```
 
-## Java SE 7
-
-
-
 ## Java SE 8
 
 * Lambda表达式

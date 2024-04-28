@@ -33,6 +33,7 @@
 3. SQL基本概念
 
    * SQL：结构化操作语言
+   * 查看数据库端口号：`show global variables like 'port';`
 
 4. SQL通用语法
 
