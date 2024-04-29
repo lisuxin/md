@@ -149,9 +149,185 @@ public class MysqlJdbc {
 }
 ```
 
+### JDBC工具类
+
+* 工具类
+
+```java
+package com.jdbc;
+
+import org.junit.After;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URL;
+import java.sql.*;
+import java.util.Properties;
+
+public class JdbcUtils {
+    //使用静态代码块，读取配置文件
+    private static String url;
+    private static String user;
+    private static String password;
+    private static String driver;
+    static {
+        try {
+        //创建集合
+        Properties pro = new Properties();
+        //获取src路径下的文件----->类加载器ClassLoader
+        ClassLoader classLoader = JdbcUtils.class.getClassLoader();
+        //传入文件名获取文件名的URL路径,只能获取src这一级以下的
+        URL urlle = classLoader.getResource("jdbc.properties");
+        //将URL转换为字符串文件
+        String path = urlle.getPath();
+        pro.load(new FileReader(path));
+        url = pro.getProperty("url");
+        user = pro.getProperty("user");
+        password = pro.getProperty("password");
+        driver = pro.getProperty("driver");
+        //注册驱动
+        Class.forName(driver);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static Connection getConnection(){
+        //使用配置文件的方式连接数据库对象
+        try {
+            return DriverManager.getConnection(url, user, password);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void close(Connection con,Statement stem){
+        if (stem != null){
+            try {
+                stem.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (con != null) {
+            try {
+                con.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public static void close(Connection con, Statement stem, ResultSet set){
+        if (stem != null){
+            try {
+                stem.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (con != null) {
+            try {
+                con.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (set != null) {
+            try {
+                set.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+}
+```
+
+* 配置文件
+
+```properties
+url=jdbc:mysql://localhost:3306/test
+user=root
+password=219798
+driver=com.mysql.cj.jdbc.Driver
+```
+
+* 测试类
+
+```java
+package com.jdbc;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class JdbcTest {
+    public static void main(String[] args) {
+        Connection con =null;
+        Statement stem = null;
+        ResultSet set=null;
+        con = JdbcUtils.getConnection();
+        String sql = "update student set user = '王八' where Telephonenumber=123456789012345678";
+        String sql1 = "select * from student";
+        //获取执行sql的对象Ststement
+        try {
+            stem = con.createStatement();
+        //执行sql
+        //int count = stem.executeUpdate(sql);
+        set = stem.executeQuery(sql1);
+        while (set.next()) {
+            System.out.println(set.getString(2) + "-------" + set.getString("password"));
+        }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        JdbcUtils.close(con,stem,set);
+    }
+}
+```
+
+### Jdbc事务管理
+
+* `PreparedStatement`解决sql注入问题，使用？作为占位符
+
+  1. 定义sql
+  2. 获取执行sql执行语句对象
+  3. 给？赋值
+     * 方法：setXxx（参数1，参数2）
+     * Xxx：数据类型
+     * 参数1：第几个问号，从1开始
+     * 参数2：？的值
+  4. 执行sql不需要传值
+
+  ```java
+  String sql1 = "select * from student where user=? and password=?";
+  pstm = con.prepareStatement(sql1);
+  pstm.setString(1,"王八");
+  pstm.setString(2,"12345678");
+  set = pstm.executeQuery();
+  ```
+
+* 使用Connection来进行事务管理
+
+  1. 事务：包含多个步骤的业务操作，如果这个业务被事务管理，则这些步骤要么同时成功，要么同时失败
+  2. `setAutoCommit(boolean autoCommit)`：开启事务：在所有操作前开启
+  3. `commit()`：提交事务：在所有操作完提交
+  4. `eollback()`：回滚事务：再出现异常时回滚
+
 ### 数据库连接池
 
+#### c3p0
 
+
+
+#### druid
+
+
+
+#### JDBCTemplate
 
 ## xml
 
