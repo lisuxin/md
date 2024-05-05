@@ -920,20 +920,133 @@ Function：函数（方法）对象
 
 ### Function对象
 
+1. 创建Function对象的三种方式
+   1. `var fun = new Function(形参列表，方法体)`
+   2. `function fun1(a){alert(a)}`
+   3. `var fun=function(a){alert(a)}`
+2. 属性
+   1. length：返回形参个数
+3. 调用
+   1. 方法名称（实参）
+4. 特点
+   1. 方法定义是，形参的类型不用写，返回值类型也不写。
+   2. 方法是一个对象，如果定又名称相同的方法，会覆盖
+   3. 在JS中，方法的调用只与方法的名称有关，和参数列表无关
+   4. 在方法声明中有一个的内置对象（数组），arguments, 封装所有的实际参数
+
 ### RegExp正则表达式对象
 
 1. 定义字符串组成规则
-1. 
+
+   #### 方括号
+
+   方括号用于查找某个范围内的字符：
+
+   | 表达式                                                       | 描述                                     |
+   | :----------------------------------------------------------- | :--------------------------------------- |
+   | [[abc\]](https://www.w3school.com.cn/jsref/jsref_regexp_charset.asp) | 查找括号之间的任何字符。                 |
+   | [[^abc\]](https://www.w3school.com.cn/jsref/jsref_regexp_charset_not.asp) | 查找任何不在方括号之间的字符。           |
+   | [[0-9\]](https://www.w3school.com.cn/jsref/jsref_regexp_0-9.asp) | 查找任何从 0 至 9 的数字。               |
+   | [[^0-9\]](https://www.w3school.com.cn/jsref/jsref_regexp_not_0-9.asp) | 查找任何不在括号内的字符（任何非数字）。 |
+   | [(x\|y)](https://www.w3school.com.cn/jsref/jsref_regexp_xy.asp) | 查找任何指定的选项。                     |
+
+   #### 元字符
+
+   元字符是具有特殊含义的字符：
+
+   | 元字符                                                       | 描述                                                         |
+   | :----------------------------------------------------------- | :----------------------------------------------------------- |
+   | [.](https://www.w3school.com.cn/jsref/jsref_regexp_dot.asp)  | 查找单个字符，除了换行符或行终止符。                         |
+   | [\w](https://www.w3school.com.cn/jsref/jsref_regexp_wordchar.asp) | 查找单词字符。                                               |
+   | [\W](https://www.w3school.com.cn/jsref/jsref_regexp_wordchar_non.asp) | 查找非单词字符。                                             |
+   | [\d](https://www.w3school.com.cn/jsref/jsref_regexp_digit.asp) | 查找数字。                                                   |
+   | [\D](https://www.w3school.com.cn/jsref/jsref_regexp_digit_non.asp) | 查找非数字字符。                                             |
+   | [\s](https://www.w3school.com.cn/jsref/jsref_regexp_whitespace.asp) | 查找空白字符。                                               |
+   | [\S](https://www.w3school.com.cn/jsref/jsref_regexp_whitespace_non.asp) | 查找非空白字符。                                             |
+   | [\b](https://www.w3school.com.cn/jsref/jsref_regexp_begin.asp) | 在单词的开头/结尾查找匹配项，开头如下：\bHI，结尾如下：HI\b。 |
+   | [\B](https://www.w3school.com.cn/jsref/jsref_regexp_begin_not.asp) | 查找匹配项，但不在单词的开头/结尾处。                        |
+   | [\0](https://www.w3school.com.cn/jsref/jsref_regexp_nul.asp) | 查找 NULL 字符。                                             |
+   | [\n](https://www.w3school.com.cn/jsref/jsref_regexp_newline.asp) | 查找换行符。                                                 |
+   | [\f](https://www.w3school.com.cn/jsref/jsref_regexp_formfeed.asp) | 查找换页符。                                                 |
+   | [\r](https://www.w3school.com.cn/jsref/jsref_regexp_carriagereturn.asp) | 查找回车符。                                                 |
+   | [\t](https://www.w3school.com.cn/jsref/jsref_regexp_tab.asp) | 查找制表符。                                                 |
+   | [\v](https://www.w3school.com.cn/jsref/jsref_regexp_vtab.asp) | 查找垂直制表符。                                             |
+   | [\xxx](https://www.w3school.com.cn/jsref/jsref_regexp_octal.asp) | 查找以八进制数 xxx 规定的字符。                              |
+   | [\xdd](https://www.w3school.com.cn/jsref/jsref_regexp_hex.asp) | 查找以十六进制数 dd 规定的字符。                             |
+   | [\uxxxx](https://www.w3school.com.cn/jsref/jsref_regexp_unicode_hex.asp) | 查找以十六进制数 xxxx 规定的 Unicode 字符。                  |
+
+   #### 量词
+
+   | 量词                                                         | 描述                                        |
+   | :----------------------------------------------------------- | :------------------------------------------ |
+   | [n+](https://www.w3school.com.cn/jsref/jsref_regexp_onemore.asp) | 匹配任何包含至少一个 n 的字符串。           |
+   | [n*](https://www.w3school.com.cn/jsref/jsref_regexp_zeromore.asp) | 匹配任何包含零个或多个 n 的字符串。         |
+   | [n?](https://www.w3school.com.cn/jsref/jsref_regexp_zeroone.asp) | 匹配任何包含零个或一个 n 的字符串。         |
+   | [n{X}](https://www.w3school.com.cn/jsref/jsref_regexp_nx.asp) | 匹配包含 X 个 n 的序列的字符串。            |
+   | [n{X,Y}](https://www.w3school.com.cn/jsref/jsref_regexp_nxy.asp) | 匹配包含 X 至 Y 个 n 的序列的字符串。       |
+   | [n{X,}](https://www.w3school.com.cn/jsref/jsref_regexp_nxcomma.asp) | 匹配包含至少 X 个 n 的序列的字符串。        |
+   | [n$](https://www.w3school.com.cn/jsref/jsref_regexp_ndollar.asp) | 匹配任何以 n 结尾的字符串。                 |
+   | [^n](https://www.w3school.com.cn/jsref/jsref_regexp_ncaret.asp) | 匹配任何以 n 开头的字符串。                 |
+   | [?=n](https://www.w3school.com.cn/jsref/jsref_regexp_nfollow.asp) | 匹配任何其后紧接指定字符串 n 的字符串。     |
+   | [?!n](https://www.w3school.com.cn/jsref/jsref_regexp_nfollow_not.asp) | 匹配任何其后没有紧接指定字符串 n 的字符串。 |
+
+1. 对象
+
+   1. 创建
+
+      * `var reg = new RegExp("正则表达式");`
+      * `var reg = /^正则表达式$/;`
+      * 开始`^`结束`$`符号
+
+   2. 方法
+
+      * text(参数)：验证字符串是否符合正常表达式定义的规范
+
+      ```javascript
+      var reg = /^\w{7}$/;
+      var user = "zhangsan";
+      alert(reg.test(user));
+      ```
+
+### Global对象
+
+1. 特点：全局对象，这个Global这个对象中的方法不需要对象可以直接调用。方法名（）；
+
+2. 方法：
+
+   | 函数                                                         | 描述                                                         |
+   | :----------------------------------------------------------- | :----------------------------------------------------------- |
+   | [decodeURI()](https://www.w3school.com.cn/jsref/jsref_decodeuri.asp) | 解码 URI。                                                   |
+   | [decodeURIComponent()](https://www.w3school.com.cn/jsref/jsref_decodeuricomponent.asp) | 解码 URI 组件。                                              |
+   | [encodeURI()](https://www.w3school.com.cn/jsref/jsref_encodeuri.asp) | 对 URI 进行编码。                                            |
+   | [encodeURIComponent()](https://www.w3school.com.cn/jsref/jsref_encodeuricomponent.asp) | 对 URI 组件进行编码。                                        |
+   | [escape()](https://www.w3school.com.cn/jsref/jsref_escape.asp) | 在 1.5 版中已弃用。请使用 [encodeURI()](https://www.w3school.com.cn/jsref/jsref_encodeuri.asp) 或 [encodeURIComponent()](https://www.w3school.com.cn/jsref/jsref_encodeuricomponent.asp) 代替。 |
+   | [eval()](https://www.w3school.com.cn/jsref/jsref_eval.asp)   | 将字符串并像脚本代码一样执行它。                             |
+   | [isFinite()](https://www.w3school.com.cn/jsref/jsref_isfinite.asp) | 确定值是否是有限的合法数。                                   |
+   | [isNaN()](https://www.w3school.com.cn/jsref/jsref_isnan.asp) | 确定值是否是非法数字。                                       |
+   | [Number()](https://www.w3school.com.cn/jsref/jsref_number.asp) | 将对象的值转换为数字。                                       |
+   | [parseFloat()](https://www.w3school.com.cn/jsref/jsref_parsefloat.asp) | 解析字符串并返回浮点数。                                     |
+   | [parseInt()](https://www.w3school.com.cn/jsref/jsref_parseint.asp) | 解析字符串并返回整数。                                       |
+   | [String()](https://www.w3school.com.cn/jsref/jsref_string.asp) | 将对象的值转换为字符串。                                     |
+   | [unescape()](https://www.w3school.com.cn/jsref/jsref_unescape.asp) | 在 1.5 版中已弃用。请使用 [decodeURI()](https://www.w3school.com.cn/jsref/jsref_decodeuri.asp) 或 [decodeURIComponent()](https://www.w3school.com.cn/jsref/jsref_decodeuricomponent.asp) 代替。 |
 
 ## BOM
 
-
-
 ## DOM
 
-
+* 功能：控制html文档的内容
+  * 获取页面标签元素：`document.getElementById(id值)`通过id元素获取
+* 操作Element对象
+  1. 修改属性值，可以修改原标签有的所有属性值`document.getElementById(1).value="111";`、`<input id="1" type="text" value="123">`
+  2. 修改标签体内容`document.getElementById(2).innerHTML="奶茶妹妹";`\.innerHTML内置对象
 
 ## 事件
+
+* 某些组件被执行了，某些操作后，触发某些代码执行
+  * 绑定事件
+    1. 直接在html标签上，指定事件属性（）
+    2. `document.getElementById().事件`
+  * 单击事件：`onclick`
 
 ## Cookie
 
