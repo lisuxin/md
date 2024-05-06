@@ -1090,12 +1090,249 @@ Function：函数（方法）对象
 
 ## DOM
 
+* 文档对象模型：将标记语言文档的各个组成部分，封装为对象。可以使用些对象，对标记文档进行 CRUD 的动态操作
+
 * 功能：控制html文档的内容
+  
   * 获取页面标签元素：`document.getElementById(id值)`通过id元素获取
+  
 * 操作Element对象
   1. 修改属性值，可以修改原标签有的所有属性值`document.getElementById(1).value="111";`、`<input id="1" type="text" value="123">`
   2. 修改标签体内容`document.getElementById(2).innerHTML="奶茶妹妹";`\.innerHTML内置对象
-* 
+  
+* DOM分为3个标准
+
+  1. 核心DOM：针对任何结构化文档的标准模型
+
+     * 对象
+
+       * Document：文档对象
+
+         1. 创建（获取）：在html中可以使用windows对象来获取
+
+            * `windows.document`
+            * `document`
+
+         2. 方法
+
+            * 获取Element对象：
+
+              1. `getElementById()`：查找具有指定的唯一 ID 的元素。ID属性值唯一
+              2. `getElementsByTagName()`：返回所有具有指定名称的元素节点。返回值是一个数组
+              3. `getElementByClassName()`：根据Class属性值获取元素对象们。返回值是一个数组
+              4. `getElementByName()`：根据Name属性值获取元素对象们。返回值是一个数组
+
+              ```html
+              <div class="cities">
+                  <h2 class="ccc">London</h2>
+                  <p id="2">
+                      London is the capital city of England.
+                      It is the most populous city in the United Kingdom,
+                      with a metropolitan area of over 13 million inhabitants.
+                  </p>
+              </div>
+              <input id="1" name="username" type="text" value="123">
+              <script>
+                  document.getElementById(2).innerHTML="奶茶妹妹";
+                  document.getElementsByTagName("div");
+                  document.getElementsByClassName("ccc");
+                  document.getElementsByName("username");
+              </script>
+              ```
+
+            * 创建其他DOM对象：
+
+              1. `createAttribute(name)`：创建拥有指定名称的属性节点，并返回新的 Attr 对象。
+              2. `createComment()`：创建注释节点。
+              3. `createElement()`：创建元素节点。
+              4. `createTextNode()`：创建文本节点。
+
+              ```html
+              document.createElement("div")
+              ```
+
+       * Element：元素对象
+
+         * 创建（获取）通过document来获取创建
+         * 方法
+           1. `removeAttribute()`：删除指定的属性。
+           2. `setAttribute()`：添加新属性。
+
+       * Attribute：属性对象
+
+       * Text：文本对象
+
+       * Comment：注释对象
+
+       * Node：节点对象，其他5个父对象
+
+         * 特点：所有 dom 对都可以被认为是一个节点
+         * 方法：crud dom树
+           * appendChild()	向节点的子节点列表的结尾添加新的子节点。
+           * removeChild()	删除（并返回）当前节点的指定子节点。
+           * replaceChild()	用新节点替换一个子节点。
+         * 属性
+           * parentNode	返回节点的父节点。
+
+       * 事例
+
+       * `"delTr(this);"`：当前节点delTr方法名
+
+         ```html
+         <!DOCTYPE html>
+         <html lang="en">
+         <head>
+             <meta charset="UTF-8">
+             <title>function</title>
+             <style>
+                 table{
+                     border: 1px solid;
+                     margin: auto;
+                     width: 500px;
+                 }
+                 td,th{
+                     text-align: center;
+                     border: 1px solid;
+                 }
+                 div{
+                     text-align: center;
+                     margin: 50px;
+                 }
+             </style>
+         </head>
+         <body>
+         <div>
+         <input id="input1" placeholder="请输入编号"/>
+         <input id="input2" placeholder="请输入姓名"/>
+         <input id="input3" placeholder="请输入性别"/>
+         <input id="button" type="button" value="添加"/>
+         </div>
+         <table id="table1">
+             <caption>学生信息表</caption>
+             <tr id="tr1">
+                 <td id="td1">编号</td>
+                 <td id="td2">姓名</td>
+                 <td id="td3">性别</td>
+                 <td id="td4">操作</td>
+             </tr>
+         </table>
+         <script>
+             document.getElementById("button").onclick = function (){
+                 var input1 = document.getElementById("input1").value;
+                 var input2 = document.getElementById("input2").value;
+                 var input3 = document.getElementById("input3").value;
+         
+                 var td_input1 = document.createElement("td");
+                 var text_input1 = document.createTextNode(input1);
+                 td_input1.appendChild(text_input1);
+                 var td_input2 = document.createElement("td");
+                 var text_input2 = document.createTextNode(input2);
+                 td_input2.appendChild(text_input2);
+                 var td_input3 = document.createElement("td");
+                 var text_input3 = document.createTextNode(input3);
+                 td_input3.appendChild(text_input3);
+         
+                 var td_a = document.createElement("td");
+                 var property_a = document.createElement("a");
+                 property_a.setAttribute("href","javascript:void(0);");
+                 property_a.setAttribute("onclick","elTr(this);");
+                 var text_a = document.createTextNode("删除");
+                 property_a.appendChild(text_a);
+                 td_a.appendChild(property_a);
+         
+                 var tr = document.createElement("tr");
+                 tr.appendChild(td_input1);
+                 tr.appendChild(td_input2);
+                 tr.appendChild(td_input3);
+                 tr.appendChild(td_a);
+         
+                 var table2 = document.getElementsByTagName("table")[0];
+                 table2.appendChild(tr);
+             }
+             function elTr(obj){
+                 var tebal = obj.parentNode.parentNode.parentNode;
+                 var tr = obj.parentNode.parentNode;
+                 tebal.removeChild(tr);
+             }
+         </script>
+         </body>
+         </html>
+
+  2. XML DOM：针对 XML 文档的标准模型
+
+  3. HTML DOM：针对 HTML 文档的标准模型
+
+     * 设置获取标签体innerHTML；可以添加文本、标签，追加
+
+     * innerHTML实现上面事例
+
+       ```html
+       <!DOCTYPE html>
+       <html lang="en">
+       <head>
+           <meta charset="UTF-8">
+           <title>function</title>
+           <style>
+               table{
+                   border: 1px solid;
+                   margin: auto;
+                   width: 500px;
+               }
+               td,th{
+                   text-align: center;
+                   border: 1px solid;
+               }
+               div{
+                   text-align: center;
+                   margin: 50px;
+               }
+           </style>
+       </head>
+       <body>
+       <div>
+           <input id="input1" placeholder="请输入编号"/>
+           <input id="input2" placeholder="请输入姓名"/>
+           <input id="input3" placeholder="请输入性别"/>
+           <input id="button" type="button" value="添加"/>
+       </div>
+       <table id="table1">
+           <caption>学生信息表</caption>
+           <tr id="tr1">
+               <td id="td1">编号</td>
+               <td id="td2">姓名</td>
+               <td id="td3">性别</td>
+               <td id="td4">操作</td>
+           </tr>
+       </table>
+       <script>
+           document.getElementById("button").onclick = function (){
+               var input1 = document.getElementById("input1").value;
+               var input2 = document.getElementById("input2").value;
+               var input3 = document.getElementById("input3").value;
+       
+               var table = document.getElementsByTagName("table")[0];
+       
+               table.innerHTML += "<tr>\n"+
+                   "<td>"+input1+"</td>\n"+
+                   "<td>"+input2+"</td>\n"+
+                   "<td>"+input3+"</td>\n"+
+                   "<td><a href=\"javascript:void(0)\" onClick=\"elTr(this)\">删除</a></td>\n"+
+               "</tr>";
+           }
+           function elTr(obj){
+               var tebal = obj.parentNode.parentNode.parentNode;
+               var tr = obj.parentNode.parentNode;
+               tebal.removeChild(tr);
+           }
+       </script>
+       </body>
+       </html>
+       ```
+
+     * 控制样式
+
+       1. 方式1：`document.gitElementById().style.css样式名="值"`，使用元素的style属性来设置
+       2. 方式2：`document.gitElementById().className = "类选择器"`提前定义的class选择器样式，通过元素的className属性来设置class属性值。
 
 ## 事件
 
