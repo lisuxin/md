@@ -1032,6 +1032,62 @@ Function：函数（方法）对象
 
 ## BOM
 
+* 浏览器对象模型：将浏览器的各个组成部分封装成对象
+
+* 对象
+
+   * Window：窗口对象
+
+      1. 创建
+
+      2. 方法
+
+         1. 弹出框
+
+            * `alert()`：显示带有一段消息和一个确认按钮的警告框。
+
+            * `confirm()`：显示带有一段消息以及确认按钮和取消按钮的对话框。
+            * `prompt()`：显示可提示用户输入的对话框。
+
+         2. 打开关闭
+
+            * `open()`：打开一个新的浏览器窗口或查找一个已命名的窗口。
+            * `close()`：关闭浏览器窗口。谁调用，关闭谁
+
+         3. 定时器
+
+            * `setTimeout()`：在指定的毫秒数后调用函数或计算表达式。
+               * 参数：js代码，方法对象；毫秒值
+               * 返回值：id
+            * `clearTimeout()`：取消由 setTimeout() 方法设置的 timeout。
+            * `setInterval()`：按照指定的周期（以毫秒计）来调用函数或计算表达式。
+            * `clearInterval()`：取消由 setInterval() 设置的 timeout。
+
+      3. 属性
+
+         * 获取其他windows对象
+
+      4. 特点
+
+         * 不需要创建可以直接使用。`windows.方法名()`
+         * 可以省略windows。`方法名()`
+
+   * Navigator：浏览器对象
+
+   * Screen：显示器屏幕对象
+
+   * History：历史记录对象
+
+   * Location：地址栏对象
+
+      1. 创建
+         * `Location.方法名()`
+         * `方法名()`
+      2. 属性
+         * href：设置或返回完整的URL。
+      3. 方法
+         * `reload()`：重新加载当前窗口
+
 ## DOM
 
 * 功能：控制html文档的内容
@@ -1039,6 +1095,7 @@ Function：函数（方法）对象
 * 操作Element对象
   1. 修改属性值，可以修改原标签有的所有属性值`document.getElementById(1).value="111";`、`<input id="1" type="text" value="123">`
   2. 修改标签体内容`document.getElementById(2).innerHTML="奶茶妹妹";`\.innerHTML内置对象
+* 
 
 ## 事件
 
