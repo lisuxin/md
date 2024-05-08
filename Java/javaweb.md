@@ -746,7 +746,47 @@ public class JdbcTest {
      2. SAX：逐行读取，基于事件驱动。
         * 优点：不占内存
         * 缺点：不能读取
+  4. 常见解析器
+     1. jaxp:两种思想都支持
+     2. dom4j:
+     3. jsoup:html解析器
+     4. pull:sax方式的，安卓内置的
+  
 * Jsoup
+
+  1. 使用步骤
+
+     1. 导包`jsoup`
+     2. 获取对象`docution`
+     3. 获取对应标签Element对象
+     4. 获取数据
+
+     ```java
+     //获取document对象，根据xml文档获取
+     //获取xml的path
+     String path = JsuopMain.class.getClassLoader().getResource("atudent.xml").getPath();
+     //解析xml文档，加载文档进内存，获取Dom树--->Document
+     Document document = Jsoup.parse(new File(path), "utf-8");
+     //获取Element对象
+     Elements name = document.getElementsByTag("name");
+     //获取第一个name的Element对象
+     Element element = name.get(0);
+     //获取数据
+     System.out.println(element.text());
+     ```
+
+  2. 对象
+
+     * Jsoup：工具类，可以解析html获XML文档，返回Document
+       * 方法
+       * parse：解析html获XML文档，返回Document
+         * parse(File in,String Charsetname)：解析xml或者html文件的
+         * parse(String html):解析xml或者html字符串
+         * parse(URL rul,int timeoutMillis)：通过网络路径获取指定的html或xml文档对象
+     * Document：文档对象。代表内存中的DOM树
+     * Elements：元素的Element对象的集合，可以当做`ArrayList<Element>`来使用
+     * Element：元素对象
+     * Node：节点对象
 
 ## Servlet
 

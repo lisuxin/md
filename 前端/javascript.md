@@ -1341,8 +1341,47 @@ Function：函数（方法）对象
     1. 直接在html标签上，指定事件属性（）
     2. `document.getElementById().事件`
   * 单击事件：`onclick`
+  
+* 事件
+
+  1. 点击事件
+     1. onclick	当用户点击某个对象时调用的事件句柄。
+     2. ondblclick	当用户双击某个对象时调用的事件句柄。
+  2. 焦点事件
+     1. onblur	元素失去焦点时触发
+     2. onfocus	元素获取焦点时触发
+  3. 加载事件
+     1. onload	一张页面或一幅图像完成加载。
+  4. 鼠标事件
+     1. onmousedown	鼠标按钮被按下。
+        1. 定义一个形参，可以获取那个键
+     2. onmouseup	鼠标按键被松开。
+     3. onmousemove	鼠标被移动。
+     4. onmouseover	鼠标移到某元素之上。
+     5. onmouseout	鼠标从某元素移开。
+  5. 键盘事件
+     1. onkeydown	某个键盘按键被按下。		
+     2. onkeyup	某个键盘按键被松开。
+     3. onkeypress	某个键盘按键被按下并松开。
+  6. 选中和改变
+     1. onchange	该事件在表单元素的内容改变时触发`( <input>, <keygen>, <select>, 和 <textarea>)`
+     2. onselect	用户选取文本时触发` ( <input> 和 <textarea>)`
+  7. 表单事件
+     1. onsubmit	表单提交时触发
+     2. onreset	表单重置时触发
+
+* 事例
+
+  ```javascript
+  //失去焦点
+  document.getElementById("username").onblur = function(){}
+  //加载事件
+  window.onload=function(){}
+  ```
 
 ## Cookie
+
+
 
 ## JSP
 
