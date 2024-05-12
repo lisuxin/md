@@ -535,4 +535,8 @@ git push origin master
    ssh-keygen -t rsa -C "地址" //不做修改一直回车
    ```
 
-   
+
+# git与IDEA
+
+1. 要有厂库
+2. 

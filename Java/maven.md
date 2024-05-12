@@ -63,7 +63,7 @@
 
 ###  1.4.1 maven解压后目录结构
 
-![1](D:\笔记\typoratuxiang\maven\maven解压后目录结构.png)
+![1](../typoratuxiang/maven/maven解压后目录结构.png)
 
 `bin`：maven可执行文件，组要是`mvn.cmd`
 
@@ -443,15 +443,15 @@ maven项目创建时，会联网下载模板文件，比较大，使用archetpyt
 
 使用模板创建项目
 
-![image-20220530103011959](D:\笔记\typoratuxiang\zawu\maven配置.png)
+![image-20220530103011959](..\typoratuxiang\zawu\maven配置.png)
 
-![](D:\笔记\typoratuxiang\zawu\mave不用下载模板.png)
+![](..\typoratuxiang\zawu\mave不用下载模板.png)
 
 **-DarchetypeCatalog=internal**
 
 **普通java项目的模板**
 
-![image-20220530103956933](D:\笔记\typoratuxiang\zawu\普通javase模板.png)
+![image-20220530103956933](..\typoratuxiang\zawu\普通javase模板.png)
 
 
 
