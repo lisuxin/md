@@ -71,7 +71,27 @@
 
 ### 1.4.2 idea查看使用的maven是谁的，什么版本
 
+1. file
+2. Settings
+3. 构建、
+4. 自己的maven archetype需要自己创建骨架
+5. 避免新建项目时使用的是ieda自己默认的maven
+   * **Settings For New Projects**：新建项目设置
+   * 
 
+### 1.4.3 使用阿里云镜像
+
+由于Maven自身的镜像库更新太慢，甚至失败，建议使用阿里与仓库
+修改conf文件夹的settings.xml文件，找到`mirrors`,在里面加入下面的配置
+
+```text
+<mirror>
+       <id>nexus-aliyun</id>
+       <mirrorOf>*</mirrorOf>
+       <name>Nexus aliyun</name>
+       <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+</mirror>
+```
 
 # 2 maven的核心概念
 
@@ -547,14 +567,68 @@ maven项目创建时，会联网下载模板文件，比较大，使用archetpyt
           </build>
       ```
       
-   
-3. 中文乱码
 
-   1. 在==Settings==-->==maven==--->==VM Option==添加以下
+### 中文乱码
 
-   ```xml
-   -Dfile.encoding=GB2312
+1. 在idea中==Settings==-->==maven==--->===Runner==--->==VM Option==添加以下
+
+```xml
+-Dfile.encoding=GB2312
+```
+
+要更改Maven的默认平台编码为UTF-8，你可以通过设置环境变量的方式来实现。以下是具体步骤：
+
+#### 设置 MAVEN_OPTS 环境变量
+
+1. **打开环境变量设置**：
+
+   - 在Windows上，右键点击“此电脑”或“计算机” > 选择“属性” > “高级系统设置” > “环境变量”。
+   - 在Linux或MacOS上，编辑bash_profile或者profile文件，通常位于`~/.bash_profile`或`~/.profile`。
+
+2. **新建或编辑 MAVEN_OPTS 变量**：
+
+   - **新建**：如果不存在`MAVEN_OPTS`变量，点击“新建”按钮，变量名输入`MAVEN_OPTS`。
+   - **编辑**：如果已存在，选中它并点击“编辑”。
+
+3. **设置变量值**：
+   输入以下值作为变量值：
+
    ```
+   -Xms256m -Xmx512m -Dfile.encoding=UTF-8
+   ```
+
+   这里，`-Xms`和`-Xmx`是Java虚拟机的内存设置，分别代表初始内存和最大内存；`-Dfile.encoding=UTF-8`则指定了文件编码为UTF-8。
+
+4. **保存并退出**：完成设置后，保存你的更改并关闭所有窗口。
+
+5. **重启终端或命令提示符**：为了使新设置生效，需要关闭并重新打开你的命令行工具。
+
+#### 验证设置
+
+- 打开命令行工具，输入 `mvn -version` 命令，检查输出的信息中是否包含了UTF-8编码设置。这可以帮助确认Maven是否已正确应用了新的编码配置。
+
+#### 修改 pom.xml
+
+除了环境变量外，你还可以在项目的`pom.xml`文件中指定源代码和资源文件的编码，以确保Maven编译时使用正确的编码。在`<build>`标签内添加如下配置：
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.1</version> <!-- 使用实际的最新版本 -->
+            <configuration>
+                <source>1.8</source> <!-- 指定JDK源代码版本 -->
+                <target>1.8</target> <!-- 指定目标JDK版本 -->
+                <encoding=UTF-8</encoding> <!-- 指定编译编码 -->
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+确保这些步骤后，Maven应该会使用UTF-8作为默认的平台编码，从而避免中文乱码等问题。
 
 # POM
 

@@ -779,16 +779,116 @@ public class JdbcTest {
 
      * Jsoup：工具类，可以解析html获XML文档，返回Document
        * 方法
+       
        * parse：解析html获XML文档，返回Document
-         * parse(File in,String Charsetname)：解析xml或者html文件的
-         * parse(String html):解析xml或者html字符串
-         * parse(URL rul,int timeoutMillis)：通过网络路径获取指定的html或xml文档对象
+         
+       * parse(File in,String Charsetname)：解析xml或者html文件的
+         
+       * parse(String html):解析xml或者html字符串
+         
+       * parse(URL rul,int timeoutMillis)：通过网络路径获取指定的html或xml文档对象
+         
+         ```java
+         Document document = Jsoup.parse(new File(path), "utf-8");
+         
+         String str = "<students>\n" +
+                         "    <student number=\"001\">\n" +
+                         "        <name>zzz</name>\n" +
+                         "        <age>11</age>\n" +
+                         "        <sex>male</sex>\n" +
+                         "    </student>\n" +
+                         "    <student number=\"002\">\n" +
+                         "        <name>zz1</name>\n" +
+                         "        <age>11</age>\n" +
+                         "        <sex>mal1</sex>\n" +
+                         "    </student>\n" +
+                         "</students>";
+         Document document = Jsoup.parse(str);
+         ```
+       
      * Document：文档对象。代表内存中的DOM树
+     
+       * getElementById(String id)：根据id属性值获取唯一的Element对象
+     
+       * getElementsByTag(String tagName)：根据标签名称获取元素对象集合
+     
+       * getElementsByAttribute(String key)：根据属性名称获取元素对象集合
+     
+       * getElementsByAttributeValue(String key,String value)：根据对应的属性名和属性值获取元素对象集合
+     
+         ```java
+         Document document = Jsoup.parse(new File(path), "utf-8");        
+         //获取Element对象
+         Elements name = document.getElementsByTag("name");
+     
      * Elements：元素的Element对象的集合，可以当做`ArrayList<Element>`来使用
+     
      * Element：元素对象
+     
+       1. 获取子元素对象
+     
+          * getElementById(String id)：根据id属性值获取唯一的Element对象
+          * getElementsByTag(String tagName)：根据标签名称获取元素对象集合
+          * getElementsByAttribute(String key)：根据属性名称获取元素对象集合
+          * getElementsByAttributeValue(String key,String value)：根据对应的属性名和属性值获取元素对象集合
+     
+       2. 获取属性值
+     
+          * String attr(String key)：根据属性名称获取属性值
+     
+       3. 获取文本内容
+     
+          * String text()：获取文本内容
+          * String html()：获取标签体的所有内容（包括子标签和子标签字符串内容）
+     
+          ```java
+          Elements name = document.getElementsByTag("name");
+          String ele_name = name.attr("value");
+          name.text();
+          name.html();
+     
      * Node：节点对象
+     
+       * 是Document和Element的父类
+     
+  3. 根据选择器查询
+  
+     * selector：选择器
+  
+     * 导包``
+  
+       ```java
+       document.select("name");//标签选择        
+       document.select("#it");//id属性
+       document.select("student[number=\"001\"]");//获取标签为student且number等于001
+       document.select("student[number=\"001\"]>sex");//获取标签为student且number等于001，的sex的子标签
+  
+  4. 根据Xpath查询
+  
+     * XPath 是一门在 XML 文档中查找信息的语言。
+  
+     * 导包`commons-lang3`、`JsoupXpath`
+  
+       ```java
+       //获取document对象，根据xml文档获取
+       //获取xml的path
+       String path = JsuopMain.class.getClassLoader().getResource("atudent.xml").getPath();
+       //解析xml文档，加载文档进内存，获取Dom树--->Document
+       Document documents = Jsoup.parse(new File(path), "utf-8");
+       //根据document对象创建JXDocument对象
+       JXDocument jxDocument = new JXDocument(documents);
+       //查询所有student标签
+       List<JXNode> jxNodes = jxDocument.selN("//student");
+       for (JXNode jxNode : jxNodes) {
+           System.out.println(jxNode);    
+       }
+       ```
+  
+     * 查询参考手册
 
 ## Servlet
+
+
 
 ## Request
 
