@@ -532,6 +532,7 @@ git push origin master
    ssh-keygen -t rsa -C "地址" //不做修改一直回车
    ```
 
+<<<<<<< HEAD
    
 
 # 新项目提交步骤
@@ -541,3 +542,10 @@ git push origin master
 3. `git branch main `：创建分支main
 4. `git pull --rebase origin main`：拉取并绑定提交分支
 5. 后续项目正常提交步骤
+=======
+
+# git与IDEA
+
+1. 要有厂库
+2. 
+>>>>>>> 62a2414eb035b088b0fd1e28dafafada636b1c83
