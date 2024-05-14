@@ -361,7 +361,7 @@ Model-.JSON.-ViewModel
 2. v-model:双向数据绑定
    * v-model只能应用在表单类元素（输入类元素）上
 
-> ## 数据代理
+## 数据代理
 
 1. Object.defineproperty方法
 
@@ -1111,7 +1111,7 @@ Model-.JSON.-ViewModel
       
               `export default 组件名`
 
-> ## 脚手架：
+## 脚手架：
 
 1. index.hrml
 
@@ -1580,7 +1580,7 @@ Model-.JSON.-ViewModel
            </script>
            ```
 
-> ## Vuex
+## Vuex
 
 1. vuex是什么
 
@@ -1825,7 +1825,7 @@ Model-.JSON.-ViewModel
       ...mapMutations ('countAbout', fincrement: 'JIA',decrement: 'JIAN'}),
       ```
 
-> ## 路由
+## 路由
 
 1. 理解：一个路由（route）就是一组映射关系（key-value），多个路由需要路由器（router）进行管理。
 
@@ -2059,11 +2059,11 @@ Model-.JSON.-ViewModel
 
 13. history模式和hash模式
 
-> ## vue3
+## vue3
 
 
 
-> ## main.js
+## main.js
 
 ```javascript
 //引入Vue

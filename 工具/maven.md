@@ -77,7 +77,6 @@
 4. 自己的maven archetype需要自己创建骨架
 5. 避免新建项目时使用的是ieda自己默认的maven
    * **Settings For New Projects**：新建项目设置
-   * 
 
 ### 1.4.3 使用阿里云镜像
 
@@ -453,9 +452,9 @@ file------>Setting------->Build,Execution,Deployment------------->Bulid Tools---
 
 Maven--->Runner
 
-> > VM Options:archetpyteCatalog=internal//为了下载maven模板时速度更快
-> >
-> > jer:你项目的jdk
+> VM Options:archetpyteCatalog=internal//为了下载maven模板时速度更快
+> 
+> jer:你项目的jdk
 
 maven项目创建时，会联网下载模板文件，比较大，使用archetpyteCatalog=internal，不用下载，创建maven速度快
 
