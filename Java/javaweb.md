@@ -888,9 +888,13 @@ public class JdbcTest {
 
 ## Servlet
 
+* 运行在服务器上的小程序、规则（接口）   
+* Servlet就是一个接口，定义了Java类被浏览器访问到（tomcat识别）的规则
+* 自定义一个类实现Servlet接口，复写方法
+
 ### 快速入门
 
-
+1. 创建javaee项目
 
 ### 执行原理
 
