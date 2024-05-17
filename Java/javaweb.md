@@ -896,39 +896,219 @@ public class JdbcTest {
 
 1. 创建javaee项目
 
+2. 定义一个类，实现`Servlet`接口
+
+3. 实现接口中的抽象方法
+
+   * 提供服务的方法
+
+      ```
+      @Override
+      public void service(ServletRequest servletRequest, ServletResponse servletResponse) throws ServletException, IOException {
+          System.out.println("123");
+      }
+      ```
+
+4. 配置Servlet
+
+   * 在`web.xml`中配置
+
+      ```xml
+      <?xml version="1.0" encoding="UTF-8"?>
+      <web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+               version="5.0">
+          <!--配置Servlet-->
+          <servlet>
+              <servlet-name>Demo01</servlet-name>
+              <servlet-class>com.wenapp.servlet.ServletDome01</servlet-class>
+              <!--tomcat将全类名对应的字节码文件加载进内存。class.forName-->
+              <!--创建对象class.newInstance()-->
+              <!--调用方法-->
+          </servlet>
+          <servlet-mapping>
+              <servlet-name>Demo01</servlet-name>
+              <url-pattern>/Demo01</url-pattern>
+          </servlet-mapping>
+      </web-app>
+      ```
+
 ### 执行原理
 
+1. 当服务器接收到浏览器请求后，会解析请求URL路径，获取访问的Servlet的资源路径
+2. 查找`web.xml`文件，是否有对应的`<url-pattern>`标签体内容
+3. 如果有，则找对应的`<servlet-class>`全类名
+4. tomcat会将字节码加载进内存，并创建对象
+5. 调用方法
 
+![image-20240517234915934](../typoratuxiang/java/servlet原理.png)
 
-### 生命周期
+### 生命周期方法
 
+* 生命周期
 
+   1. 创建
+      1. 默认情况下，第一次访问被创建
+      2. 可以配置创建时机
+         1. 第一次访问被创建
+            * `<load-on-startup>`值为负数
+         2. 在服务器启动的时候被创建
+            * `<load-on-startup>`值为0或正整数
+      3. servlet 的 init 方 法， 只执行一次，说明一个 servlet 在内存中只存在一个对象， servlet是单例的
+         * 多个用户同时访问时，可能存在线程安全问题。
+         * 解决：尽量不要在 servlet 中定义成员变量。即使定义了成员变量，也不要对修改值
+   2. 提供服务
+   3. 被销毁
 
-#### 方法
+   ```java
+    /**
+        * 初始化方法
+        * 在Servlet被创建时，执行，只会执行一次
+        * @param servletConfig
+        * @throws ServletException
+        */
+       @Override
+       public void init(ServletConfig servletConfig) throws ServletException {
+   
+       }
+   
+    /**
+        * 提供服务的方法
+        * 每一次Servlet被访问时执行，执行多次
+        * @param servletRequest
+        * @param servletResponse
+        * @throws ServletException
+        * @throws IOException
+        */
+       @Override
+       public void service(ServletRequest servletRequest, ServletResponse servletResponse) throws ServletException, IOException {
+   
+       }
+   
+    /**
+        * 销毁方法
+        * 在服务器关闭时执行，只执行一次
+        */
+       @Override
+       public void destroy() {
+   
+       }
 
+* 其他方法
 
-
-#### 详解
-
-
+   ```java
+   /**
+        * 获取ServletConfig对象
+        * ServletConfig：Servlet的配置对象
+        * @return
+        */
+       @Override
+       public ServletConfig getServletConfig() {
+           return null;
+       }
+   
+   /**
+        * 获取servlet信息，版本等等
+        * @return
+        */
+       @Override
+       public String getServletInfo() {
+           return null;
+       }
 
 ### 注解配置
 
+* servlet3.0以上:不使用xml配置
 
+   ```java
+   @WebServlet(urlPatterns = "/Demo03")//写在类名上面
+   @WebServlet("/Demo03")
+   @WebServlet("访问资源路径")
+   ```
 
 ### 体系结构
 
+`servlet接口`—>`Genericserv1et抽象类`—>`Httpserv1et抽象类`
 
+* Genericserv1et ：将 servlet 接囗中其他的方法做了默认空实现，只将 service() 方法作为抽象
 
-### urlpartten配置
+   * 将来定义 servlet 类时，可以继承 Genericserv1et, 实现 service() 方法即可
 
+* HttpServlet ：对 http 协议的一种封装，简化操作. 
 
+   1. 定义类继承Httpserv1et
+   2. 复写 d0Get/dopost 方法
 
-## Request
+   ```java
+   public class D0Getdopost extends HttpServlet {
+       @Override
+       protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+           super.doGet(req, resp);
+       }
+   
+       @Override
+       protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+           super.doPost(req, resp);
+       }
+   }
 
-## Response
+### servlet配置
 
-## ServletContext
+* urlpartten:servlet访问路径
+   1. 一个 servlet 可以定义多个访问路径路径`@webservlet （{" /d4" ，" /dd4"}`
+   2. 定义规则：
+      1. `/xxx`
+      2. `/xxx/xxx` ：多层路径，目录结构
+      3. `*.do`
+
+### HTTP
+
+* 既念： `Hyper Text Transfer Protoc01` 超文本传输协议
+   * 传输协议：定义了，客户端和服务器端通信时，发送数据的格式
+   * 特点:
+      1. 基于 TCP / IP 的高级协议
+      2. 默认端囗号：80
+      3. 基于请求/响应模型的：一次请求对应一次响应
+      4. 无状态的：每次请求之间相互独立，不能交互数据
+   * 历史版本：
+      * 1.0：每一次请求响应都会建立新的连接
+      * 1.1：复用连接
+* 请求消息数据格式
+   1. 请求行
+      * 请求方式 请求url 请求协议/版本
+      * GET /login .html HTTP/1.1
+         * 请求方式：
+            * HTTP 协议有7中请求方式，常用的有 2 种
+               * GET ：
+                  1. 请求参数在请求行中，在 url 后。
+                  2. 请求的 url 长度有限制的
+                  3. 不太安全
+               * POST ：
+                  1. 请求参数在请求体中
+                  2. 请求的 url 长度没有限制的
+                  3. 相对安全
+   2. 请求头：客户端浏览器告诉服务器一些信息
+      * 请求头名称：请求头值
+      * 常见的请求头
+         1. `User-Agent` ：浏览器告诉服务器，我访问你使用的浏览器版本信息
+            * 可以在服务器端获取该头的信息，解决浏览器的兼容性问题
+         2. `Referer` ： `http：//localhost/login.html`
+            * 告诉服务器，我（当前请求）从哪里来？
+               * 作用：
+                  1. 防盗链
+                  2. 统计工作
+   3. 请求空行
+      * 空行
+   4. 请求体（正文）
+      * 封装 POST 请求消息的请求参数的
+* 响应消息数据格式
+
+### Request
+
+### Response
+
+### ServletContext
 
 ## Cookie
 
