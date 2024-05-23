@@ -49,7 +49,27 @@
       * # 
       * /* */
 
-5. SQL分类
+5. Navicat连接mysql报错 1251错误
+
+   * 出现这个原因是mysql8 之前的版本中加密规则是mysql_native_password,而在mysql8之后,加密规则是caching_sha2_password
+      解决办法：把mysql用户登录密码加密规则还原成mysql_native_password.
+
+   1. 修改加密规则
+
+      * 将加密方式改为mysql_native_password
+
+      * `ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '12345';`
+
+   2. 更新用户的密码
+
+      * 这里将密码更改为password，如果想要更改其他密码，把password替换掉即可
+      * `ALTER USER 'root'@'localhost' IDENTIFIED BY 'password' PASSWORD EXPIRE NEVER;`
+
+   3.  进行刷新。
+
+      * `FLUSH PRIVILEGES;`
+
+6. SQL分类
 
    1. DDL(Data Definition Language)数据定义语言用来定义数据库对象:数据库,表，列等。关键字:create,drop,alter等
    2. DML(Data Manipulation Language)数据操作语言用来对数据库中表的数据进行增删改。关键字:insert, delete, update等3
