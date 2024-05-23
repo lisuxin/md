@@ -15,7 +15,14 @@
       npm install webpack-cli
       ```
 
-2. 全局安装
+2. 卸载相应版本
+
+   * 卸载
+
+      ```
+      npm uninstall webpack
+
+3. 全局安装
 
    * 通过npm安装方式，可以使用webpack在全局环境下可用
 
@@ -23,7 +30,7 @@
       npm install --global webpack
       ```
 
-3. 初始化项目
+4. 初始化项目
 
    * 创建一个目录。初始化`npm`，安装`webpack-cil`（用于在命令行中运行`webpack`）:
 
@@ -34,7 +41,7 @@
       npm install webpack webpack-cli --save-dev
       ```
 
-4. 更改npm镜像
+5. 更改npm镜像
 
    * 使用那个镜像，只需要 `npm config set registry +` 对应的镜像网址就好了
 
@@ -44,22 +51,22 @@
        npm config set registry https://registry.npmmirror.com
       ```
 
-5. 查看`webpack`版本号`npx webpack -v`
+6. 查看`webpack`版本号`npx webpack -v`
 
-6. 打包
+7. 打包
 
    * 不使用配置文件
-   
+
       ```
       webpack src/index.js -o dist/index.js
       //将src下的文件打包到dist下
       ```
-   
+
       * `{entery file}`：入口文件的路径，`src/index.js`
       * `{destination for bundled file}`：打包后存放的路径。
-   
+
    * 使用配置文件
-   
+
       ```
       webpack [--config webpack.config.js]
       ```
@@ -139,4 +146,196 @@ module.exports={
 
 ## 模块
 
-模块主要是运用各种loader 用于对模块的源代码进行转换，将 lass\sass 或者 es6\TSfii% 转换为 html 能识别的 css,js 等等，或者进行一些代码压缩图片压缩等等得处理style-loader:处理 css 文件中的 ur | 0 等
+模块主要是运用各种loader 用于对模块的源代码进行转换，将 `lass\sass`或者 `es6\TS`编译转换为 `html` 能识别的 `css,js` 等等，或者进行一些代码压缩图片压缩等等得处理
+
+### **style-loader**:
+
+* 处理 `css` 文件中的 `url()`等
+
+   ```
+   npm install style-loader --save-dev@
+   ```
+
+### css-loader:
+
+* 将css插入到页面的style标签
+
+   ```
+   npm install --save-dev css-loader@
+   ```
+
+### loaders配置：
+
+* 修改 `webpack.config.js`中 `module` 属性中的配置代码如下：
+
+* `webpack.config.js`：loader执行顺序是倒序，后缀为`.css`的文件流会流转到`css-loader`，依次到`style-loader`，直到完成这个loader链
+
+   ```js
+   module:{
+       rules: [
+           { 
+               test: /\.css$/,
+               use: ['style-loader','css-loader'] }
+       ],
+   }
+   ```
+
+### 常用API
+
+**`noParse`**：过滤不需要解析的文件
+
+**`rules`**：设置解析规则数组
+
+* `{ test: xxx}` ：匹配特定条件。一般是提供一个正则表达式或正则表达式的数组
+* `{ include: xxx} `：匹配特定条件。一般是提供一个字符串或者字符串数组
+* `{ exclude： xxx}` ：排除特定条件。一般是提供一个字符串或字符串数组
+* `{ loader: [xxx] || xxx}`：解析需要的loader 。一般是提供一个字符串或字符串数组
+
+## 插件
+
+`webpack` 提供了一个 `Plugin` 插件配置项，可以讲项目中的`js`文件通过配置的插件进行解析
+
+插件件 `(Plugins)` 是用来拓展 `webpack` 功能的，它们会在整个构建过程中生效，执行相关的任务。
+
+`Loaders` 和 `Plugins` 常常被弄混，但是他们其实是完全不同的东西，可以这么来说，loaders 是在打包构建过程中用来处理源文件的 (`JSX,scss ，Less..`) ，一次处理一个，插件并不直接操作单个文件，它直接对整个构建过程其作用
+
+
+
+* 使用某个插件，需要通过 `npm` 进行安装，然后在 `webpack.config.js` 配置文件的 `plugins`（是一个数组）配置项中添加该插件的实例
+
+   ```js
+   //安装uglifyjs-webpack-plugin js代码压缩插件
+   npm uglifyjs-webpack-plugin --save-dev
+   ```
+
+   ```js
+   //引入插件
+   const uglify = require('uglifyjs-webpack-plugin');
+   
+   //配置插件
+   plugins:{
+           plugins:[new uglify()]
+       }
+   ```
+
+* 自动引入资源插件
+
+   ```js
+   //安装htlm-webpack-plugin插件
+   npm i html-webpack-plugin@
+   ```
+
+   ```js
+   const HtmlWebpackPlugin = require('htlm-webpack-plugin')
+   plugins:[
+       new uglify(),
+       new HtmlWebpackPlugin({
+           template:path.join(_dirname,'')//new一个这个插件的实例，并传入相关参数
+       })
+   ]
+   ```
+
+   ## 开发配置
+
+* 通过 `webpack-dev-server` 的选项，能够用多种方式改变默认行为：
+
+   ```js
+   npm i webpack-dev-server
+   ```
+
+* `webpack.config.js`
+
+   ```js
+   devServer:{
+           
+       contentBase: path.join(__dirname,''),//项目目录
+       compress:true,//gzip压缩
+       port:9000,//服务端口
+       host:'0.0.0.0',//ip地址
+       hot:true,//热更新，需要webpack.HotModuleReplacementPlugin插件
+       https:true,//开启https
+       open:true,//启动后自动打开浏览器
+       Proxy:{    
+           '/api':{//'/api'开始请求会被代理
+               target : 'http://localhost:3000',//代理地址
+               pathRewrite:{'^/api':''}//替换接口种'/api'字符串    
+           }
+       }   
+   }
+   ```
+
+* `package.json`
+
+   ```json
+   "scripts": {
+       "test": "echo \"Error: no test specified\" && exit 1",
+       "dev":"webpack --config webpack.config.js",//启动项
+       "serve": "webpack-dev-server"//启动项
+     },
+   ```
+
+   ## 环境变量
+
+* `webpack`命令行环境配置的 `--env` 参数，可以允许你传入任意数量的环境变量。而在 `webpack.config.js` 中可以访问到这些环境变量。例如， `--env.production` 或` --env.NODE_ENV=local`（ `NODE_ENV `通常约定用于定义环境类型）
+
+   ```
+   webpack --env.NODE_ENV=local --env.production --progress
+   ```
+
+* `webpack.config.js`
+
+   ```js
+   var path = require('path')
+   
+   module.exports=(env)=>{
+       return{
+           
+       }
+   }
+   ```
+
+* `package.json`
+
+   ```json
+   "scripts": {
+       "test": "echo \"Error: no test specified\" && exit 1",
+       "build":"webpack --config webpack.config.js --env.NODE_ENV=pro",//启动项
+       "serve": "webpack-dev-server --env.NODE_ENV=dev"//启动项
+     },
+   ```
+
+   ## vue脚手架
+
+* `vue`需要安装的文件
+
+   ```js
+   npm i vue
+   npm i vue-loader
+   npm i vue-template-compiler
+   ```
+
+* `webpack.config.js`
+
+   ```js
+   const VueLoaderPlugin = require('vue-loader/dist/plugin');
+   module.exports={
+       module:{
+           rules: [
+               { 
+                   test: /\.css$/,
+                   use: ['style-loader','css-loader'] 
+                   },
+               { 
+                   test: /\.vue$/,
+                   use: ['vue-loader] 
+                   }
+             ],
+       },
+       plugins:[
+           new uglify(),
+           new VueLoaderPlugin()
+       ],
+   }
+   ```
+
+   

@@ -475,10 +475,12 @@ git add .
 
 3. 添加项目到厂库`git add .   //git status查看当前状态`
 
-4. 消除本地与远程仓库之间的异差`:q!强制退出vim、git pull origin main `
-5. 添加注释提交`git commit -m '注释信息'`
+4. 查看已经add的`git status`
 
-6. 创建SSH KEY`ssh-keygen -t rsa -C "地址" //不做修改一直回车`
+5. 消除本地与远程仓库之间的异差`:q!强制退出vim、git pull origin main `
+6. 添加注释提交`git commit -m '注释信息'`
+
+7. 创建SSH KEY`ssh-keygen -t rsa -C "地址" //不做修改一直回车`
 
 
 
