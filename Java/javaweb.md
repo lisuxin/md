@@ -338,7 +338,11 @@ public class JdbcTest {
 2. 开发步骤
 
    1. 导包
+
+      ![image-20240530190150046](../typoratuxiang/java/需要的包.png)
+
    2. 创建数据源对象
+
    3. 设置数据源的基本链接数据
 
 3. 手动创建==C3P0==数据源
@@ -1029,7 +1033,7 @@ public class JdbcTest {
 
 ### 体系结构
 
-`servlet接口`—>`Genericserv1et抽象类`—>`Httpserv1et抽象类`
+`servlet接口`—>`Genericserv1et抽象类`—>`Httpservlet抽象类`
 
 * Genericserv1et ：将 servlet 接囗中其他的方法做了默认空实现，只将 service() 方法作为抽象
 
@@ -1103,10 +1107,309 @@ public class JdbcTest {
    4. 请求体（正文）
       * 封装 POST 请求消息的请求参数的
 * 响应消息数据格式
+   * 响应行_状态码
+   * 响应头
 
 ### Request
 
-### Response
+==请求消息数据==
+
+1. request对象和response对象的原理
+
+   * request 和 response对象是由服务器创建的。我们来使用它们
+   * request 对是来获取请求消息，response 对是来设置响应消息
+
+2. request对象继承体系结构
+
+   ![image-20240529163039628](../typoratuxiang/java/request继承体系.png)
+
+   #### request 功能
+
+   **获取请求消息数据**
+
+   1. 获取请求行数据
+
+      ==GET /day14/dem01?name=zhangsan HTTP/1.1==
+
+      方法：
+
+      1. 获取求方式： GET：
+      
+         * `String getMethod()`
+      
+      2. 获取虚拟目录： /虚拟目录名称 
+      
+         * `string getContextPath()`
+      
+      3. 获取 Servlet 路径： /demo1
+      
+         *  `string getServletPath()`
+      
+      4. 获取 get 方式请求参数： name=zhangsan
+      
+         * `string getQueryString()`
+      
+      5. 获取求 URI ： /dayla/demo1
+         *  `string getRequestURI()` ：/dayla/demo1
+         * `StringBuffer getRequestURL()`：http:/ locaIhost/day14/dem01
+      
+      6. 获取协议及版本： HTTP/1.1：
+      
+         * `string getprotocol()`
+      
+      7. 获取客户机的 IP 地址：
+      
+         * `string getRemoteAddr()`
+      
+         ```java
+         package com.wenapp.request;
+         
+         import jakarta.servlet.ServletException;
+         import jakarta.servlet.annotation.WebServlet;
+         import jakarta.servlet.http.HttpServlet;
+         import jakarta.servlet.http.HttpServletRequest;
+         import jakarta.servlet.http.HttpServletResponse;
+         
+         import java.io.IOException;
+         
+         @WebServlet("/Demo1")
+         public class Rquest extends HttpServlet {
+             @Override
+             protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+                 System.out.println(req.getMethod());
+                 System.out.println(req.getContextPath());
+                 System.out.println(req.getServletPath());
+                 System.out.println(req.getQueryString());
+                 System.out.println(req.getRequestURI());
+                 System.out.println(req.getRequestURL());
+             }
+         
+             @Override
+             protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+         
+             }
+         }
+
+   2. 获取请求头数据
+
+      方法：
+
+      * `string getHeader(string name)` ：诵过求头的名称获取旧求头的值 
+      * `Enumeration<String> getHeaderNames()` ：获取所有的求头名称
+
+   3. 获取请求体数据
+      * 请求体：只有 ==POST==请求方式，才有请求体，在请求体中封装了 POST 请求的请求爹数
+      
+      * 步骤：
+         1. 获取流对象
+            * `BufferedReader getReader()` ：获取字符输入流，只能作字符数据
+            * `servletlnputstream getlnputstream()` ：获取字节输入流，可以作所有类型数据
+         
+         2. 在从流对象中拿数据
+         
+            ```java
+            package main.java.com.wenapp.request;
+            
+            import jakarta.servlet.*;
+            import jakarta.servlet.http.*;
+            import jakarta.servlet.annotation.*;
+            
+            import java.io.BufferedReader;
+            import java.io.IOException;
+            
+            @WebServlet(name = "Requsetdome", value = "/Requsetdome")
+            public class Requsetdome extends HttpServlet {
+                @Override
+                protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+            
+                }
+            
+                @Override
+                protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+                    BufferedReader br = request.getReader();
+                    String line=null;
+                    while ((line = br.readLine()) != null){
+                        System.out.println(line);
+                    }
+                }
+            }
+   
+   **其他功能**
+   
+   1. 获取请求参数通用方式：不论get 还是 post 请求方式都可以使用下列方法来获取请求参数
+      * `String getParameter(String name)` ：根据数名称获取参数值 username=zs&password=123
+   
+      * `string[] getparametervalues(string name)` ：根据数名称获取值的数组 hobby=xx&hobby=game
+   
+      * `Enumeration<String> getparameterNames()` ：获取所有请求参数的参数名称
+   
+      * `Map<String,String[]> getparametermap()` ：获取所有参数的 map 集合
+   
+      * 中文乱码：在获取参数前`request.setCharacterEncoding("utf-8");`
+   
+      * `hasMoreElements()`方法
+   
+         * 作用**：`hasMoreElements()` 方法返回一个布尔值，表示是否还有更多的元素可以获取。如果是 `true`，则表示调用 `nextElement()` 方法会成功返回下一个元素；如果是 `false`，则表示已经没有更多的元素，再调用 `nextElement()` 可能会抛出 `NoSuchElementException` 异常。**
+         * 用途**：通常与 `nextElement()` 方法一起使用，在循环中遍历集合的元素，直到没有更多元素为止。
+   
+         ```java
+         @WebServlet(name = "Tongyong", value = "/Tongyong")
+         public class Tongyong extends HttpServlet {
+             @Override
+             protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+                 this.doPost(request,response);
+             }
+         
+             @Override
+             protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+                 //根据参数名称获取参数值
+                 String username = request.getParameter("username");
+                 System.out.println(username);
+                 System.out.println("-------------------------");
+                 //根据参数名称获取参数值的数组
+                 String[] hobbies = request.getParameterValues("hobby");
+                 for (String hobby : hobbies) {
+                     System.out.println(hobby);
+                 }
+                 System.out.println("-------------------------");
+                 //获取所有请求的参数名称
+                 Enumeration<String> parameterNames = request.getParameterNames();
+                 while (parameterNames.hasMoreElements()){
+                     String name = parameterNames.nextElement();
+                     System.out.println(name);
+                     System.out.println(request.getParameter(name));
+                 }
+                 System.out.println("-------------------------");
+                 //获取所有参数的Map集合
+                 Map<String, String[]> parameterMap = request.getParameterMap();
+                 Set<String> strings = parameterMap.keySet();
+                 for (String string : strings) {
+                     //获取键获取值
+                     String[] strings1 = parameterMap.get(string);
+                     System.out.println(strings1);
+                     for (String s : strings1) {
+                         System.out.println(s);
+                     }
+                 }
+         
+             }
+         }
+   
+   2. 请求转发
+   
+      1. 通过 request 对象获取请求转发器对象：`RequestDispatcher getRequestDispatcher(String path)`
+   
+      2. 使用 RequestDispatcher 对象来进行转发：`forward(servletRequest request ，servletResponse response ）`
+   
+         ```java
+         request.getRequestDispatcher("转发地址").forward(request,response);
+         ```
+   
+      3. 特点
+   
+         1. 浏览器地址栏路径不生变化
+         2. 只能转茇到当前服器内部资源中
+         3. 转是一次请求
+   
+   3. 共享数据
+   
+      * 域对象：一个有作范的对象，可以在厄过内共享数据
+   
+      * reqdest域 ：代表一次请求的范围，一般用于请求转友的多个资源中共享数据
+   
+      * 方法：
+         1. void setAttribute (String name,Object Obj) ：存储数据
+         2. Object getAttitude(String name) ：通过获取值
+         3. void removeAttribute( String name) ：通过移除监对
+         
+         ```java
+         //存储
+         request.setAttribute("name","zhangsan");
+         //获取
+         request.getAttribute("name");
+         ```
+   
+   4. 获取`servletContext`：`request.getServletContext();`
+   
+   5. 在idea中新建无servlet需要在==文件和代码模板==中添加
+   
+   6. 登录方法
+   
+      ```java
+      package denglu.jdbc;
+      
+      import denglu.dao.User;
+      import org.springframework.dao.DataAccessException;
+      import org.springframework.jdbc.core.BeanPropertyRowMapper;
+      import org.springframework.jdbc.core.JdbcTemplate;
+      
+      public class UserDao {
+          //声明JdbcTemplate对象共用
+          private JdbcTemplate template = new JdbcTemplate(denglu.jdbc.JdbcUtils.getDataSource());
+      
+          //登录方法
+          public User login(User loginuser) {
+              try {
+                  String sql = "select * from student where username = ? and password = ?";
+                  User user = template.queryForObject(sql,
+                          new BeanPropertyRowMapper<User>(User.class),
+                          loginuser.getUsername(), loginuser.getPassword());
+                  return user;
+              } catch (DataAccessException e) {
+                  return null;
+              }
+          }
+      }
+      ```
+   
+   7. 步骤
+   
+      1. 创建数据库
+      2. 创建实体类
+      3. 创建数据库连接池
+      4. 创建`sql访问`方法类
+      5. 使用servlet进行访问sql类
+   
+   8. BeanUtils,简化数据封装==包==`commons-beanutils`
+   
+      ```java
+      //获取所有请求参数
+              Map<String, String[]> parameterMap = request.getParameterMap();
+              //创建user对象
+              User loginusers = new User();
+              //使用BeanUtils封装
+              try {
+                  BeanUtils.populate(loginusers,parameterMap);
+              } catch (IllegalAccessException e) {
+                  throw new RuntimeException(e);
+              } catch (InvocationTargetException e) {
+                  throw new RuntimeException(e);
+              }
+      ```
+   
+      * 用于封装JavaBean的
+      * JavaBean标准的 java 类
+         1. 要求：
+            1. 类必须被 public 修饰
+            2. 必须提供空参的构造器
+            3. 成员变量必须使用 private 修饰
+            4. 提供公共 setter 和 getter 方法
+         2. 功能：封装数据
+      * 概念：
+         * 成员变量
+         * 属性： setter 和 getter 方法截取后的产物
+            * 例如： getusername 〈）．> username——> username
+      * 方法
+         1. setproperty()
+         2. getproperty()
+         3. populate(Object 0bj,Map map) ：将 map 集合的键值对信息，封装到对应的 javaBean 对象中
+   
+
+### Respons
+
+==响应消息数据==
+
+
 
 ### ServletContext
 
