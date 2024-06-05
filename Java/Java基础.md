@@ -3312,6 +3312,75 @@ public class Demoe6Generic {
 }
 ```
 
+Java中的枚举（`enum`）是一种特殊的类，用于定义一个固定集合的常量。从JDK 5.0开始，Java引入了枚举类型作为内置的类型之一，这使得枚举比传统的使用整数或字符串来表示一组固定值的做法更为安全和高效。
+
+## 枚举
+
+### 枚举的定义
+
+枚举类型使用`enum`关键字定义，它的语法类似于类的定义，但是有一些特别的规则：
+
+```java
+public enum Day {
+    SUNDAY, MONDAY, TUESDAY, WEDNESDAY,
+    THURSDAY, FRIDAY, SATURDAY;
+}
+```
+
+在这个例子中，`Day`是一个枚举类型，它包含了七个枚举常量，代表一周中的每一天。每个常量都是枚举类型的实例，它们是在编译时创建的，且不可更改。
+
+### 枚举的特点
+
+1. **枚举类型是`java.lang.Enum`的子类**：这意味着你可以使用`Enum`类提供的方法，如`toString()`, `ordinal()`等。
+
+2. **枚举值是自动公开的静态常量**：每个枚举常量都是`public`, `static`和`final`的。
+
+3. **枚举不能被继承**：你不能继承枚举类型，也不能让枚举类型继承其他类。
+
+4. **枚举可以有自己的构造函数、方法和属性**：这些可以像在普通类中那样定义，但构造函数必须是私有的。
+
+5. **枚举可以实现接口**：你可以让枚举实现一个或多个接口，从而实现多态。
+
+### 枚举的构造函数
+
+枚举可以有构造函数，但必须是私有的。这使得外部代码无法直接创建枚举的新实例：
+
+```java
+public enum Color {
+    RED(255, 0, 0),
+    GREEN(0, 255, 0),
+    BLUE(0, 0, 255);
+
+    private int red;
+    private int green;
+    private int blue;
+
+    private Color(int red, int green, int blue) {
+        this.red = red;
+        this.green = green;
+        this.blue = blue;
+    }
+
+    // 可以添加方法来访问颜色的属性
+    public int getRed() { return red; }
+    public int getGreen() { return green; }
+    public int getBlue() { return blue; }
+}
+```
+
+### 枚举的使用
+
+枚举常量可以像任何其他对象一样使用：
+
+```java
+Color myFavoriteColor = Color.BLUE;
+System.out.println(myFavoriteColor.getRed());
+```
+
+枚举的使用提高了代码的可读性和安全性，因为编译器会检查是否使用了有效的枚举值。同时，枚举提供了一些实用的内置方法，如`values()`和`valueOf()`，用于获取枚举的所有值或根据字符串名称查找枚举常量。
+
+总的来说，枚举在Java中提供了一种优雅的方式来处理一组固定的选择，它们在各种场景中都非常有用，例如状态管理、选项列表等。
+
 ## 异常
 
 ==指的是程序在执行过程中，出现的非正常的情况，是终会导砌 VM 的非正常停止。==

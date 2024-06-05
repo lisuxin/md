@@ -1078,6 +1078,7 @@ public class JdbcTest {
    * 历史版本：
       * 1.0：每一次请求响应都会建立新的连接
       * 1.1：复用连接
+   
 * 请求消息数据格式
    1. 请求行
       * 请求方式 请求url 请求协议/版本
@@ -1106,9 +1107,69 @@ public class JdbcTest {
       * 空行
    4. 请求体（正文）
       * 封装 POST 请求消息的请求参数的
-* 响应消息数据格式
+   
+* 响应消息数据格式：服务器端项发送客户端数据
    * 响应行_状态码
+   
+      1. 组成：==协议/版本    响应状态码    响应状态描述==
+   
+      2. 响应状态码：服务器告诉客户端浏览器本次请求和响应的一个状态
+   
+         * 状态码都是三位数字
+   
+         * 分类
+   
+            1. 1xx（信息性状态码）
+   
+               - **100 Continue**：请求者应当继续提出请求。服务器返回此代码表示已收到请求的第一部分，正在等待其余部分。
+   
+            2. 2xx（成功状态码）
+   
+               - **200 OK**：请求已成功处理。
+               - **201 Created**：请求成功并且服务器创建了新的资源。
+               - **202 Accepted**：服务器已接受请求，但尚未处理。
+               - **204 No Content**：请求成功，但没有返回内容。
+   
+            3. 3xx（重定向状态码）
+   
+               - **301 Moved Permanently**：请求的页面已永久移动到新位置。
+               - **302 Found**：请求的页面临时移动到新位置。
+               - **304 Not Modified**：自从上次请求后，请求的页面未修改过。
+   
+            4.  4xx（客户端错误状态码）
+   
+               - **400 Bad Request**：请求无效或无法理解。
+               - **401 Unauthorized**：请求要求用户的身份认证。
+               - **403 Forbidden**：服务器理解请求客户端的请求，但是拒绝执行此请求。
+               - **404 Not Found**：服务器无法找到请求的资源。
+               - **405 Method Not Allowed**：请求行中指定的请求方法不能被用于请求相应的资源。
+               - **408 Request Timeout**：服务器等候请求时发生超时。
+               - **409 Conflict**：请求的资源与服务器上的现有资源冲突。
+               - **410 Gone**：请求的资源已永久删除，不再可用。
+               - **418 I'm a teapot**：（幽默代码）服务器应返回此代码表示它是一个茶壶，不能泡咖啡。
+   
+            5. 5xx（服务器错误状态码）
+   
+               - **500 Internal Server Error**：服务器遇到了意料不到的情况，无法完成对请求的处理。
+               - **501 Not Implemented**：服务器不支持实现请求所需的功能。
+               - **502 Bad Gateway**：作为网关或者代理工作的服务器从上游服务器收到了无效的响应。
+               - **503 Service Unavailable**：服务器目前无法使用（由于超载或停机维护）。
+               - **504 Gateway Timeout**：作为网关或者代理工作的服务器未能及时从上游服务器获得请求。
+   
+               ==如1xx表示信息提示、2xx表示成功、3xx表示重定向、4xx表示客户端错误、5xx表示服务器错误。==
+   
    * 响应头
+   
+      1. 格式：==头名称： 值==
+      2. 常见响应头
+         1. Content 一 Type ：服务器告诉客户端本次响应体数据格式以及编码格式
+         2. content-disposition ：服务器告诉客户端以什么格式打开响应体数据；值：
+            * in 一 line ：默认值，在当前页面内打开
+            * attachment；filename=xxx ：以附件形式打开响应体。文件下载
+   
+   * 响应空行
+   
+   * 响应体：传输的数据
 
 ### Request
 
@@ -1409,20 +1470,816 @@ public class JdbcTest {
 
 ==响应消息数据==
 
+* 功能：设置响应消息
 
+   1. 设置响应行
+
+      1. 格式： HTTP/I.1 200 ok
+      2. 设置状态码： `setStatus(int sc)`
+
+   2. 设置响应头： `setHeader(String name,string value)` 
+
+   3. 设置响应体：
+
+      * 使用步骤：
+
+      1. 获取输出流
+         * 字符输出流： `printwriter getwriter()`
+         * 字节输出流： `Serv1etOutputStream getOutputStream()`
+      2. 使用输出流，将数据输出到客户端浏览器
+
+* 重定向
+
+   1. 重定向：资源跳转方式
+
+   2. 实现
+
+      ```java
+      //实现方式1
+      //设置状态码
+      response.setStatus(302);
+      //设置响应头
+      response.setHeader("location","/hello-servlet");
+      
+      //实现方式2
+      //简单从重定向方法
+      response.sendRedirect("/hello-servlet");
+      ```
+
+   3. 特点：==转发（Forward）和重定向（Redirect）是Web开发中实现页面跳转的两种常见机制，它们在处理流程、URL表现、数据共享、性能以及应用场景上有显著差异：==
+
+      1. 转发（Forward）
+
+         * 特点**：**
+         * **单次请求**：客户端向服务器发送一次请求，服务器接收后内部将请求转发给另一个资源处理，整个过程对客户端透明。
+         * **地址栏不变**：浏览器的地址栏显示的仍然是初始请求的URL，用户感知不到中间的跳转过程。
+         * **数据共享**：请求数据（如请求参数、session等）可以在转发过程中被后续资源访问，因为它们属于同一个请求上下文。
+         * **局限于服务器内部**：转发只能在同一服务器的应用程序内部进行，不能跨域。
+         * **效率较高**：相较于重定向，因为减少了客户端与服务器之间的往返次数。
+
+      2. 重定向（Redirect）
+         - **特点**：
+         - **两次请求**：客户端首先向服务器发起请求，服务器响应时告诉客户端去访问另一个URL，然后客户端再次发送请求到新的地址。
+         - **地址栏变化**：浏览器地址栏会显示重定向后的URL，用户可以看到URL的变化。
+         - **数据不共享**：因为涉及两次独立的请求，所以请求数据不会自动传递给新的请求，需要通过查询字符串、session或其他机制来传递。
+         - **广泛适用**：不仅可以用于同一服务器的不同应用之间，还可以重定向到完全不同的服务器或域。
+         - **应用场景**：适合于登录验证后跳转、POST提交后防止刷新重复提交、支付成功后的页面跳转等。
+         - **效率较低**：需要客户端与服务器之间进行额外的通信，因此比转发慢。
+
+      3. 应用场景
+         - **转发**常用于服务器内部的页面流转，如控制器之间的调用、视图的切换等，特别是当需要保留请求上下文信息时。
+         - **重定向**适用于需要客户端明确知道新的访问位置，或者出于安全考虑需要断开原请求与新请求之间直接关联的场景，如用户登录成功后的主页跳转、表单提交后的确认页展示等。
+
+         ==选择转发还是重定向取决于具体的业务需求，比如是否需要保持请求数据、是否希望用户看到地址变更、是否需要跨域等。==
+
+      
+
+   4. 路径写法
+
+      * 相对路径
+
+         * 相对路径是相对于当前文件或工作目录的位置来描述目标文件或目录的路径。它不包含根目录信息，而是基于当前文件的位置来定位其他文件。在网页开发中，如果当前页面和目标资源在同一目录或不同子目录下，可以使用相对路径。例如，如果当前页面是`index.html`，要链接到同一目录下的`styles.css`，可以这样写：
+            ```html
+            <link rel="stylesheet" href="styles.css">
+            ```
+
+         * 如果`styles.css`位于上一级目录，路径可以写作：
+            ```html
+            <link rel="stylesheet" href="../styles.css">
+            ```
+
+         * 在文件系统中，相对路径也是类似的概念，例如，从当前目录的子目录`documents`回到上级目录并进入`pictures`目录，路径可以写作：
+            ```java
+            ../pictures
+            ```
+
+      * 绝对路径
+
+         * 绝对路径提供了一个完整的路径，从根目录开始，一直到目标文件或目录的完整路径。这个路径是固定的，不依赖于当前的工作目录。在网页开发中，绝对路径用于定位互联网上的资源，从协议（如http://或https://）开始，一直到文件名，例如：
+            ```
+            https://www.example.com/images/logo.png
+            ```
+
+         * 在文件系统中，绝对路径同样是从根目录（在Windows中可能是C:\，在Unix/Linux系统中是/）开始，例如：
+
+            ```
+            C:\Users\John\Pictures\vacation.jpg
+            ```
+
+      - **绝对路径**提供了从根目录到文件的完整路径，无论当前工作目录在哪里，路径都是不变的。
+      - **相对路径**则是相对于当前工作目录或当前文件的位置来描述目标位置，更灵活但也依赖于当前的上下文环境。
+
+   5. 动态获取虚拟目录
+
+      ```java
+      request.getContextPath();
+
+* 服务器输出字符数据到浏览器
+
+   * 步骤
+
+      1. 获取输出流`PrintWriter writer = response.getWriter();`
+
+      2. 输出数据`writer.write();`
+
+      3. 解决输出乱码
+
+         ```java
+         //实现方法1
+         //获取流对象之前，设置流的默认编码：ISO-8859-1 设置为： GBK
+         response.setCharacterEncoding("utf-8");
+         //告诉浏览器，务器发送的消息体数据的编码。建议浏览器使用该编码解码
+         response.setHeader("content-type","text/html;charset=utf8");
+         
+         //实现方法2
+         response.setContentType("text/html;charset=utf8");
+
+* 服务器输出字节数据到浏览器
+
+   * 步骤
+
+      ```java
+      //获取字节输出流
+      ServletOutputStream outputStream = response.getOutputStream();
+      //输出数据
+      outputStream.write("4564".getBytes());
+      //getBytes()以字节数组的方式输出，getBytes(设置编码格式)
+      ```
+
+* 验证码
+
+   * 创建一个简单的验证码功能涉及到生成随机字符串以及将其渲染为图像。下面是一个基本的Java示例，演示如何生成一个包含随机字符的简单验证码图片。这个例子使用了Java的`BufferedImage`类来创建图像，并用`Graphics2D`来绘制文字。
+
+      请注意，这个示例主要用于教学目的，实际应用中可能需要更复杂的逻辑来提高安全性，比如使用更复杂字体、颜色、线条干扰等。
+
+      ```java
+      import java.awt.*;
+      import java.awt.font.FontRenderContext;
+      import java.awt.geom.AffineTransform;
+      import java.awt.image.BufferedImage;
+      import java.io.File;
+      import java.io.OutputStream;
+      import java.util.Random;
+      
+      import javax.imageio.ImageIO;
+      
+      public class SimpleCaptcha {
+      
+          private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+          private static final int CAPTCHA_WIDTH = 200;
+          private static final int CAPTCHA_HEIGHT = 60;
+          private static final int CHAR_LENGTH = 6;
+          private static final int FONT_SIZE = 50;
+          private static final int FONT_STYLE = Font.BOLD;
+      
+          public static void main(String[] args) throws Exception {
+              String captchaText = generateCaptchaText();
+              BufferedImage captchaImage = generateCaptchaImage(captchaText);
+              
+              // 保存到文件
+              File outputfile = new File("captcha.png");
+              ImageIO.write(captchaImage, "png", outputfile);
+              
+              // 或者输出到OutputStream，例如响应到HTTP客户端
+              // OutputStream out = ...;
+              // ImageIO.write(captchaImage, "png", out);
+              
+              System.out.println("Generated captcha text: " + captchaText);
+          }
+      
+          private static String generateCaptchaText() {
+              StringBuilder sb = new StringBuilder();
+              Random random = new Random();
+              for (int i = 0; i < CHAR_LENGTH; i++) {
+                  int index = random.nextInt(CHARACTERS.length());
+                  sb.append(CHARACTERS.charAt(index));
+              }
+              return sb.toString();
+          }
+      
+          private static BufferedImage generateCaptchaImage(String captchaText) throws Exception {
+              BufferedImage image = new BufferedImage(CAPTCHA_WIDTH, CAPTCHA_HEIGHT, BufferedImage.TYPE_INT_RGB);
+              Graphics2D g = image.createGraphics();
+              
+              // 设置背景色
+              g.setColor(Color.WHITE);
+              g.fillRect(0, 0, CAPTCHA_WIDTH, CAPTCHA_HEIGHT);
+              
+              // 设置字体
+              Font font = new Font("Arial", FONT_STYLE, FONT_SIZE);
+              g.setFont(font);
+              
+              // 设置颜色
+              g.setColor(Color.BLACK);
+              
+              // 防止过于规则，可以加入一些随机变换
+              AffineTransform transform = new AffineTransform();
+              Random r = new Random();
+              transform.rotate(r.nextFloat() * 0.1, (double)CAPTCHA_WIDTH / 2, (double)CAPTCHA_HEIGHT / 2);
+              g.setTransform(transform);
+              
+              FontRenderContext context = g.getFontRenderContext();
+              int x = 20;
+              for (char ch : captchaText.toCharArray()) {
+                  int charWidth = (int)font.getStringBounds(String.valueOf(ch), context).getWidth();
+                  g.drawString(String.valueOf(ch), x, CAPTCHA_HEIGHT / 2 + FONT_SIZE / 2);
+                  x += charWidth;
+              }
+              
+              // 可以进一步增加干扰线等元素以增强安全性
+              
+              g.dispose();
+              return image;
+          }
+      }
+      ```
+
+      这段代码首先定义了验证码的文本生成规则和图像尺寸，然后通过`generateCaptchaText`方法随机生成一个指定长度的字符串，接着在`generateCaptchaImage`方法中使用这个字符串来创建一个图像，绘制文本到图像上，并简单地应用了旋转变换以增加辨识难度。最后，生成的验证码图像可以保存到文件或输出到网络流中。
+
+   * 实现点击
+
+      ```javascript
+      <script>
+          window.onload = function () {
+          //获取对象
+          var img = document.getElementById("");
+          //绑定单机事件
+          img.onclick = function(){
+              //加时间戳
+              var data = new Date().getTime();
+              img.src = "资源路径"
+          }
+      }
+      </script>
+      ```
 
 ### ServletContext
 
-## Cookie
+1. 概念：代表整个web应用，可以和程序的容器（服务器）来通信
 
-## Session
+2. 获取：
 
-## JSON
+   1. 通过request来获取`request.getServletContext()`
 
-## AJAX
+   2. 通过HttpServlet获取：`this.getServletContext()`
 
-## redis
+      ```java
+      ServletContext servletContext = request.getServletContext();
+      ServletContext servletContext1 = this.getServletContext();
+      ```
 
-## Jedis
+3. 功能：
 
-## Nginx
+   1. 获取MIME类型
+
+      * MIME类型：在互联网通信过程中定义的一种文件数据类型
+
+      * 格式：大类型/小类型  text/html   image/jpeg
+
+      * 获取：`String getMimeType(String file)`
+
+         ```java
+         ServletContext servletContext = request.getServletContext();
+         String filename = "a.jpg";
+         String mimeType = servletContext.getMimeType(filename);
+
+   2. 域对象：共享数据
+
+      * `setAttribute(String name,Object value)`
+
+      * `getAttribute(String name)`
+
+      * `removeAttribute(String name)`：跟具名称移除值
+
+      * SelectContext对象范围：所有用户所有请求的数据
+
+         ```java
+         servletContext.setAttribute("name","123");
+         servletContext.getAttribute("name");
+         servletContext.removeAttribute("name");
+
+   3. 获取文件的真实（服务器）路径
+
+      1. 方法：`String getRealPath(String path)`
+
+         ```java
+         servletContext.getRealPath("/WEB-IF下路径");
+         ```
+
+4. 文件上传下载
+
+   ```java
+   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {     
+       //获取请求参数，文件名称    
+       String filename = request.getParameter("filename");  
+       
+       //使用字节输入流加载文件进内存    
+       //找到文件服务器路径    
+       ServletContext servletContext = request.getServletContext();    
+       String realPath = servletContext.getRealPath("/txt/" + "servletContext.txt");    
+       //使用字节流关联    
+       FileInputStream fileInputStream = new FileInputStream(realPath);
+       
+       //设置response的响应头    
+       //设置响应头类型：content-type    
+       String mimeType = servletContext.getMimeType(filename);    
+       response.setHeader("content-type",mimeType);    
+       //设置响应头打开方式：content-disposition    
+       response.setHeader("content-disposition","attachment;filename="+"servletContext.txt");
+       
+       //将输入流的数据写出到输出流中    
+       ServletOutputStream outputStream = response.getOutputStream();    
+       byte[] bytes = new byte[1024*8];    
+       int len = 0;
+       while ((len = fileInputStream.read(bytes))!= -1){    
+           outputStream.write(bytes,0,len);   
+       }    
+   }
+   ```
+
+   1. 解决下载名字中文乱码问题
+      * 使用编码工具类，更具浏览器的不同返回不同的编码格式
+      * `文件名称 = 工具类名.方法名（）`
+
+## 会话技术
+
+1. 会话：一次会话中包含多次请求和响应。
+   * 一次会话：==浏览器第一次给服务器资源发送请求，会话建立，直到有一方断开为止==
+2. 功能：在一次会话的范围内的多次请求间，共享数据
+3. 方式：
+   * 客户端会话技术： Cookie
+   * 服务器端会话技术： Session
+
+### Cookie
+
+1. 概念：客户端会话技术
+
+2. 快速入门：
+
+   1. 使用步骤
+
+      1. 创建Cookie对象，绑定数据
+
+      * `new Cookie(String name,String value)`
+
+      2. 发送Cookie对象
+
+      * `response.addCookie(Cookie cookie)`
+
+      3. 获取Cookie对象，拿到数据
+
+      * `Cookie[] request.getCookies()`
+
+   2. 实现原理
+
+      * 基于响应头set-cookie和请求头cookie实现
+
+   3. cookie细节
+
+      1. 一次发送多个cookie
+         1. 可以创建多个 cookie 对象，使用 response 用多次调用 addcookie 方法，发送 cookie 即可。
+      2. cookie在浏览器中存储的时间
+         1. 默认情况下，当浏览器关闭后， cookie 数据被销毁
+         2. 持久化存储：`setmaxAge(int seconds)`
+            * 正数：将 cookie 数据写到硬盘的文件中。持久化存储。并指定 cookie 存活时间，时间到后，cookie 文件自动失效（以秒计时）
+            * 负数：默认值
+            * 零：删除cookie信息
+            
+            ```java
+            //创建cookie对象
+            Cookie name = new Cookie("name", "123");
+            //持久化
+            name.setMaxAge(60);
+            //将cookie写入浏览器
+            response.addCookie(name);
+            //获取cookie
+            Cookie[] cookies = request.getCookies();        
+            if (cookies != null) {//判断获取的cookie信息不为空
+                for (Cookie cookie : cookies) {    
+                    String name = cookie.getName();        
+                    String value = cookie.getValue();        
+                    System.out.println(name + ":" + value);        
+                }    
+            }
+      3. cookie存储中文
+         * 在 tomcat 8 之前 cookie 中不能直接存储中文数据。
+            * 需要将中文数据转码一般采用 URL 编码（％ E3 ）
+         * 在tomcat 8 之后，cookie 支持中文数据。
+      4. cookie获取的范围
+         1. 同一个tomcat服务器下
+         2. 默认倩况下 cookie 不能共享
+         3. setpath(string path)：设置 cookie 的获取 范围。 默认情况下，设置当前的虚拟目录
+            * 如果要共享，则可以将 path 设置为"/"
+         4. 不同tomcat服务器下
+         5. `setDomain(string path)`：如果设置一级域名相同，那么多个服务器之间 cookie 可以共享
+      5. cookie特点和案例
+         1. 作用
+            * cookie 存储数据在客户端浏览器
+            * 浏览器对于单个cookie 的大小有限制（ 一般4kb ）以及对同一个域名下的总 cookie 数量也有限制（ 一般20 个）
+         2. 特点
+            * cookie 一般用于存出少量的不太敏感的数据
+            * 在不登录的倩况下，完成服务器对客户端的身份识别
+
+3. URL编解码
+
+   * 主要用于不能解析的特殊编码
+
+   * 编码
+
+      ```java
+      URLEncoder.encode(需要编码的字符串,"编译的字符集");//字符集utf-8、GBK
+      ```
+
+   * 解码
+
+      ```java
+      URLDecoder.decode(需要解码的字符串,"编译的字符集");//字符集utf-8、GBK
+      ```
+
+### Session
+
+1. 概念：服务器端会话技术，在一次会话的多次请求间共享数据，将数据保存在服务器端的对象中。HttpSession
+
+2. 快速入门：
+
+   1. 获取 `HttpSession` 对象
+      * `HttpSession session=request.getsession()`
+   2. 使用 Httpsession 对象
+      1. `Object getAttribute(String name)`
+      2. `void setAttribute(String name, Object value)`
+      3. `void removeAttribute(String name)`
+
+3. 原理：
+
+   * session 的实现是依赖于 cookie 的。
+
+4. session细节
+
+   1. 当客户端关闭后，服器不关闭，两次获取的 session 对象默认情况下不是同一个
+
+      * 想要相同可以使用cookie持久化的方式
+
+         ```java
+         HttpSession session = request.getSession();
+         session.setAttribute("name","9757");
+         
+         Cookie jsessionid = new Cookie("JSESSIONID", session.getId());
+         jsessionid.setMaxAge(60);
+         response.addCookie(jsessionid);
+         
+         HttpSession session = request.getSession();
+         System.out.println(session.getAttribute("name"));
+         ```
+
+   2. 当客户端不关闭后，服器关闭，两次获取的 session 对象不是同一个；但是可以确保数据不丢失
+
+      * session 的钝化：在服器正常关闭之前， session 对系列化到硬盘上
+      * session 的活化：在服器启动后，将 session 文件转化为内存中的 session 对象即可。
+
+   3. session的失效时间
+
+      1. 服务器关闭
+
+      2. session对象调用 `invalidate()` 。
+
+      3. session 默认失效时间 30 分钟
+
+         * 选择性配置修改tomcat的web.xml
+
+            ```xml
+            <session-config>
+                <session-timeout>3Ø</session-timeout>
+            </session-config
+            ```
+
+5. session特点
+
+   1. session 用于存储一次会话的多次请求的数据，存在服务器端
+   2. session 可以存储任意类型，任意大小的数据
+
+6. session 与 cookie 的区别：
+
+   1. session 存储数据在服务器端，cookie 在客户端
+   2. session 没有数据大小限制， cookie 有
+   3. session 数据安全，cookie 相对不安全
+
+## JSP
+
+1. 概念
+
+   * Java Server Pages ：java 服务器端页面 
+      * 可以理解为：一个特殊的页面，其中既可以指定定义 html 标签，又可以定义 java 代码
+      * 用于简化书写！！！
+
+2. 原理 
+
+   * 本质是一个Servlet
+
+3. Jsp 的脚本：Jsp 定义 Java 代码的方式
+
+   1. `<％代码％>`：定义的 java 代码，在 service 方法中。 service 方法中可以定义什么，该脚本中就可以定义什么。
+   2. `<％！代码％>`：定义的 java 代码，在 jsp 转换后的 java 类的成员位置。
+   3. `<％=代码％>`：定义的 java 代码，会出到页面上。输出语句中可以定义什么，该脚本中就可以定义什么
+
+4. Jsp内置对象
+
+   * 在 jsp 页面中不需要获取和创建，可以直接使用的对象
+
+   * jsp 一共有 9 个内置对象。
+      * `request`
+      
+      * `response`
+      
+      * `out`：字符输出流对。可以将数据输出到页面上。和`response.getwriter() `类似
+         * 区别：在 tomcat 服务器真正结客户端做出响应之前，会先找 response 缓冲区数据，再找 out 缓冲区数据。(前四个为域对象)
+         
+         | 变量名      | 真实类型            | 作用                                       |
+         | ----------- | ------------------- | ------------------------------------------ |
+         | pageContext | pageContext         | 当前页面共享据，还可以获取其他八个内置对象 |
+         | request     | HttpservletRequest  | 一次请求访问的多个资源（转发）             |
+         | session     | HttpSession         | 一次会话的多个请求                         |
+         | application | ServletContext      | 所有用户间共享数据                         |
+         | response    | HttpServletResponse | 响应对象                                   |
+         | page        | Object              | 当前页面（servlet）的对象this              |
+         | out         | JspWiter            | 输出对象，数据输出到页面上                 |
+         | config      | ServletConfig       | servlet的配置对象                          |
+         | exception   | Throwable           | 异常对象                                   |
+         
+         
+
+5. 指令
+
+   * 作用：用于配置 Jsp 页面，导入资源文件
+   * 格式：`<%@指令名称 属性名1=属性值1 属性名2=属性值2`
+   * 分类：
+      1. page：配置JSP页面
+         * contentType ：等同于 response. setContentType()
+            1. 设置响应体的 mime 类型以及字符集
+            2. 设置当前 jsp 页面的编码（只能是高级的 IDE 才能生效，如果使用低级工貝，则需要设置 pageEncoding 属性设置当前页面的字符集）
+         * import ：导包
+         * errorPage ：当前页面发生异常后，会自动跳转到指定的错误页面
+         * isErrorPage ：标识当前也是是否是错误页面。
+            * true ：是，可以使用内对象exception
+            * false：否。默认值。不可以使用内置对 exception 。
+      2. include：页面包含的。导入页面的资源文件,该页面可以被其他页面包含`<%@include file="页面"%>`
+      3. taglib：导入资源
+         * `<%@ taglib prefix='' uri=""%>`
+         * prefix：前缀，自定义的
+
+6. 注释
+
+   1. html注释：`<!-- -->`：只能注释html标签
+   2. jsp注释：`<%-- --%>`：可以注释所有
+
+### MVC开发模式
+
+==将开发分为三个部分==
+
+1. MVC（Model-View-Controller）开发模式是一种软件架构模式，主要用于开发易于维护和灵活的用户界面。这种模式的核心在于将应用程序的输入逻辑、业务逻辑和界面显示逻辑分离，通过将这三者分开，可以提高代码的可读性、可维护性和可测试性。
+   
+   1. **模型（Model）**
+      - 模型代表应用程序的核心功能，通常包含数据结构和业务规则。
+      - 模型直接处理数据，执行业务逻辑，并与数据库或其他数据源进行交互。
+      - 模型是独立于用户界面的，这意味着同一模型可以被多个视图共享。
+   
+   2. **视图（View）**
+      - 视图负责渲染模型中的数据，它是用户与应用程序交互的界面。
+      - 视图并不处理任何业务逻辑，只负责显示数据，可以是HTML网页、图表、列表等任何形式的用户界面。
+      - 视图可以根据模型数据的变化动态更新，以反映最新的状态。
+   
+   3. **控制器（Controller）**
+      - 控制器作为模型和视图之间的桥梁，处理用户的输入，控制应用的流程，并且调用模型和视图完成用户的需求。
+      - 控制器接收到用户请求后，根据请求类型调用相应的模型组件处理请求，然后确定调用哪个视图来渲染返回的数据。
+      - 控制器还可以处理客户端的表单提交，验证用户输入，并将数据传递给模型进行处理。
+   
+   MVC模式的优点包括：
+   
+   - **更好的模块化**：每个部分都有明确的责任范围，这使得代码更容易理解、开发和测试。
+   - **易于维护和扩展**：由于各个部分的职责分离，修改一个部分通常不会影响其他部分。
+   - **重用性**：模型组件可以在多个视图中重用，而视图也可以在不同的场景中使用。
+   - **灵活性**：视图和控制器的改变不会影响到模型，这意味着你可以自由地更改界面而无需担心底层数据结构。
+
+### EL表达式
+
+1. 概念： Expression Language 表达式语言
+
+2. 作用：替换和简化 jsp 页面中 java 代码的编写
+
+3. 语法．`${表达式}`
+
+4. 注意：
+
+   * jsp 默认支持 el 表达式的。如果要忽略 el 表达式
+      1. 设置jsp 中 page 指令中： `isELIgnored="true"`忽当前 jsp 页面中所有的 el 达式
+      2. `\${表达式}`：忽当前这个 el 表达式
+
+5. 使用
+
+   1. 运算
+
+      运算符
+
+      1. 算数运算符：`+ - * /(div) %(mod)`
+      2. 比较运算符：`> < >= <= == !=`
+      3. 逻辑运算符： `&&(and)  ||(or)  !(not)`
+      4. 空运算符： empty
+         * 功能：用于判断字符串、集合、数组对象是否为 null 或者长度是否为 0
+         * `${empty list)`：判断字符串、集合、数组对象是否为 null 或者长度是否为 0
+         * `${not empty list)`：判断字符串、集合、数组对象是否不为 null 并且长度大于 0
+
+   2. 获取值
+
+      1. el 表达式只能从域对中获取值
+
+      2. 语法：
+
+         * `${域名称，键名}`：从指定域中获取指定誕的值
+
+            域名称：
+
+            1. pageScope             ———〉 pageContext．
+            2. requestScope        ———〉request
+            3. sessionscope         ———〉session
+            4. applicationscope   ———〉application (Servletcontext)
+
+         * 举例：在 request 域中存储了 `name=张三`
+
+         * 获取： `${requestScope.name}`
+
+      3. ${键名}：示依次从最小的域中查找是否有该键对应的值，直到找到为止。
+
+   3. 获取对象、List 集合、Map 集合的值
+
+      1. 对象：`${域名称.键名.属性名}`
+
+         * 本质上会去调用对象的 getter 方法
+
+            ```java
+            User user =new User();
+            request.setAttribute("u",user);
+            //对象
+            ${requestScope.u.name};
+            ```
+
+      2. List集合：`${域名称.键名[索引]]}`
+
+         ```java
+         List list = new ArrayList();
+         list.add(4);
+         list.add(user);
+         request.setAttribute("list",list);
+         //List集合
+         ${requestScope.list};
+         ${requestScope.list[]};
+         ${requestScope.list[1].naem};//存入对象获取
+         ```
+
+      3. Map集合`${域名称.键名.key名称}`
+
+         ```java
+         Map map = new HashMap();
+         map.put("a","b");
+         map.put("user",user);
+         request.setAttribute("map",map);
+         //map集合
+         ${requestScope.map.a};//结果为b
+         ${requestScope.map["a"]};//结果为b
+         ${requestScope.map.user.naem};
+         ```
+
+6. 隐式对象： 
+
+   * el 表达式中有 11 个隐式对象
+   * pageContext ：获取 jsp 其他八个内置对
+   * `${pageContext.request.contextpath}`：动态获取虚拟目录
+
+### JSTL标签
+
+1. 概念：JavaServer Pages Tag Library JSP 标准标签库
+
+   * 是由 Apache 组织提供的开源的免费的 jsp 标签 <标签>
+
+2. 作用：用于笥化和替换 jsp 页面上的 java 代码
+
+3. 使用步骤：
+
+   1. 导入jstl 相关 jar 包
+
+      ```xml
+      <!-- https://mvnrepository.com/artifact/javax.servlet.jsp.jstl/jstl -->
+      <dependency>
+          <groupId>javax.servlet.jsp.jstl</groupId>
+          <artifactId>jstl</artifactId>
+          <version>1.2</version>
+      </dependency>
+      <dependency>
+                  <groupId>org.glassfish.web</groupId>
+                  <artifactId>jstl-impl</artifactId>
+                  <version>1.2</version>
+                  <scope>runtime</scope>
+              </dependency>
+      ```
+
+   2. 引人标签库： taglib 指令 `<%@ taglib %>`、`<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>`
+
+   3. 使用标签
+
+4. 常用的 JSTL 标签
+
+   1. if             ：相当于 java 代码的 if 语句
+
+      1. 属性：
+         * test必须属性，接收boolean表达式
+         * 如果表达式的为true,则显示，如果为false，则不显示标签体内容
+         * 一般情况下，test属性值会结合el表达式一起使用
+      2. 注意
+         * c:if标签么有else，想要else，则可以在定义一个c:if
+
+      ```jsp
+      <c:if test=""></c:if>
+      ```
+
+   2. choose   ：相当于 java 代码的 switch 语句
+
+      1. 属性：
+         * choose相当于switch声明
+         * when：相当于case
+         * otherwise相当于default
+
+      ```jsp
+      <c:choose>
+          <c:when test=""></c:when>
+          <c:otherwise></c:otherwise>
+      </c:choose>
+
+   3. foreach  ：相当于 java 代码的 for 语句
+
+      1. 属性
+         * begin:开始值
+         * edn:结束值
+         * var:临时变量
+         * step:步长
+         * varDtatus:循环状态对象
+            * index:容器中元素的索引，从0开始
+            * count:循环次数，从1开始
+
+      ```jsp
+      <c:forEach begin="" end="" var="" step=""></c:forEach>
+      ```
+
+      2. 高级for
+         * items:容器对象
+         * var:容器中元素的临时变量
+         * varDtatus:循环状态对象
+            * index:容器中元素的索引，从0开始
+            * count:循环次数，从1开始
+
+      ```jsp
+      <c:forEach items="${list}" var="str" varStatus="s">
+          ${str}
+      </c:forEach>
+
+### 三层架构
+
+软件设计中的三层架构是一种常见的软件架构模式，主要用于提高系统的可维护性、可扩展性和复用性。这种架构模式将应用程序划分为三个主要的逻辑层，每一层都有特定的责任和功能。以下是三层架构的详细介绍：
+
+1. **表示层（Presentation Layer 或 UI 层）**：
+   - 这一层负责与用户交互，包括展示数据和收集用户输入。
+   - 它处理用户界面的布局、样式和所有可视化的元素。
+   - 表示层不包含业务逻辑，而是调用业务逻辑层来处理数据和业务规则。
+
+2. **业务逻辑层（Business Logic Layer 或 BLL / Service Layer）**：
+   - 这一层包含了应用程序的核心业务逻辑。
+   - 它处理业务流程、数据验证、计算以及规则的执行。
+   - 业务逻辑层可以调用数据访问层来获取或存储数据，同时也可以与表示层交互以响应用户操作。
+
+3. **数据访问层（Data Access Layer 或 DAL / DAO）**：
+   - 这一层负责与数据存储进行交互，如数据库、文件系统或其他持久化存储。
+   - 它提供了数据的读取、写入、更新和删除等操作的抽象接口。
+   - 数据访问层应该实现对底层数据存储的具体细节的封装，使得上层不需要关心具体的数据库技术。
+
+在三层架构中，各层之间的通信通常是通过接口或API来进行的，这样可以确保层与层之间的松散耦合。如果某一层需要修改或替换，其他层受到的影响最小，有助于简化维护和升级过程。
+
+此外，实体类（Model）通常在各层之间传递，用于封装数据和业务规则。实体类的设计应该与数据访问层的数据库结构相匹配，但并不直接暴露数据库的细节给上层。
+
+三层架构的主要优点包括：
+
+- **可维护性**：清晰的分层使得代码更易于理解、测试和维护。
+- **可扩展性**：当需求变化时，可以独立地修改某一层而不影响其他层。
+- **复用性**：业务逻辑和数据访问组件可以在多个项目中复用。
+
+
+
+## 过滤器、监听器
+
+### Filter过滤器
+
+
+
+### Listener监听器
+
+
+
+## 
+
+
