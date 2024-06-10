@@ -1381,26 +1381,436 @@ Function：函数（方法）对象
 
 ## JQuery
 
-### 概念
+1. Jquery对象和JS对象的区别与转换
+   * jquery转换为js：`jquery对象[索引] 或者 jquery对象.get(索引)`
+   * js转换为jquery：`$(js对象)`
 
+2. 选择器：==选择据相似特征的元素（标签）==
+   1. 基本语法
+      * 事件绑定
+         * `$("#id名称").事件名称(function(){});`
+      * 入口函数
+         * `$(function(){})`
+      * 样式控制
+         1. `$("#div1").css("样式名称"，"样式")`、`$("#div1").css("background-color"，"red")`
+         2. DOM写法`$("#div1").css("backgroundColor"，"样式")`
+   2. 选择器分类
+      1. 基本选择器
+         1. 标签选择器
+            * 语法：`$("html 标签名")`获得所有匹配标签名称的元素
+         2. id选择器
+            * 语法：`$("#id的属性值")`获得与指定 id 属性值匹配的元素
+         3. 类选择器
+            * 语法：`$(".class的属性值")` 获得与指定的 class 属性值匹配的元素
+         4. 并集选择器
+            * `$("选择器1，选择器2，....")`获取多个选择器选中的所有元素
+      2. 层级选择器
+         1. 后代选择器
+            * 语法：`$("A B "）`选择 A 元内部的所有 B 元素，包括B下的
+         2. 子选择器
+            * 语法：`$("A > B "）`选择 A 元内部的所有 B 子元素，不包括B下的
+      3. 属性选择器
+         1. 属性名称选择器
+            * 语法：`$(A[属性名]")`包含指定属性的选择器
+         2. 属性选择器
+            * 语法：`$(A[属性名=值]")`包含指定属性等于指定值的选择器
+         3. 复合属性选择器
+            * 语法：`$(A[属性名=值][]....")`包含多个属性条件的选择器
+      4. 过滤选择器
+         1. 首元素过滤选择器
+            * 语法：`:first` 获得选择的元素中的第一个元素`$(div:first).css`
+         2. 尾元素过滤选择器
+            * 语法：`:last` 获得选择的元素中的最后一个元素
+         3. 非元素选择器
+            * 语法：`:not(selecter)` 不包括指定内容的元
+         4. 偶元素选择器
+            * 语法：`:even` 偶数，从 0 开始计数
+         5. 奇元素选择器
+            * 语法：`:odd` 奇数，从 0 开始计数
+         6. 等于索引选择器
+            * 语法：`:eq(index)` 指定索引元素
+         7. 大于索引选择器
+            * 语法：`:gt(index)` 大于指定索引元素
+         8. 小于索引选择器
+            * 语法：`:lt(index)` 小于指定索引元素
+         9. 标题选择器
+            * 语法：`:header` 获得标题元素，固定写法==`<h1>到<h6>`==
+      5. 表单过滤选择器
+         1. 可用元素选择器
+            * 语法：`:enabled` 获得可用元素
+         2. 不可用元素选择器
+            * 语法：`:disabled` 获得不可用元素
+         3. 单选中选择器
+            * 语法：`:checked` 获得单选/复选框选中的元素
+         4. 复选中选择器
+            * 语法：`:selected` 获得下拉框选中的元素
 
+3. DOM操作
 
-### 快速入门
+   1. 内容操作
 
-### Jquery对象和JS对象的区别与转换
+      1. `html()` ：获取/设置元素的标签体内容 `<a><font> 内容 </font></a>    <font> 内容</font>`
+      2. `text()` ：获取/设置元翠的标签体纯文本内容 `<a><font> 内容</font></a>    内容`
+      3. `val()`：获取/设置元素的 value 属性值
 
-### 选择器
+   2. 属性操作
 
-### DOM操作
+      1. 通用属性操作
 
-### 案例
+         1. `attr()` ：获取/设置元素的属性
 
+         2. `removeAttr()` ：删除属性
 
+         3. `prop()` ：获取/设置元的属性
+
+         4. `removeProp()` ：删除属性
+
+            attr 和 prop 区别？
+
+            1. 如果操作的是元素的固有属性，则建议使用 prop
+            2. 如果操作的是元素自定义的属性，则建议使用 attr
+
+      2. 对CLASS属性操作
+
+         1. `addC1ass()`：添加 class 属性
+         2. `removeclass()` ：删除 class 属性值
+         3. `toggleclass()`：切换属性、如果存在就删除、如果不存在就添加
+
+   3. CRUD操作
+
+      1. `append()` ：父元将子元追加到末尾
+         *  `对象1.append(对象2)`：将对象2 添加到对象1元素内部，并且在末尾
+      2. `prepend()`：父元素将子元素追到开头
+         * `对象1.prepend(对象2)` ：将对 2 添加到对 1 元内部，并且在开头
+      3. `appendTo()`：
+         * `对象1.appendTo(对象2)` ：将对象1 添加到对 2 内部，并且在末尾
+      4. `prependTo()` ：
+         * `对象1.prependTo(对象2)` ：将对对象1 添加到对象 2 内部，并且在开头
+      5. `after()` ：添加元到元后边
+         * `对象1.after(对象2)`：将对象 2 添加到对象 1 后边。对象 1 和对 2 是兄弟关系
+      6. `before()` ：添加元到元前边
+         * `对象1.before)对象2 )`：将对 2 添加到对 1 前边。对象1 和对象2 是兄弟关系
+      7. `insertAfter()`
+         * `对象1.insertAfter(对象2)` ：将对象2 添加到对象 1 后边。对象1 和对象2 是兄弟关系
+      8. `insertBefore()`
+         * `对象1.insertBefore(对象2)` ：将对象2 添加到对象1 前边。对象 1 和对象2 是兄弟关系
+      9. `remove()` ：移除元素
+         * `对象.remove()`：将对象删除掉
+      10. `empty()` ：清空元素的所有后代元素。
+          * `对象.empty()` ：将对象的后代元素全部清空，但是保当前对以及其属性节
+
+4. 动画
+
+   1. 三种方式显示隐藏元素
+
+      1. 默认显示和隐藏方式
+
+         1. `show([speed],[easing],[fn])`
+
+            ```js
+            $("#id").show("slow","linear",function(){})
+            ```
+
+         1. `hide([speed],[easing],[fn])`
+         2. `toggle([speed],[easing],[fn])`
+
+      2. 滑动显示和隐藏方式
+
+         1. `slideDon([speed],[easing],[fn])`
+         2. `slideUp([speed],[easing],[fn])`
+         3. `slideToggle([speed],[easing],[fn])`
+
+      3. 淡入淡出显示和隐藏方式
+
+         1. `fadeIn([speed],[easing],[fn])`
+         2. `fadeOut([speed],[easing],[fn])`
+         3. `fadeToggle([speed],[easing],[fn])`
+
+   2. 参数
+
+      1. `speed` ：动画的速度。三个定义的值`("slow","normal","fast")`或表示动画时长的毫秒数值（如：10000）
+      2. `easing` ：用来指定切换效果，默认是 "swing",可用参数"linear"
+         * swing ：动画执行时效果是先慢，中间快，最后又慢
+         * linear ：动画执行时速度是匀速的
+      3. `fn` ：在动画完成时执行的函数，每个元素执行一次。： IOOØ ）
+
+5. 遍历
+
+   1. js遍历方式
+
+      * for(初始化值，循环结束条件，步长)
+
+   2. jq遍历方式
+
+      * `jquery对象.each(callback)`
+
+         ```js
+         <ul id="city">
+             <li></li>
+         </ul>
+         
+         <script>
+             city.each(function(index,element){
+             //1. 获取li对象this
+             alert(this.innerHTML)//innerHTML获取标签内的值
+             $(this).html();//html()获取标签内的值
+             //2. 在会掉函数中定义参数，第一个是索引，第二个是元素对象
+             return false;//结束循环
+             return false;//结束本次循环,继续下次循环
+             element.innerHTML;
+             $(element).html();
+         })
+         </script>
+         ```
+
+      * `$.each(Object,[callback])`
+
+         ```js
+         $.each(city,function(){
+             $(this).html();
+         });
+         ```
+
+      * `for…fo:`
+
+         ```js
+         for(li of city){
+             $(li).html();
+         }
+         ```
+
+6. 事件绑定
+
+   1. jquery标准绑定方式
+
+      * `jquery对象.事件方法(回调函数)`
+
+   2. on绑定事件/off解除绑定
+
+      * `jquery对象.on(“事件名称”,回调函数)`
+
+      * `jquery对象.off(“事件名称”)`
+
+         ```js
+         $("").on("click",function(){});
+         $("").off("click");//不传递参数解除所有绑定
+         ```
+
+   3. 事件切换：toggle
+
+      * `jquery对象.toggle(fn1,fn2...)`：方法1，方法2
+
+7. 插件：增强jquery的功能
+
+   1. 实现方式
+
+      1. `$.fn.extend(object)`
+
+         * 增强通过 Jquery 获取的对象的功能 $("#id")
+
+      2. `$.extend(object)`
+
+         * 增强jquery对象自身的功能 `$/jquery`
+
+         ```js
+         $.fn.extend({
+             方法名称:function(){
+                 //定又了一个方法。所有的 jq 对象都可以调用该方法
+             }
+         });
+         ```
 
 ## js数据展示
 
 ### AJAX
 
+1. 概念
 
+   1. AJAX 是一种在无需重新加载整个网页的倩况下，能够更新部分网页的技术。
+   2. 异步和同步，客户端和服务器端相互通信的基础上
+      * 客户端必须等待服务器端的响应。在等待的期间客户端不能做其他操作。
+      * 客户端不需要等待服务器端的响应。在服务器处理请求的过程中，客户端可以进行其他的操作。
+
+2. 实现
+
+   1. 原生js方式
+
+      1. 实现步骤
+
+         ```js
+         //定义方法
+         function fun(){
+         //发送异步请求
+         //1. 创建核心对象
+             const xhttp = new XMLHttpRequest();  
+         //2. 定义回调函数
+             xhttp.onload = function() {
+           // 您可以在这里使用数据
+             }
+         //3. 发送请求
+             xhttp.open("GET", "ajax_info.txt");
+             xhttp.send();
+         //4.处理响应
+             xhttp.onreadystatechange = function() {
+                 if (this.readyState == 4 && this.status == 200) {
+                     xhttp.responseText;//获取服务器传来的值
+                }
+             };
+         }
+         ```
+
+      2. 如需向服务器发送请求，您可以使用 XMLHttpRequest 对象的 `open()` 和 `send()` 方法
+
+         1. `open("请求方式","请求的URL",同步或异步)`
+         2. true异步、false同步
+         3. get请求传入的参数xie在open()方法的请求URL后面。post请求写在send()方法里面
+
+   2. jq方式
+
+      1. `$.ajsx()`
+
+         1. 实现步骤
+
+            ```js
+            //定义方法
+            function fun(){
+                $.ajax({
+                    url:"",//请求路径
+                    type:"",//请求方式
+                    data:{json},//请求参数
+                    success:function(){},//响应成功后的回调函数
+                    error:function(){},//响应错误后的回调函数
+                    dataType:""//设置接收到的响应数据格式
+                });
+            }
+            ```
+
+      2. `$.get()`：对于不同请求的单独封装
+
+         1. 实现步骤：发送get请求
+
+         2. 语法：`$.get(url,[data].[callback],[type])`
+
+            参数：
+
+            * url：请求路径
+            * data：请求参数
+            * callback：回调函数
+            * type：响应结果的类型
+
+            ```js
+            $.get("",{josn},function(){},json)
+
+      3. `$.post()`：发送post请求、与get方法只是方法名不同
 
 ### JSON
+
+==js对象表示法、JSON 是一种存储和交换数据的语法。==
+
+1. 基本规则
+
+   1. 数据在名称/键值对中： JSON 数据是由值对构成的
+      * 键用引号（单双都行）引起来，也可以不使用引号
+      * 值得取值类型：
+         1. 字符串：在双引号中
+         2. 数字：整数或浮点数
+         3. 对象（JSON 对象）：在花括号中
+         4. 数组：在方括号中：`{"":[{},{}]}`
+         5. 布尔：true或者false
+         6. null
+   2. 数据由逗号分隔：多个键值队由逗号分隔
+   3. 花括号容纳对象：使用{}定义JSON
+   4. 方括号容纳数组：[]
+
+2. 获取数据
+
+   1. 获取方式
+
+      1. json对象.键名
+      2. `json对象[“键名”]`
+      3. 数组对象[索引]
+
+   2. 遍历
+
+      ```json
+      var pse = {"123":"123","123"123:,"123",true}
+      for(var key in pse){
+          key+pse[key];
+      }
+      var ps = {["123":"123","123"123:,"123",true],
+                 ["123":"123","123"123:,"123",true],
+                 ["123":"123","123"123:,"123",true]}
+      for(var i = 0;i<ps.length;i++){
+          var p = ps[i];
+          for(var key in p){
+          key+p[key];
+      }
+      }
+      ```
+
+   3. json数据和java对象的相互转换
+
+      * 解析器
+         1. 常见解析器：jsonlib、gson、fastjson、`jackson：springMVC自带的解析器`
+
+      1. json转Java
+
+         1. 导入 jackson 的相关 jar 包
+         2. 创建 Jackson 核心对象 objectmapper
+         3. 调用 objectmapper 的相关方法进行转换
+            1. 方法：`readValue(json字符串，javabean.class)`
+
+      2. java转json
+
+         1. 使用步骤
+
+         2. 导入 jackson 的相关 jar 包
+
+            ```
+            jackson-core
+            jackson-databind
+            jackson-annotations
+            ```
+
+         3. 创建 Jackson 核心对象 objectmapper
+
+         4. 调用 objectmapper 的相关方法进行转换
+
+            ```java
+            public void tun() {
+                //创建Java对象    
+                JsonPrsom json = new JsonPrsom();        
+                json.setId(1);    
+                json.setUsername("张三");    
+                json.setPassword("219798");    
+                //
+                ObjectMapper mapper = new ObjectMapper();    
+                try {    
+                    String s = mapper.writeValueAsString(json);        
+                    System.out.println(s);        
+                } catch (JsonProcessingException e) {    
+                    throw new RuntimeException(e);        
+                }    
+            }
+            ```
+
+         5. 转换方法
+
+            1. writeVa1ue(参数1，obj)：
+            2. 参数1
+               * File：将 obj 对象转换为 json 字符串，并保存到指定的文件中
+               * `mapper.writeValue(new File(),对象);`
+               * Writer：将 obj 对象转换为 json 字符串，并将 json 数据填充到字符输出流中
+               * 0utputStream ：将 obj 对象转换为 json 字符串，并将 json 数据填充到字节输出流中
+            3. writeVa1ueAsString(obj) ：将对象转为json字符串
+
+         6. 注解：写在bean里面
+
+            1. `@JsonIgnore`：排除属性
+            2. `@JsonFormat`：属性值格式化
+
+         7. 复杂java对象转换：转换方式一样
+
+            1. List：数组
+            2. Map：对象格式一致
+

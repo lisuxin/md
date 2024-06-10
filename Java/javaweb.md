@@ -2274,12 +2274,289 @@ public class JdbcTest {
 
 ### Filter过滤器
 
+1. 概念
 
+   * 生活中的过滤器：净水器,空气净化器，土匪
+   * web 中的过滤器：当访问服务器的资源时，过滤器可以将请求拦截下来，完成一些特殊的功能。
+   * 过滤器的作用：
+      * 一般用于完成通用的操作。如：登录验证、统一编码处理、敏感字符过漶….
 
-### Listener监听器
+2. 快熟入门
 
+   1. 步骤：
 
+      1. 定义一个类实现接口
 
-## 
+      2. 复写方法
 
+         1. 在方法`doFilter`中写`filterChain.doFilter(servletRequest,servletResponse);`为放行
+
+      3. 配置拦截路径
+
+         1. web.xml
+
+            ```xml
+            <filter>
+                    <filter-name></filter-name>
+                    <filter-class></filter-class>
+                </filter>
+                <filter-mapping>
+                    <filter-name></filter-name>
+                    <!--要过滤的目录-->
+                    <url-pattern></url-pattern>
+                    <dispatcher></dispatcher>
+                </filter-mapping>
+            ```
+
+         2. 注解`@WebFilter("/*")`
+
+3. 过滤器细节
+
+   1. 过滤器执行流程
+
+      1. 执行过滤器
+      2. 执行放行后的资源
+      3. 回来执行过滤器放行代码下边的代码
+
+   2. 过漶器生命周期方法
+
+      1. init ：在服务器启动后，会会创建Filter, 然后调用 init 方法。只执行一次。用于加载资源
+      2. doFilter ：每一次请求被拦截资源时，会执行。执行多次
+      3. destroy ：在服务器关闭后， Fi1ter 对象被销毁。如果服务器是正常关闭，则会执行 destroy 方法。只执行一次。用于释放资源
+
+   3. 过滤器配置详解
+
+      1. 拦截路径配置：拦截路径写在`@WebFilter("/*")`里面
+
+         * 貝体资源路径：`/index.jsp` 只有访问`index.jsp`资源时, 过滤器才会被执行
+         * 拦截目录：`/user/*`访问 /user 下的所有资源时，过滤器都会被执行
+         * 后缀名拦截． `*.jsp`访问所有后缀名为 jsp 资源时，过滤器都会被执行
+         * 拦截所有资源：`/*`访问所有资源时，过滤器都会被执行
+
+      2. 拦截方式配置：资源被访问的方式
+
+         * 注解配置
+
+            设置`dispatcherTypes`属性:`@WebFilter(value = "/*",dispatcherTypes ={DispatcherType.ASYNC,DispatcherType.ERROR})`
+
+            1. REQUEST ：默认值。浏览器直接求资源
+            2. FORWARD ：转友访问资源
+            3. INCLUDE ：包含访问资源
+            4. ERROR ：错误跳转资源
+            5. ASYNC ：异步访问资源
+
+         * web.xml配置
+
+            * 设置`<dispatcher></dispatcher>`标签即可
+
+   4. 过滤器链（配置多个过滤器）
+
+      * 执行顺序：如果有两个过滤器：过滤器 1 和过滤器 2
+         1. 过滤器 1
+         2. 过滤器 2
+         3. 资源执行
+         4. 过滤器 2
+         5. 过滤器 1
+      * 过滤器先后顺序问题：
+         1. 注解配置：按照类名的字符串比较规则比较，值小的先执行
+            * 如： AFi1ter 和 BFi1ter, AFi1ter 就先执行了。
+         2. web.xml 配置： `<filter-mapping>`谁定义在上 边， 谁先执行
+
+#### 动态代理
+
+1. 代理模式
+
+   * 真实对象：被代理的对象
+   * 代理对象：
+   * 代理模式：代理对象代理真实对象，达到增强真实对象功能的目的
+
+2. 实现方法
+
+   1. 静态代理：有一个类文件描述代理模式
+
+   2. 动态代理：在内存中形成代理类
+
+      * 实现步骤
+         1. 代理对和真实对实现相同的接囗
+         2. 代理对= `proxy.newlnstance();`
+         3. 使用代理对调用方法。
+      * 增强方式
+         1. 增强参数列表
+         2. 增强返回值类型
+         3. 增强方法体执行逻辑
+
+      ```java
+      //接口
+      public interface daili {
+          public String sale(double money);
+      }
+      //真实对象
+      public class Dailimode implements daili{
+          @Override
+          public String sale(double money) {
+              System.out.println("花了多少钱？"+money+"啥");
+              return "钱";
+          }
+      }
+      //代理
+      public class DailiTest {
+          public static void main(String[] args) {
+              //1.创建真实对象
+              Dailimode dailimode = new Dailimode();
+              //2.使用动态代理增强对象
+              daili dailimode1 = (daili) Proxy.newProxyInstance(//强制转换为真实对象类型（接口）
+                      dailimode.getClass().getClassLoader(),
+                      dailimode.getClass().getInterfaces(),
+                      new InvocationHandler() {
+                  /*
+                  三个参数
+                       1 ．类加载器：真实对象 getClass().getC1assLoader()
+                       2 ．接囗数组：真实对象 getC1ass().get1nterfaces()
+                       3 处理器： new InvocationHandIer()
+                   */
+                  @Override
+                  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                      /*
+                      代理逻辑编写的方法：代理对象调用的所有方法都会触发该方法执行
+                         参数：
+                            1.proxy：代理对象
+                            2.method ：代理对象调用的方法，被封装为的对象
+                            3.args：代理对象调用方法时，传递的实际参数
+                       */
+                      //判断是否是要增强的方法
+                      if (method.getName().equals("sale")){
+                          //增强参数
+                          double money = (double) args[0];
+                          money = money*0.85;
+                          //增强方法体就是在使用真实对象调用该方法前后加逻辑代码
+                          //使用真实对象调用该方法
+                          Object obj = method.invoke(dailimode, money);
+                          //增强返回值
+                          return obj+"给我钱";
+                      }else {
+                          Object obj = method.invoke(dailimode, args);
+                          return obj;
+                      }
+                  }
+              });
+              //调用方法
+              String qian = dailimode1.sale(8000);
+              System.out.println(qian);
+          }
+      }
+      ```
+
+3. 将文本中的字符按行存入list集合
+
+   ```java
+    private List<String> list = new ArrayList<String>();
+   
+       @Override
+       public void init(FilterConfig filterConfig) throws ServletException {
+           try {
+               //获取文件真实路径
+               ServletContext servletContext = filterConfig.getServletContext();
+               String realPath = servletContext.getRealPath("/txt/TXT.txt");
+               //读取文件
+               BufferedReader br = new BufferedReader(new FileReader(realPath));
+               //将文件按每一行添加到list中
+               String line = null;
+               while ((line = br.readLine()) != null) {
+                   list.add(line);
+               }
+               //释放资源
+               br.close();
+               System.out.println(list);
+           } catch (FileNotFoundException e) {
+               throw new RuntimeException(e);
+           } catch (IOException e) {
+               throw new RuntimeException(e);
+           }
+       }
+   ```
+
+### 监听器
+
+Java 提供了多种监听器，主要用于响应不同类型的事件，尤其是在图形用户界面（GUI）编程和 web 开发中。监听器是观察者模式的一种应用，它们等待特定的事件发生，一旦事件触发，就会调用监听器中定义的方法。
+
+在 Java 中，监听器通常用于以下领域：
+
+1. **Swing/AWT GUI 监听器**：
+   - `ActionListener`：响应按钮点击、菜单选择等动作事件。
+   - `ItemListener`：响应复选框、单选按钮等控件的值改变事件。
+   - `WindowListener` / `WindowFocusListener`：响应窗口打开、关闭、激活等事件。
+   - `MouseListener` / `MouseMotionListener`：响应鼠标点击、移动等事件。
+   - `KeyListener`：响应键盘按键事件。
+
+2. **JavaBeans 属性变更监听器**：
+   - `PropertyChangeListener`：响应 JavaBeans 属性的改变事件。
+
+3. **AWT Event Delegation Model 监听器**：
+   - `FocusListener`：响应获得焦点和失去焦点事件。
+   - `ComponentListener`：响应组件大小、位置变化事件。
+   - `ContainerListener`：响应组件添加或移除事件。
+
+4. **Web 监听器（Servlet/JSP）**：
+   - `ServletContextListener`：响应 Web 应用的初始化和销毁事件。
+   - `HttpSessionListener`：响应 HTTP 会话的创建和销毁事件。
+   - `ServletRequestListener`：响应请求的开始和结束事件。
+   - `ServletRequestAttributeListener`：响应请求属性的添加、移除事件。
+   - `HttpSessionAttributeListener`：响应会话属性的添加、移除事件。
+   - `ServletContextAttributeListener`：响应应用上下文属性的添加、移除事件。
+
+5. **Java Persistence API (JPA) 监听器**：
+   - 实体监听器：响应实体的持久化、更新、删除等事件。
+   - 属性转换器：用于实体属性的转换。
+
+6. **JavaMail 监听器**：
+   - `MessageCountAdapter`：响应邮件数量的变化事件。
+
+7. **Java WebSocket 监听器**：
+   - `WebSocketListener`：响应 WebSocket 连接、关闭、错误和消息事件。
+
+8. **JavaFX 监听器**：
+   - `EventHandler`：响应各种 UI 事件，如点击、拖放、键盘输入等。
+
+请注意，监听器的使用取决于你正在使用的 Java 平台或框架。例如，Swing 和 AWT 监听器适用于桌面应用，而 Servlet 监听器则用于 web 开发。每种监听器都有其特定的用途和事件模型，了解这些模型有助于在适当的情境下正确地使用监听器。在编写监听器时，你需要实现特定的接口，并重写其中的方法以响应事件。
+
+#### Listener
+
+* 事件监听机制
+
+   * 事件：一件事倩
+   * 事件源：事件发生的地方
+   * 监听器一个对象
+   * 注册监听：将事件、事件源、监听器绑定在一起。当事件源上发生某个事件后，执行监听器代码
+
+* `ServletContextListener`监听`ServletContext`的创建与销毁
+
+   * 方法：
+
+      * `contextInitialized(ServletContextEvent sce)`：servletcontext：对象被销毁之前会调用该方法 
+      * `contextDestroyed(ServletContextEvent sce)`：servletcontext：对象创建后会调用该方法
+
+   * 步骤：
+
+      1. 创建一个类实现`ServletContextListener`接口
+
+      2. 复写方法
+
+      3. 配置
+
+         1. web.xml
+
+            ```xml
+            <listener>
+                    <listener-class></listener-class>
+                </listener>
+                <!--指定初始化参数-->
+                <context-param>
+                    <param-name></param-name>
+                    <param-value></param-value>
+                </context-param>
+            ```
+
+         2. 注解：`@WebListener`
+
+web三大件==servlet、监听器、过滤器==
 
