@@ -337,7 +337,7 @@ maven是借助单元测试，批量的测试你类中的方法是否符合预期
     <groupId>junit</groupId>
     <artifactId>junit</artifactId>
     <version>4.11</version>
-    <scope>test</scope>
+    <scope>test</scope><!--<scope>compile</scope>设置在编译时运行-->
 </dependency>
 ```
 
@@ -637,7 +637,7 @@ maven项目创建时，会联网下载模板文件，比较大，使用archetpyt
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
+    <!--当前项目版本-->
     <groupId>org.glwc</groupId>
     <artifactId>glwc</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -650,59 +650,154 @@ maven项目创建时，会联网下载模板文件，比较大，使用archetpyt
             <artifactId>spring-context</artifactId>
             <version>6.0.5</version>
         </dependency>
-<!--        junit测试包-->
+        <!--AOP增强方法的依赖、面向切面编程、动态代理-->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.20.1</version>     
+            <scope>runtime</scope>
+        </dependency>
+        <!--spring集成web-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>6.1.7</version>
+        </dependency>
+        <!--spring的单元测试-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>6.1.7</version>
+            <scope>test</scope>
+        </dependency>
+        <!--springMvc的依赖-->
+        <dependency>
+            <groupId>org.springframework</groupId>   
+            <artifactId>spring-webmvc</artifactId>  
+            <version>6.1.7</version>    
+        </dependency>
+        <!--导入JSON格式转换工具-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.14.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.14.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.14.0</version>
+        </dependency>
+        <!--junit测试包-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
-
-<!--        mysql驱动-->
+        <!--mysql驱动-->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.28</version>
         </dependency>
-
-<!--        C3P0数据源-->
+        <!--C3P0数据源-->
         <dependency>
             <groupId>com.mchange</groupId>
             <artifactId>c3p0</artifactId>
             <version>0.9.5.5</version>
         </dependency>
-
-<!--        druid数据源-->
+        <!--druid数据源-->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
             <version>1.2.17</version>
         </dependency>
-
-<!--        Spring集成junit-->
+        <!--Spring集成junit-->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <version>6.0.7</version>
             <scope>test</scope>
         </dependency>
-<!--        10以上tomcat使用-->
-<!--        TomcatApi-->
+        <!--10以上tomcat使用-->
+        <!--TomcatApi-->
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-servlet-api</artifactId>
             <version>10.0.2</version>
         </dependency>
-<!--        TomcatJsp-->
+        <!--TomcatJsp-->
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-jsp-api</artifactId>
             <version>10.0.2</version>
         </dependency>
-
-
+        <!--文件上传需要的坐标-->
+        <dependency>
+            <groupId>commons-fileupload</groupId>            
+            <artifactId>commons-fileupload</artifactId>      
+            <version>1.5</version>   
+        </dependency>  
+        <dependency>      
+            <groupId>commons-io</groupId>    
+            <artifactId>commons-io</artifactId>      
+            <version>2.16.0</version>   
+        </dependency>
+        <!-- 适用于 Jakarta EE 10 的servlet-->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version> 
+            <scope>provided</scope>
+        </dependency>
+        <!--Jdbc Template的依赖坐标-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>      
+            <version>6.1.7</version>    
+        </dependency>    
+        <dependency>      
+            <groupId>org.springframework</groupId>    
+            <artifactId>spring-jdbc</artifactId>     
+            <version>6.1.7</version>  
+        </dependency>
+        <!--日志依赖-->            
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+        <!--mybatis依赖-->  
+        <dependency>      
+            <groupId>org.mybatis</groupId>    
+            <artifactId>mybatis</artifactId>      
+            <version>3.5.15</version>    
+        </dependency>
+        <!--    PageHelper 是将分页的复杂的操作进行封装-->
+        <dependency>      
+            <groupId>com.github.pagehelper</groupId>      
+            <artifactId>pagehelper</artifactId>      
+            <version>6.0.0</version>    
+        </dependency>
+        <!--    分页助手解析器、版本尽量低一点-->    
+        <dependency>      
+            <groupId>com.github.jsqlparser</groupId>      
+            <artifactId>jsqlparser</artifactId>      
+            <version>0.9.1</version>
+        </dependency>
+        <!--    mybatis整合spring-->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-spring</artifactId>
+            <version>3.0.1</version>
+        </dependency>
     </dependencies>
-
+    
     <!--maven打包war支持依赖-->
     <build>
         <plugins>
@@ -717,6 +812,23 @@ maven项目创建时，会联网下载模板文件，比较大，使用archetpyt
             </plugin>
         </plugins>
     </build>
+<!--编译器就会在编译过程中保存方法参数的名称信息-->
+      <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <compilerArgs>
+            <arg>-parameters</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 
     <properties>
@@ -727,3 +839,10 @@ maven项目创建时，会联网下载模板文件，比较大，使用archetpyt
 </project>
 ```
 
+## Archetype选择
+
+在Maven中创建一个J2EE项目并打算使用Spring框架，你可以选择以下几种Archetype之一：
+
+1. **maven-archetype-j2ee-simple** 这个Archetype提供了一个基础的J2EE项目结构，它包含了基本的Web应用程序目录结构和一些必要的配置文件。但是，这个Archetype本身不会直接包含Spring框架的依赖或配置，你需要手动添加Spring的依赖并在`pom.xml`中配置。
+2. **Spring Boot Starter Parent** 虽然Spring Boot不是传统的J2EE Archetype，但它非常适合快速搭建基于Spring的Web应用程序。Spring Boot提供了大量的自动化配置，使得开发者能够快速地开始编码而不必处理复杂的部署和配置细节。你可以选择创建一个Spring Boot项目，然后配置它以适应J2EE环境的需求。
+3. **自定义Archetype** 如果以上Archetype都不能满足你的需求，你可以考虑创建自己的Archetype，或者找到一个更接近你需求的Archetype并进行修改。自定义Archetype可以包含Spring的依赖和一些预配置的Spring上下文文件，比如`applicationContext.xml`或基于注解的配置类。

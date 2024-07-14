@@ -23,4 +23,7 @@
    Vue.prototype.$echarts = echarts
    ```
 
-   
+
+
+
+要在一个月内学习并掌握前端 TypeScript、Vue 3、Three.js 和 ECharts 的基础，你需要制定一个合理且密集的学习计划。下面是一个按周划分的学习计划示例：

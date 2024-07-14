@@ -3314,6 +3314,33 @@ public class Demoe6Generic {
 
 Java中的枚举（`enum`）是一种特殊的类，用于定义一个固定集合的常量。从JDK 5.0开始，Java引入了枚举类型作为内置的类型之一，这使得枚举比传统的使用整数或字符串来表示一组固定值的做法更为安全和高效。
 
+## instanceof
+
+在Java中，`instanceof`是一个二元运算符，用于判断一个对象是否属于某个类或其子类（或者实现了某个接口）的实例。它的使用语法如下：
+
+```java
+object instanceof ClassName
+```
+
+- `object`：是要检查的对象实例。
+- `ClassName`：是要判断的类名或接口名。
+
+如果`object`是`ClassName`类的实例，或者`ClassName`的任何子类的实例（如果`ClassName`是一个类的话），或者实现了`ClassName`接口（如果`ClassName`是一个接口的话），那么`instanceof`表达式的结果就是`true`。否则，结果是`false`。
+
+`instanceof`不仅检查对象是否为指定类的直接实例，还会检查对象是否为该类的任何子类的实例，这对于处理类的继承关系非常有用。它常用于确定是否可以安全地进行类型转换，以避免在运行时抛出`ClassCastException`异常。
+
+例如：
+
+```java
+Animal animal = new Dog(); // 假设Dog是Animal的子类
+if (animal instanceof Dog) {
+    Dog dog = (Dog) animal; // 安全地转换为Dog类型，因为animal确实是Dog的实例
+    dog.bark(); // 调用Dog特有的方法
+}
+```
+
+在这个例子中，通过使用`instanceof`，我们先验证了`animal`变量是否指向一个`Dog`类型的对象，然后才进行了类型转换。这样可以确保转换是安全的。
+
 ## 枚举
 
 ### 枚举的定义

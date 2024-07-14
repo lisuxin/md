@@ -2072,6 +2072,7 @@ public class JdbcTest {
    * jsp 默认支持 el 表达式的。如果要忽略 el 表达式
       1. 设置jsp 中 page 指令中： `isELIgnored="true"`忽当前 jsp 页面中所有的 el 达式
       2. `\${表达式}`：忽当前这个 el 表达式
+      3. 启用EL解析器`<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" isELIgnored="false"%>`
 
 5. 使用
 
@@ -2374,7 +2375,7 @@ public class JdbcTest {
 
    1. 静态代理：有一个类文件描述代理模式
 
-   2. 动态代理：在内存中形成代理类
+   2. 动态代理：在内存中形成代理类、不修改源码的情况下对方法进行增强
 
       * 实现步骤
          1. 代理对和真实对实现相同的接囗
@@ -2403,6 +2404,7 @@ public class JdbcTest {
           public static void main(String[] args) {
               //1.创建真实对象
               Dailimode dailimode = new Dailimode();
+              //创建增强对象
               //2.使用动态代理增强对象
               daili dailimode1 = (daili) Proxy.newProxyInstance(//强制转换为真实对象类型（接口）
                       dailimode.getClass().getClassLoader(),
@@ -2430,7 +2432,7 @@ public class JdbcTest {
                           money = money*0.85;
                           //增强方法体就是在使用真实对象调用该方法前后加逻辑代码
                           //使用真实对象调用该方法
-                          Object obj = method.invoke(dailimode, money);
+                          Object obj = method.invoke(dailimode, money);//当前方法，在这个前面为前置增强，后面为后置增强
                           //增强返回值
                           return obj+"给我钱";
                       }else {
@@ -2559,4 +2561,56 @@ Java 提供了多种监听器，主要用于响应不同类型的事件，尤其
          2. 注解：`@WebListener`
 
 web三大件==servlet、监听器、过滤器==
+
+## 项目结构
+
+在Java Web项目中，合理的包名分类可以提高代码的可读性和可维护性。以下是一种常见的包名分类方式：
+
+1. **controller**：存放控制器类（Controller），处理HTTP请求和响应，通常包含Servlet或Spring MVC的Controller。
+
+2. **service**：存放业务逻辑层类（Service），负责处理具体的业务逻辑，如数据处理、业务规则等。
+
+3. **dao** 或 **repository**：存放数据访问层类（DAO，Data Access Object），负责与数据库交互，进行数据的增删改查操作。
+
+4. **model** 或 **entity**：存放实体类（Entity），代表数据库中的表或者需要处理的数据结构，通常包含属性和简单的getter/setter方法。
+
+5. **util**：存放工具类（Utility），如日期处理、字符串处理、文件上传下载等通用功能的实现。
+
+6. **config**：存放配置类，如数据库连接配置、Spring框架配置、MVC配置等。
+
+7. **exception**：存放自定义异常类，用于处理程序中可能出现的各种异常情况。
+
+8. **filter**：存放过滤器类（Filter），用于对请求和响应进行预处理和后处理，如登录验证、编码转换等。
+
+9. **listener**：存放监听器类（Listener），用于监听应用程序的启动、停止、会话创建销毁等事件。
+
+10. **interceptor**：如果使用Spring MVC，可以存放拦截器类（Interceptor），用于在请求处理前后的拦截操作。
+
+例如，一个典型的包结构可能如下所示：
+
+```
+com.example.project
+|-- controller
+|   |-- UserController.java
+|-- service
+|   |-- UserService.java
+|-- dao
+|   |-- UserDao.java
+|-- model
+|   |-- User.java
+|-- util
+|   |-- DateUtil.java
+|-- config
+|   |-- DatabaseConfig.java
+|-- exception
+|   |-- CustomException.java
+|-- filter
+|   |-- LoginFilter.java
+|-- listener
+|   |-- AppListener.java
+|-- interceptor
+    |-- AuthInterceptor.java
+```
+
+
 
