@@ -2562,6 +2562,34 @@ Java 提供了多种监听器，主要用于响应不同类型的事件，尤其
 
 web三大件==servlet、监听器、过滤器==
 
+## 日志
+
+1. log4j
+
+   ```properties
+   # 设置全局日志级别为 INFO
+   log4j.rootLogger=INFO, ConsoleAppender, FileAppender
+   
+   # 控制台日志 Appender 配置
+   log4j.appender.ConsoleAppender=org.apache.log4j.ConsoleAppender
+   log4j.appender.ConsoleAppender.Target=System.out
+   log4j.appender.ConsoleAppender.layout=org.apache.log4j.PatternLayout
+   log4j.appender.ConsoleAppender.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+   
+   # 文件日志 Appender 配置
+   log4j.appender.FileAppender=org.apache.log4j.RollingFileAppender
+   log4j.appender.FileAppender.File=/path/to/your/logfile.log
+   log4j.appender.FileAppender.MaxFileSize=10MB
+   log4j.appender.FileAppender.MaxBackupIndex=10
+   log4j.appender.FileAppender.layout=org.apache.log4j.PatternLayout
+   log4j.appender.FileAppender.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+   
+   # 设置特定包的日志级别
+   log4j.logger.com.example.package=DEBUG
+   ```
+
+   
+
 ## 项目结构
 
 在Java Web项目中，合理的包名分类可以提高代码的可读性和可维护性。以下是一种常见的包名分类方式：

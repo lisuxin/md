@@ -846,3 +846,595 @@ maven项目创建时，会联网下载模板文件，比较大，使用archetpyt
 1. **maven-archetype-j2ee-simple** 这个Archetype提供了一个基础的J2EE项目结构，它包含了基本的Web应用程序目录结构和一些必要的配置文件。但是，这个Archetype本身不会直接包含Spring框架的依赖或配置，你需要手动添加Spring的依赖并在`pom.xml`中配置。
 2. **Spring Boot Starter Parent** 虽然Spring Boot不是传统的J2EE Archetype，但它非常适合快速搭建基于Spring的Web应用程序。Spring Boot提供了大量的自动化配置，使得开发者能够快速地开始编码而不必处理复杂的部署和配置细节。你可以选择创建一个Spring Boot项目，然后配置它以适应J2EE环境的需求。
 3. **自定义Archetype** 如果以上Archetype都不能满足你的需求，你可以考虑创建自己的Archetype，或者找到一个更接近你需求的Archetype并进行修改。自定义Archetype可以包含Spring的依赖和一些预配置的Spring上下文文件，比如`applicationContext.xml`或基于注解的配置类。
+
+
+
+# 详细使用
+
+# 史上最全 Maven 教程，建议收藏！！
+
+康熙 
+
+[IT码徒](javascript:void(0);)
+
+ *2024年07月21日 23:10* *河南*
+
+点击“IT码徒”，关注，置顶公众号
+
+```
+每日技术干货，第一时间送达！
+```
+
+如果你是有一定的开发经验，我相信你一定被项目 lib 下的 JAR 包折磨过，如果碰上兼容问题，更是逐个下载不同版本 JAR 包进行替换排查，相信是每个程序员都不想再经历一边的噩梦。
+
+Maven 的出现则大大降低开发人员的准备工作，让开发人员更专心与业务，下面即介绍 Maven 基本使用。
+
+Maven 是一个项目管理工具，可以对 Java 项目进行构建、依赖管理。
+
+## 一、基础配置
+
+##### 1. 仓库配置
+
+在 Maven 中引入了仓库的概念，开发人员将所编写的 JAR 按照相应格式推送到仓库中，当其他开发者需要引用这个 jar 包时在工程中引用相应依赖，则会先从中央仓库进行下载到本地仓库，此时项目将读取本地仓库的内容。
+
+对于部分组织或机构通常会在此基础上额外搭建私人仓库，在引用依赖时会先从私人仓库进行读取，如果未找到再从中央仓库下载至私人仓库，最后再下载到本地仓库。
+
+![](../typoratuxiang/maven/ck.png)
+
+通过这种方式开发者则无需再手动管理繁杂的项目 JAR 包，从而实现更高的效率。
+
+##### 2. 基本信息
+
+一个最基本的 Maven 项目通常应包含如下内容，当我们引用一个模块时，也是通过 `groupId`、 `artifactId`、 `version` 三项内容进行确定。
+
+![图片](../typoratuxiang/maven/jbxx.png)
+
+下面是一个基本定义示例：
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<project ...>
+    <!-- 固定 4.0.0, 指定了当前 POM 模型的版本 -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>xyz.ibudai</groupId>
+    <artifactId>maven-demo</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <version>maven demo</version>
+    <description>This is maven demo.</description>
+    
+</project>
+```
+
+## 二、依赖管理
+
+##### 1. 依赖引入
+
+通过 `dependencies` 标签我们即可导入所需要的工程依赖。
+
+```
+<dependencies>
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>8.0.27</version>
+        <scope>runtime</scope>
+    </dependency>
+</dependencies>
+```
+
+其中 `scope` 的可选值如下：
+
+![图片](../typoratuxiang/maven/scop.png)
+
+##### 2. 间接依赖
+
+当项目需要引用到其它依赖时，只需指定所依赖的工程的基本信息即可，剩下的一切都交给 Maven 处理。即便是所要依赖的工程依赖了其它工程，我们也只需引入项目所直接的依赖的工程。
+
+如下图示例中 `Dependency-A` 引用了 `Dependency-B` ，而 `Dependency-B` 又依赖于 `Dependency-C` ，在传统项目中若在 `Dependency-A` 中引用 `Dependency-B` 则需要同时手动添加 `Dependency-B` 与 `Dependency-C` 所对应的 JAR 包，但在 Maven 中我们只需要引入 `Dependency-B` 即可， Mavne 会自动将子模块所依赖的包导入。
+
+![图片](../typoratuxiang/maven/jjyl.png)
+
+**依赖顺序**
+
+在 maven 工程中遵循先定义先导入的原则，即当存在多个相同间接依赖，优先导入其父依赖定义在前的简洁依赖。
+
+举个例子，如工程中引入 `Dependency-A` 与 `Dependency-B` 两个依赖，二者又分别引用了不同版本的 `Dependency-C` ，但对于 Maven 而言最终编译时同一个依赖即便是不同的版本也只会选择一份。
+
+其计算规则如下：若 `Dependency-A` 定义在 `Dependency-B` 之前则最终将导入 `Dependency-A` 中的 C-1.0 版本。而在右侧图例中虽然 `Dependency-A` 引入优先级高于 `Dependency-B` ，但是 C-2.0 的间接依赖层级高于 C-1.0，因此将导入 C-2.0 版本。
+
+![图片](../typoratuxiang/maven/ylsx.png)
+
+##### 3. 依赖排除
+
+在引用多个模块时可能会发生版本兼容冲突问题，通过 `excludes` 标签即可实现依赖排除。
+
+如下我们在工程中引入了 `demo-a` 依赖，但其又引用 `dependency-b` 依赖，如想要在当前工程中移除 `dependency-b` 依赖，此时即可通过 `excludes` 标签将 `dependency-b` 排除依赖。
+
+```
+<dependencies>
+    <dependency>
+        <groupId>xyz.ibudai</groupId>
+        <artifactId>demo-a</artifactId>
+        <version>1.0.0</version>
+        <excludes>
+            <exclude>
+                <groupId>xyz.ibudai</groupId>
+                <artifactId>dependency-b</artifactId>
+                <version>1.0.0</version>
+            </exclude>
+        </excludes>
+    </dependency>
+</dependencies>
+```
+
+除了手动通过 `excludes` 标签排除依赖，被引模块也可以在导入依赖时通过 `optional` 标签禁用依赖传递。
+
+上述示例中若在 `demo-a` 工程中引入 `dependency-b` 依赖时添加 `optional` 标签，那么其它工程在引入 `demo-a` 依赖时将不会将  `dependency-b` 作为间接依赖导入。
+
+```
+<dependencies>
+    <dependency>
+        <groupId>xyz.ibudai</groupId>
+        <artifactId>demo-b</artifactId>
+        <version>1.0.0</version>
+        <optional>true</optional>
+    </dependency>
+</dependencies>
+```
+
+##### 4. 变量配置
+
+当项目中引入了大量依赖，为了方便管理通常将引入依赖的版本通过变量进行统一配置，从而实现更直观的依赖管理。
+
+通过 `properties` 标签即可自定义变量配置，然后使用 `${}` 引用变量。
+
+```
+<properties>
+    <mysql.version>8.0.30</mysql.version>
+    <junit.version>4.13.2</junit.version>
+</properties>
+
+<dependencies>
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <!-- 使用 "${}" 引用上述自定义变量 -->
+        <version>${mysql.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+    </dependency>
+</dependencies>
+```
+
+## 三、模块配置
+
+##### 1. 模块管理
+
+当我们项目包含多个子项目时，通过 `modules` 标签即可实现模块管理。
+
+```
+<!-- maven-demo pom.xml -->
+<modules>
+    <module>module-1</module>
+    <module>module-2</module>
+</modules>
+```
+
+如下在 `maven-demo` 中又包含了 `module-1` 和 `module-2` 两个工程。
+
+![图片](../typoratuxiang/maven/zxmpom.png)
+
+##### 2. 模块继承
+
+通过 `parent` 即可标记当前模块的父模块，且子模块将会继承父模块中的所有依赖配置。子模块若没有指定的 `groupId` 和 `version` 默认继承父模块中的配置。
+
+其中 `relativePath` 用于指定父模块的 POM 文件目录，省略时默认值为 `../pom.xml` 即当前目录的上一级中，若仍未找到则会在本地仓库中寻找。
+
+```
+<!-- module-1 pom.xml -->
+<parent>
+    <groupId>xyz.ibudai</groupId>
+    <artifactId>maven-demo</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+</parent>
+
+<artifactId>module-1</artifactId>
+```
+
+## 四、统一管理
+
+##### 1. 依赖管理
+
+当一共项目包含多个模块，且多个模块引用了相同依赖时显然重复引用是不太合适的，而通过 `dependencyManagement` 即可很好的解决依赖共用的问题。
+
+将项目依赖统一定义在父模块的 `dependencyManagement` 标签中，子模块只需继承父模块并在 `dependencies` 引入所需的依赖，便可自动读取父模块 `dependencyManagement` 所指定的版本。
+
+`dependencyManagement` 既不会在当前模块引入依赖，也不会给其子模块引入依赖，但其可以被继承的，只有在子模块下同样声明了该依赖，才会引入到模块中，子模块中只需在依赖中引入 `groupId` 与 `artifactId` 即可, 也可以指定版本则会进行覆盖。
+
+##### 2. 模块示例
+
+接下来以下图中的模块层级关系进行举例：
+
+![图片](../typoratuxiang/maven/zxm.png)
+
+**maven-demo**
+
+在 `maven-demo` 的 `dependencyManagement` 定义 `mysql` 和 `junit` 两个依赖。
+
+```
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.30</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+**module-1**
+
+在 `module-1` 中继承 `maven-demo` 工程，引入 mysql，无需指定版本，将会自动读取父模块中 `dependencyManagement` 中所指定的版本。当然你也可以选择指定版本，则将会进行覆盖，但并不建议这么操作，将提高项目维护难度。
+
+`module-1` 的 pom 文件内容如下：
+
+```
+<parent>
+    <groupId>xyz.ibudai</groupId>
+    <artifactId>maven-demo</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</parent>
+
+<dependencies>
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+</dependencies>
+```
+
+**module-2**
+
+在 `module-2` 配置同 `module-1`，通过 `dependencyManagement` 我们即实现了项目依赖版本的统一管理。
+
+```
+<parent>
+    <groupId>xyz.ibudai</groupId>
+    <artifactId>maven-demo</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</parent>
+
+<dependencies>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+    </dependency>
+</dependencies>
+```
+
+##### 3. 依赖导入
+
+上面介绍了如何通过 `dependencyManagement` 实现全局的依赖版本管理，但如果工程中的两个子模块都需要配置相同的 `dependencyManagement` 配置时，当然你可以选择通过继承父模块来实现，也可以用笨办法直接复制粘贴一份。
+
+在上述的 `maven-demo` 创建同级模块 `maven-demo1` ，如果要实现 `maven-demo` 中配置的 `dependencyManagement` 则在其 `dependencyManagement` 配置中导入 `maven-demo` 并将 `scope` 设置为 `import`，并将 `type` 设置为 `pom`。
+
+通过导入即可实现更轻量化的模块信息继承，具体配置内容如下：
+
+```
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>xyz.ibudai</groupId>
+            <artifactId>maven-demo</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <!-- 导入目标模块的 dependencyManagement -->
+            <!-- 依赖范围为 import -->
+            <scope>import</scope>
+            <!-- 类型一般为 pom -->
+            <type>pom</type>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+## 五、插件管理
+
+经过前面的介绍相信对于 Maven 你已经有了一个初步的了解，但 Maven 除了依赖管理之外提供一系列强大的插件，插件对于 Maven 而言可谓时左膀右臂但却经常被人忽略。
+
+今天就让我介绍一下 Maven 中常用的构建插件。
+
+##### 1. Jar
+
+在使用 Java 开发时通常情况下我们都会将工程打包为 JAR 文件，首先了解一下 JAR 的文件结构。
+
+下图即为通过 Maven 打包后的 JAR 文件，其中 `org.example` 目录为工程中定义的包名，存在编译后的 `.class` 文件， `META-INF` 目录用于存放工程的元数据信息。
+
+![23](../typoratuxiang/maven/cjyl.png)
+
+如上图中 `META-INF` 下的 `MANIFEST.MF` 文件内容如下：
+
+```
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Built-By: great
+Created-By: Apache Maven 3.6.3
+Build-Jdk: 1.8.0_202
+```
+
+而通过 `maven-jar-plugin` 插件我们即可在添加额外信息至打包后的 JAR 文件，插件配置信息如下：
+
+```
+<plugin>  
+    <groupId>org.apache.maven.plugins</groupId>  
+    <artifactId>maven-jar-plugin</artifactId>  
+    <version>2.3.1</version>  
+    <configuration>  
+        <archive>  
+            <manifest>  
+    <mainClass>org.example.MyTest</mainClass> 
+                <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+    <addDefaultImplementationEntries>true</addDefaultImplementationEntries> 
+            </manifest>
+            <!-- 配置额外属性信息 -->
+            <manifestEntries>  
+                <Plugin-Id>demo-plugin</Plugin-Id>  
+                <Plugin-Version>1.0.0</Plugin-Version>  
+            </manifestEntries>  
+        </archive>  
+    </configuration>  
+</plugin>
+```
+
+在之前的工程 POM 文件中添加上述构建插件重新进行打包，可以看到 `MANIFEST.MF` 文件中即添加了我们配置的额外属性。
+
+```
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven
+Built-By: great
+Build-Jdk: 1.8.0_202
+# Specification entries
+Specification-Title: maven-v1
+Specification-Version: 1.0-SNAPSHOT
+# Implementation entries
+Implementation-Title: maven-v1
+Implementation-Version: 1.0-SNAPSHOT
+Implementation-Vendor-Id: org.example
+# Manifest
+Main-Class: org.example.MyTest
+# ManifestEntries
+Plugin-Id: demo-plugin
+Plugin-Version: 1.0.0
+```
+
+##### 2. Assembly
+
+在普通 Maven 工程打包时默认仅会编译工程中新建的 java 文件并存储其 `.class` 文件，对于 `POM` 文件中引用的第三方依赖并不会一同打包。
+
+如新建一个 Maven 工程并在依赖中导入 `Jackson` 依赖库并进行打包编译，可以看到下图编译后的 JAR 文件中只有工程中新建的 `MyTest.class` 文件，项目中所导入的依赖并没有被一起打包。
+
+![图片](../typoratuxiang/maven/bao.png)
+
+而通过 `assembly` 插件即可将 POM 配置中的所有依赖一同打包编译至 JAR 文件中。
+
+其中 `execution` 标签定义了 `assembly` 插件的作用阶段，如这里设置了在` Maven package` 即打包阶段生效。
+
+```
+<plugin>  
+    <groupId>org.apache.maven.plugins</groupId>  
+    <artifactId>maven-assembly-plugin</artifactId>  
+    <version>3.1.0</version>  
+    <configuration>  
+        <descriptorRefs>  
+            <descriptorRef>jar-with-dependencies</descriptorRef>  
+        </descriptorRefs>  
+        <!-- Set jar file name -->
+        <finalName>${project.artifactId}-${project.version}-all</finalName>  
+        <appendAssemblyId>false</appendAssemblyId>  
+        <attach>false</attach>  
+        <archive>  
+            <manifest>  
+    <mainClass>fully.qualified.MainClass</mainClass> 
+                <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+    <addDefaultImplementationEntries>true</addDefaultImplementationEntries> 
+            </manifest>   
+        </archive>  
+    </configuration>  
+    <executions>  
+        <execution>  
+         <!-- Set effect phase -->
+            <id>make-assembly</id>  
+            <phase>package</phase>  
+            <goals>  
+                <goal>single</goal>  
+            </goals>  
+        </execution>  
+    </executions>  
+</plugin>
+```
+
+在工程 POM 配置中添加上述信息并重新编译打包工程，可以看到此时 JAR 文件中除了自定义创建的 `MyTest.clss `文件外同时包含了依赖的第三方库。
+
+![图片](../typoratuxiang/maven/yl.png)
+
+##### 3. Shade
+
+Shade 插件的功能更为强大，其提供了两个功能：第一个即与 `assembly` 类似可实现依赖的打包编译，与 `assembly` 不同的是 Shade 提供了更灵活的执行策略，可指定需要打包编译的依赖集合。
+
+另一个即实现包的重命名功能，我们都知道 Maven 并不允许在一共工程中同时引入单个依赖的不同版本，而通过 Shade 插件即可实现二次包装从而绕开该限制。
+
+下面介绍一个 Shade 插件中各标签的使用。
+
+**artifactSet**
+
+通过 `includes` 标签可以指定需要一同打包编译的第三方依赖。
+
+定义的格式为：`groupId:artifactId`。
+
+```
+<artifactSet>  
+    <includes>  
+        <include>groupId:artifactId</include>  
+    </includes>  
+</artifactSet>  
+```
+
+**relocations**
+
+通过 `relocations` 标签即可实现模块的重命名功能。
+
+其中 `pattern` 为需要重命名的模块包， `shadedPattern` 为重命名后的模块名。
+
+```
+<relocations>  
+    <relocation>  
+        <pattern>old.package.name</pattern>  
+        <shadedPattern>new.package.name</shadedPattern>  
+    </relocation>
+</relocations>  
+```
+
+**filters**
+
+通过 `filters` 标签可以实现非必要文件的排除，如常见的协议文件等，可通过文件名或类型实现匹配。
+
+```
+<filters>  
+    <filter>  
+        <artifact>*:*</artifact>  
+        <excludes>  
+            <exclude>filename</exclude>  
+            <exclude>file pattern</exclude>  
+        </excludes>  
+    </filter>  
+</filters>  
+```
+
+**完整配置**
+
+Shade 同样可以通过 `execution` 设置作用阶段，上述介绍标签的完整配置内容如下：
+
+```
+<plugins>  
+    <plugin>  
+        <groupId>org.apache.maven.plugins</groupId>  
+        <artifactId>maven-shade-plugin</artifactId>  
+        <version>3.2.0</version>  
+        <executions>  
+            <!-- Working phase -->  
+            <execution>  
+                <phase>package</phase>  
+                <goals>  
+                    <goal>shade</goal>  
+                </goals>  
+            </execution>  
+        </executions>  
+        <configuration>  
+            <minimizeJar>true</minimizeJar>  
+            <!-- Defined what dependencies to pull into the uber JAR -->  
+            <artifactSet>  
+                <includes>  
+                    <include>com.fasterxml.jackson.core:jackson-core</include>  
+                </includes>  
+            </artifactSet>  
+            <!-- Rename the package -->  
+            <relocations>  
+                <relocation>  
+                    <!-- Old name -->  
+                    <pattern>com.fasterxml.jackson.core</pattern>  
+                    <!-- New name -->  
+                    <shadedPattern>com.ibudai.fasterxml.jackson.core</shadedPattern>  
+                </relocation>   
+            </relocations>  
+            <!-- Exclude the file that didn't want -->  
+            <filters>  
+                <filter>  
+                    <artifact>*:*</artifact>  
+                    <excludes>  
+                        <exclude>META-INF/license/**</exclude>  
+                        <exclude>META-INF/*</exclude>  
+                        <exclude>LICENSE</exclude>  
+                        <exclude>NOTICE</exclude>  
+                    </excludes>  
+                </filter>  
+            </filters>  
+        </configuration>  
+    </plugin>  
+</plugins>
+```
+
+在之前的工程中添加上述配置并重新打包，可以看到编译后的 Jackson 模块包层级已经变成我们自定义的内容，而 Java 的类加载即通过类的完成限定名（包名+类名）来区分是否为同一个类，因此通过 Shade 插件即可实现 Maven 的单一工程多版本引入。
+
+## 六、构建配置
+
+在上面介绍了工程的依赖管理与多模块的管理配置，下面介绍一下工程打包构建时涉及的配置。
+
+注意以下所有配置项都是定义在`<build>`标签组内，下述不再重复说明。
+
+##### 1. 版本指定
+
+在`<plugin>`标签内可指定工程打包编译时使用的 JDK 版本，可根据服务器环境手动修改版本。
+
+```
+<plugins>
+    <plugin>
+        <!-- 编译时使用 JDK 版本 -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+            <source>8</source>
+            <target>8</target>
+        </configuration>
+    </plugin>
+</plugins>
+```
+
+##### 2. 文件排除
+
+默认项目打包后 `/resources` 目录下文件都将统一打包进编译后的 JAR 文件，但为了方便配置修改通常将配置文件排除打包，使用时只需将文件放置于 JAR 同级即可。
+
+如下示例中将 `application.yml` 文件排除打包，后续若需要修改配置无需重新打包只需重启项目即可。
+
+```
+<resources>
+    <resource>
+        <!-- 设置编译去除 yml 配置文件 -->
+        <directory>src/main/resources</directory>
+        <excludes>
+            <exclude>application.yml</exclude>
+        </excludes>
+    </resource>
+</resources>
+```
+
+##### 3. 主类配置
+
+在打包时可能出现无法识别工程主类的问题，导致编译后的文件无法正常运行，此时则可以在 pom 文件中手动设置工程的主类。
+
+其中 `<mainClass>` 中配置的为项目主类的完成限定名。
+
+```
+<plugins>
+    <plugin>
+        <!-- 设置工程主类路径, 可略去 -->
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+            <mainClass>xyz.ibudai.TestWebApplication</mainClass>
+            <layout>JAR</layout>
+        </configuration>
+    </plugin>
+</plugins>
+```

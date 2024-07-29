@@ -132,7 +132,7 @@
 2. R(Retrieve):查询
 
    1. 查询某个数据库中所有的表名称:`show tables;`
-   2. 查询表结构:`desc 表名;`
+   2. 查询表结构:`desc 表名;`、`DESCRIBE 表名` 或 `SHOW COLUMNS from 表名` 命令来查看表结构。
    2. `SHOW CREATE TABLE 表名` 命令会以 SQL 语句的形式来展示表信息。和 DESCRIBE 相比，SHOW CREATE TABLE 展示的内容更加丰富，它可以查看表的存储引擎和字符编码；另外，你还可以通过`\g`或者`\G`参数来控制展示格式。
 
 3. U(Update):修改

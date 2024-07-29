@@ -1843,7 +1843,7 @@ Model-.JSON.-ViewModel
       //引入VueRouter
       import VueRouter from 'vue-router'
       //引入Luyou 组件
-      import About from ../components/About' 
+      import About from '../components/About' 
       import Home from '../components/Home'
       //创建router实例对象，去管理一组一组的路由规则
       const router = new VueRouter({
@@ -1860,13 +1860,13 @@ Model-.JSON.-ViewModel
 
    4. 实现切换(active-class可配置高亮样式)
 
-      ```js
+      ```vue
       <router-link active-class="active" to="/about">About</router-link>.
       ```
 
    5. 指定展示位置
 
-      ```js
+      ```vue
       <router-view></router-view>
       ```
 
@@ -2045,17 +2045,4 @@ Model-.JSON.-ViewModel
 
     1. 作用:让不展示的路由组件保持挂载,不被销毁。
     2. 具体编码：`<keep-alive include="News"><router-view></router-view></keep-alive>`
-
-11. 两个新的生命钩子
-
-    
-
-12. 路由守卫
-
-    1. 全局前置_路由守卫
-    2. 全局后置_路由守卫
-    3. 独享路由守卫
-    4. 组件内路由守卫
-
-13. history模式和hash模式
 

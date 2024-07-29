@@ -308,5 +308,3 @@ a:visited {color: #00FF00}  /* 已访问的链接 */
 a:hover {color: #FF00FF}    /* 当有鼠标悬停在链接上 */
 a:active {color: #0000FF}   /* 被选择的链接 */
 ```
-
-# Bootstrap
