@@ -1673,6 +1673,194 @@ export default instance;
    </style>
    ```
 
+### Aixos发送接收后端数据
+
+需要axios支持
+
+1. Axios.vue==组件==
+
+2. vite.config.js==vite构建vue发送axios需要的设立==
+
+3. path.js==新建文件夹api作为项目访问地址分类使用==
+
+4. index.js==新建api文件夹,在里面拼接访问路径==
+
+5. request.js==返回值接收信息处理、新建utils文件夹==
+
+   1. Axios
+
+      ```vue
+      <script lang="ts" setup>
+      import { ref, onMounted } from "vue";
+      import api from "../api";
+      
+      const tableData = ref([]);
+      
+      onMounted(() => {
+        fetchData();
+      });
+      
+      const fetchData = async () => {
+        let data = {
+          id: 5,
+          username: "张三",
+          password: "123654",
+          classg: "2",
+        };
+      
+        try {
+          const response = await api.getMvca(data);
+          tableData.value = response.data.date;
+          console.log(tableData.value);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      };
+      </script>
+      <template>
+        <div>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="id" label="ID" width="180" />
+            <el-table-column prop="username" label="Name" width="180" />
+            <el-table-column prop="password" label="密码" width="180" />
+            <el-table-column prop="classg" label="班级" />
+          </el-table>
+        </div>
+      </template>
+      <style scoped>
+      </style>
+      ```
+
+   2. vite.config.js
+
+      ```js
+      import { defineConfig } from 'vite'
+      import vue from '@vitejs/plugin-vue'
+      
+      // https://vitejs.dev/config/
+      export default defineConfig({
+        plugins: [vue()],
+        server:{
+          proxy:{
+            '/api':{
+              target:'http://localhost:8080',
+              changeOrigin:true,
+              rewrite:path => path.replace(/^\/api/,'')
+            }
+          }
+         }
+      })
+      ```
+
+   3. path.js
+
+      ```js
+      const base ={
+          //请求前公共部分
+          baseUrl:"http://localhost:5173/api",
+          //ResquestMapping地址
+          jtr:"/web/axioss",
+          jts:"/web/b/",
+          jta:"/web/a"
+      }
+      
+      
+      export default base;
+      ```
+
+   4. index.js
+
+      ```js
+      //import instance from "../utils/request"
+      import axios from 'axios';
+      import base from "./path";
+      const instance = axios.create({
+          baseURL: 'http://localhost:5173/api', // 替换为您的 API 基础 URL
+          headers: {
+            'Content-Type': 'application/json' // 设置 Content-Type 为 JSON
+          }
+        });
+      
+      const api = {
+          getWeb(){
+              return instance.get(base.jtr);
+          },
+          getMvc(id){
+              return instance.get(base.baseUrl+base.jts+id);
+          },
+          getMvca(data){
+              return instance.post(base.baseUrl+base.jta,data)
+          }
+      }
+      
+      export default api;
+      ```
+
+   5. request.js
+
+      ```js
+      import axios from 'axios';
+      import querystring from 'querystring'
+      
+      const errorHandle = (status, info) => {
+          switch (status) {
+              case 400:
+                  console("语义错误")
+                  break;
+              case 401:
+                  console("服务器认证失败")
+                  break;
+              case 403:
+                  console("服务器拒绝访问")
+                  break;
+              case 404:
+                  console("地址错误")
+                  break;
+              case 500:
+                  console("服务器报出异常")
+                  break;
+              case 502:
+                  console("服务器报无响应")
+                  break;
+          }
+      }
+      
+      
+      
+      const instance = axios.create({
+          timeout: 5000, //请求超时时间
+      });
+      //拦截器最常用的
+      
+      //发送数据之前
+      instance.interceptors.request.use(
+          config => {
+              if (config.method == "post") {
+                  config.data = querystring.stringify(config.data)
+              }
+              //包含网络请求的所有信息
+              return config
+          },
+          error => {
+              return Promise.reject(error)
+              //异常
+          }
+      );
+      
+      //获取数据之前
+      instance.interceptors.response.use(
+          response => {
+              return response.status == 200 ? Promise.resolve(response) : Promise.reject(response)
+          },
+          error => {
+              const { response } = error;
+              errorHandle(response.status, response.info)
+          }
+      );
+      
+      export default instance;
+      ```
+
 ## 集成Element
 
 在 Vue 3 中结合使用 Element Plus 是一个常见的需求，尤其是当你希望利用 Element Plus 提供的丰富的 UI 组件库时。下面是详细的步骤来演示如何在 Vue 3 项目中集成并使用 Element Plus。

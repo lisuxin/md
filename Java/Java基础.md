@@ -761,6 +761,37 @@ public class ModeRandom {
    public int size()
    ```
 
+5. 基本操作
+
+   1. **添加元素**
+      - `void add(E e)`：向列表末尾添加一个元素。
+      - `boolean addAll(Collection<? extends E> c)`：将指定集合中的所有元素按其在集合中的顺序添加到列表末尾。
+      - `boolean addAll(int index, Collection<? extends E> c)`：将指定集合中的所有元素按其在集合中的顺序添加到列表的指定位置。
+   2. **删除元素**
+      - `boolean remove(Object o)`：移除列表中首次出现的指定元素（如果存在）。
+      - `E remove(int index)`：移除列表中指定位置的元素，并返回该元素。
+      - `boolean removeAll(Collection<?> c)`：移除列表中包含的所有指定集合中的元素。
+      - `boolean retainAll(Collection<?> c)`：只保留列表中包含的所有指定集合中的元素。
+   3. **替换元素**
+      - `E set(int index, E element)`：将列表中指定位置的元素替换成指定的元素，并返回旧元素。
+   4. **访问元素**
+      - `E get(int index)`：返回列表中指定位置的元素。
+      - `int indexOf(Object o)`：返回列表中首次出现的指定元素的索引；如果列表不包含此元素，则返回 `-1`。
+      - `int lastIndexOf(Object o)`：返回列表中最后一次出现的指定元素的索引；如果列表不包含此元素，则返回 `-1`。
+   5. **查询列表**
+      - `boolean contains(Object o)`：如果此列表包含指定元素，则返回 `true`。
+      - `boolean containsAll(Collection<?> c)`：如果此列表包含指定集合中的所有元素，则返回 `true`。
+      - `boolean isEmpty()`：如果此列表不包含任何元素，则返回 `true`。
+      - `int size()`：返回列表中的元素数量。
+   6. **排序和搜索**
+      - `void sort(Comparator<? super E> c)`：根据指定比较器对列表元素进行排序。
+      - `int compareTo(List<? extends E> otherList)`：比较两个列表的顺序。
+      - `int binarySearch(List<E> key, Comparator<? super E> c)`：根据指定比较器搜索列表，返回指定元素的索引。
+   7. **子列表**
+      - `List<E> subList(int fromIndex, int toIndex)`：返回列表的一个视图，从 `fromIndex` 到 `toIndex`（不包括 `toIndex`）。
+   8. **清空列表**
+      - `void clear()`：移除列表中的所有元素。
+
 **例：**
 
 ```java
