@@ -902,6 +902,8 @@
 4. 更换数据源（更换 CentOS 的 YUM 源，以便使用阿里云的镜像源）
 
    ```properties
+   #查看本机yum数据源
+   yum repolist
    #备份
    mv /etc/yum.repos.d/ /etc/yum.repos.d_bak 
    #创建新的 YUM 配置文件夹
