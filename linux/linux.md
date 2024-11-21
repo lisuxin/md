@@ -878,10 +878,12 @@
    rpm -qa|grep mysql
    ```
 
-2. 清理仓库的mysql软件包
+2. 清理仓库的mysql软件包(查出来后有东西)
 
    ```properties
-   rpm -e --nodeps mysql80-community-release-el8-3.noarch
+   ## 卸载mariadb，mariadb是mysql数据库的分支，mariadb和mysql一起安装会有冲突，所以需要卸载掉
+   rpm -qa | grep mariadb
+   rpm -e --nodeps mysql80-community-release-el8-3.noarch   #删除mysql的包
    ```
 
 3. 因为mysql并不存在与yum的远程仓库，所以需要配置额外的yum仓库
@@ -891,36 +893,48 @@
    curl -O https://dev.mysql.com/repo/mysql80-community-release.gpg.key
    #安装mysql 的yum包
    rpm -Uvh https://dev.mysql.com/get/mysql80-community-release-el8-3.noarch.rpm
+   #就可以安装MySQL
+   yum -y install mysql80-community-server-<特定的版本号>
+   #使用 yum info 命令查看 MySQL 的详细信息，包括可用版本。
+   yum info mysql-community-server
    ```
 
-4. 更换数据源
+4. 更换数据源（更换 CentOS 的 YUM 源，以便使用阿里云的镜像源）
 
    ```properties
    #备份
-   mv /etc/yum.repos.d/ /etc/yum.repos.d_bak && mkdir /etc/yum.repos.d/
-   #更换数据源
+   mv /etc/yum.repos.d/ /etc/yum.repos.d_bak 
+   #创建新的 YUM 配置文件夹
+   mkdir /etc/yum.repos.d/
+   #下载阿里云的 CentOS 8.5.2111 镜像源配置文件
    wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-vault-8.5.2111.repo
+   #导入 MySQL 的 GPG 密钥
+   rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql
+   #或者禁用gpg
+   yum -y install mysql-community-server --nogpgcheck
    ```
 
-5. 清理并更新仓库
+5. 清理并更新仓库(验证阿里源和清理yum缓存)
 
    ```sh
+   #模块过滤可能会阻止某些包的显示。禁用模块过滤
+   yum module disable mysql
+   #清理缓存
    yum clean all
+   #从新加载yum缓存
    yum makecache
    ```
 
-6. 下载并安装 MySQL 官方的 Yum Repository
+6. 下载并安装 MySQL 官方的 Yum Repository（yum仓库）
 
    ```properties
+   #用wget方式进行安装
    wget https://repo.mysql.com//mysql80-community-release-el7-1.noarch.rpm
-
-7. 进行repo安装
-
-   ```properties
-   rpm -ivh mysql80-community-release-el7-1.noarch.rpm
+   #用repo方式进行安装
+   rpm -ivh https://repo.mysql.com/get/mysql80-community-release-el7-1.noarch.rpm
    ```
 
-8. 完成后会产生两个文件
+7. 完成后会(在这个目录下)产生两个文件
 
    ```properties
    cd /etc/yum.repos.d/
@@ -928,40 +942,45 @@
 
    ![image-20240913165224675](../typoratuxiang/linux/mysqlaz.png)
 
-9. 使用yum安装mysql
+8. 使用yum安装mysql
 
    ```sh
    yum install mysql-community-server-8.0.*
    yum install mysql-server
    ```
 
-10. 启动mysql并设置开机自启动
+9. 启动mysql并设置开机自启动
 
-    ```properties
-    systemctl start mysqld.service
-    ```
+   ```properties
+   systemctl start mysqld.service
+   ```
 
-11. 检查MySQL运行状态
+10. 检查MySQL运行状态
 
     ```properties
     systemctl status mysqld.service
     ```
 
-12. 查看进程
+11. 查看进程
 
     ```properties
     ps -ef|grep mysqld
     ```
 
-13. 进入终端、第一次不需要密码
+12. 进入终端、第一次不需要密码
 
     ```properties
     mysql -u root -p
+    #找到临时密码 -----'root'@'localhost后面的是密码
+    grep 'temporary password' /var/log/mysqld.log
     ```
 
-14. 设置密码
+13. 设置密码
 
     ```properties
+    #进入数据库
+    use user
+    #修改密码
     ALTER USER '用户名'@'localhost' IDENTIFIED BY '密码';
     ```
 
@@ -974,7 +993,7 @@
        set global validate_password_length=4;
        ```
 
-15. 设置远程
+14. 设置远程
 
     1. 开启防火墙
 
@@ -1021,7 +1040,7 @@
           flush privileges;
           ```
 
-16. 更改端口
+15. 更改端口
 
     1. 查找 MySQL 配置文件
 
@@ -1096,6 +1115,79 @@
     8. 更新应用程序配置
 
        确保所有依赖 MySQL 的应用程序都更新了连接字符串，指明新的端口号。
+
+16. 卸载
+
+    卸载 MySQL 的过程涉及多个步骤，包括停止服务、删除相关文件和目录、以及删除系统中的包。以下是详细的步骤：
+
+    步骤一：停止 MySQL 服务
+
+    1. **停止 MySQL 服务**：
+       
+       ```bash
+       sudo systemctl stop mysqld
+       ```
+
+    步骤二：删除 MySQL 包
+
+    2. **删除 MySQL 相关的包**：
+       使用 `yum` 或 `dnf`（取决于你的 Linux 发行版）来删除 MySQL 相关的包。
+
+       对于 CentOS/RHEL：
+       ```bash
+       sudo yum remove mysql mysql-server mysql-client mysql-libs
+       ```
+
+       对于 Fedora：
+       ```bash
+       sudo dnf remove mysql mysql-server mysql-client mysql-libs
+       ```
+
+    步骤三：删除 MySQL 数据目录和配置文件
+
+    3. **删除 MySQL 数据目录**：
+       默认情况下，MySQL 的数据目录位于 `/var/lib/mysql`。
+
+       ```bash
+       sudo rm -rf /var/lib/mysql
+       ```
+
+    4. **删除 MySQL 配置文件**：
+       删除 MySQL 的配置文件 `/etc/my.cnf` 和 `/etc/mysql/` 目录。
+
+       ```bash
+       sudo rm -f /etc/my.cnf
+       sudo rm -rf /etc/mysql
+       ```
+
+    步骤四：删除 MySQL 用户和组
+
+    5. **删除 MySQL 用户和组**：
+       删除 MySQL 用户和组（如果存在）。
+
+       ```bash
+       sudo userdel mysql
+       sudo groupdel mysql
+       ```
+
+    步骤五：清理残留文件
+
+    6. **清理残留文件**：
+       删除其他可能存在的 MySQL 相关文件和目录。
+
+       ```bash
+       sudo find / -name "mysql*" -exec rm -rf {} \;
+       ```
+
+    步骤六：验证卸载
+
+    7. **验证 MySQL 是否已完全卸载**：
+       检查 MySQL 是否已从系统中完全卸载。
+
+       ```bash
+       rpm -qa | grep mysql
+       ```
+
 
 ### Tomcat
 
