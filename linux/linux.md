@@ -46,11 +46,12 @@
    * 下载地址 ： `https://www.vmware.com/cn/products/workstation-pro.html`
 
    * 打开网卡设置---`win+r`--->`ncpa.cpl`
-   
+
 2. **吏用 VMware 安装 Linux 虚拟机**
    *  Cent OS下载地址:`https://vault.centos.org/7.6.1810/isos/x86_64/CentOS-7-x86_64_DVD-1810.iso`
-   
+
 3. **远程链接Linux系统**
+
    1. 掌握操作系统的图形化 、 命令行 2 种操作模式
       1. 对于操作系统的使用 ， 有 2 种使用形式 ：
          * 图形化页面使用操作系统:使用操作系统提供的图形化页面 ， 以获得图形化反馈的形式去使用操作系统 。
@@ -68,16 +69,16 @@
       1. 开启虚拟化
       1. 安装Terminal
    5. 虚拟机快照
-   
+
       1. 通过快照将当前虚拟机的状态保存下来，在以后可以通过快照恢复虚拟机到保存的状态
-   
+
          * VMware Workstation 制作快照
            1. 确保虚拟机关机，找到快照管理器
            2. 找到虚拟机鼠标右击---快照---快照管理器---拍摄快照----给名字、描述---拍摄快照
          * VMware Fusion 制作快照
            1. 快照可以保存虚拟机的状态 ， 当虚拟机出现问题的时候 ， 可以通过预先制作的快照恢复到制作时候的状态用作备份用 。
            2. VMware Workstation 和 VMware Fusion 都支持制作快照去使用
-   
+
 4. **如何让局域网中的其他主机访问虚拟机**
 
    ==前提：==同一局域网主机1，主机2都为Windows系统，主机1上安装了VMware Workstation 14 Pro，并创建了一台虚拟机1，使用CentOS 7系统。
@@ -106,6 +107,63 @@
             1. 打开 **控制面板**，查看方式选择 **类别**，选择 **系统和安全**，选择 **Windows Defender 防火墙**打开左边的 **高级设置**，选择 **入站规则**，找到这两条规则，右键 **启用规则**（远程地址也就是作用域改为任何）
          2. 第二步：修改高级共享设置
             1. 打开 **控制面板**，查看方式选择 **类别**，选择 **网络和 Internet**，选择 **网络和共享中心**，打开左边的 **更改高级共享设置**，按图中选择：**启用网络发现** 和 **启用文件和打印机共享** 后点击下方的 **保存更改**
+
+5. 配置桥接网络锁定IP
+
+   1. 查询本地网卡配置信息
+
+      ```
+      ip addr
+      ```
+
+   2. 打开网卡配置文件
+
+      ```
+      vi /etc/sysconfig/network-scripts/ifcfg-ens160
+      ```
+
+   3. 需要修改的网卡配置
+
+      ```
+      #BOOTPROTI=static   禁用
+      ONBOOT=yes 
+      ```
+
+      - BOOTPROTI
+         * dhcp: DHCP动态地址协议 。
+         * static：静态地址协议。
+
+      - ONBOOT
+         * 系统启动时是否激活网卡接口，yes为激活，no为不激活。
+
+   4. 添加的内容
+
+      ```
+      IPADDR=192.168.31.98                   #静态ip地址，需要确保在局域网中的唯一性,锁定的IP地址
+      NETMASK=255.255.255.0                  #子网掩码
+      GATEWAY=192.168.31.1                   #网关地址
+      ```
+
+      保存退出
+
+   5. 重启网络服务
+
+      ```
+      systemctl restart network
+      ```
+
+   6. 遇到问题`Failed to start LSB: Bring up/down networking.`解决办法
+
+      ```
+      systemctl stop NetworkManager
+      systemctl disable NetworkManager
+      ```
+
+   7. 开启网络接口
+
+      ```
+      ip link set dev ens160 up
+      ```
 
 ## Linux基础命令
 
