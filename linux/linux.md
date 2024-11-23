@@ -146,23 +146,44 @@
 
       保存退出
 
-   5. 重启网络服务
+   5. 手动添加IP网关
 
+      ```
+      ip addr add 192.168.31.98/24 dev ens160
+      ip route add default via 192.168.31.1
+      ```
+   
+   6. 重启网络服务
+   
       ```
       systemctl restart network
       ```
 
-   6. 遇到问题`Failed to start LSB: Bring up/down networking.`解决办法
+   7. 遇到问题`Failed to start LSB: Bring up/down networking.`解决办法
 
       ```
       systemctl stop NetworkManager
       systemctl disable NetworkManager
       ```
-
-   7. 开启网络接口
-
+   
+   8. 重新启用 `NetworkManager`：
+   
       ```
-      ip link set dev ens160 up
+      systemctl enable NetworkManager
+      systemctl start NetworkManager
+      ```
+   
+   9. 查询`NetworkManager`网络状态
+   
+      ```
+      systemctl status NetworkManager
+      ```
+   
+   10. 手动开启（关闭）网络接口
+   
+      ```
+      ip link set dev ens160 down     #（关闭）
+      ip link set dev ens160 up       #（开启）
       ```
 
 ## Linux基础命令
@@ -951,8 +972,10 @@
    curl -O https://dev.mysql.com/repo/mysql80-community-release.gpg.key
    #安装mysql 的yum包
    rpm -Uvh https://dev.mysql.com/get/mysql80-community-release-el8-3.noarch.rpm
+   #安装mysql源
+   yum localinstall -y mysql80-community-release-el7-8.noarch.rpm
    #就可以安装MySQL
-   yum -y install mysql80-community-server-<特定的版本号>
+   yum -y install mysql80-community-server-<特定的版本号>26
    #使用 yum info 命令查看 MySQL 的详细信息，包括可用版本。
    yum info mysql-community-server
    ```
@@ -1009,25 +1032,56 @@
    yum install mysql-server
    ```
 
-9. 启动mysql并设置开机自启动
+9. 安装步骤
+
+   ```bash
+   # 检查是否安装mysql
+   rpm -qa|grep mysql
+   # 检查安装下载工具wget
+   wget --version
+   yum install -y wget
+   # 备份 yum 源源文件
+   mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
+   # 下载阿里云的 yum 源文件，里面的下载镜像网址全部为阿里云服务器
+   wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+   # 清理yum缓存，重新生成
+   yum clean all
+   yum makecache
+   # 下载 mysql 源安装包
+   wget http://dev.mysql.com/get/mysql80-community-release-el7-8.noarch.rpm
+   # 安装mysql源
+   yum localinstall -y mysql80-community-release-el7-8.noarch.rpm
+   # 检查源是否安装成功
+   yum repolist enabled | grep mysql
+   # 使用 yum 安装 mysql
+   yum install -y mysql-community-server
+   # GPG密钥验证问题，禁掉GPG验证检查
+   yum -y install mysql-community-server --nogpgcheck
+   # 再次执行
+   yum install -y mysql-community-server
+   # 启动mysql
+   systemctl start mysqld
+   ```
+
+10. 启动mysql并设置开机自启动
 
    ```properties
    systemctl start mysqld.service
    ```
 
-10. 检查MySQL运行状态
+11. 检查MySQL运行状态
 
     ```properties
     systemctl status mysqld.service
     ```
 
-11. 查看进程
+12. 查看进程
 
     ```properties
     ps -ef|grep mysqld
     ```
 
-12. 进入终端、第一次不需要密码
+13. 进入终端、第一次不需要密码
 
     ```properties
     mysql -u root -p
@@ -1035,7 +1089,7 @@
     grep 'temporary password' /var/log/mysqld.log
     ```
 
-13. 设置密码
+14. 设置密码
 
     ```properties
     #进入数据库
@@ -1047,13 +1101,19 @@
     1. 修改mysql密码级别
 
        ```properties
+       #编辑配置文件
+       vi /etc/my.cnf
+       #在 [mysqld] 部分
+       validate_password.policy=LOW
+       #查看密码策略
+       SHOW VARIABLES LIKE 'validate_password%';
        # 密码级别
-       set global validate_password_policy=low;
+       set global validate_password.policy=low;
        # 密码长度
-       set global validate_password_length=4;
+       set global validate_password.length=4;
        ```
 
-14. 设置远程
+15. 设置远程
 
     1. 开启防火墙
 
@@ -1100,7 +1160,7 @@
           flush privileges;
           ```
 
-15. 更改端口
+16. 更改端口
 
     1. 查找 MySQL 配置文件
 
@@ -1176,7 +1236,7 @@
 
        确保所有依赖 MySQL 的应用程序都更新了连接字符串，指明新的端口号。
 
-16. 卸载
+17. 卸载
 
     卸载 MySQL 的过程涉及多个步骤，包括停止服务、删除相关文件和目录、以及删除系统中的包。以下是详细的步骤：
 
@@ -1248,7 +1308,6 @@
        rpm -qa | grep mysql
        ```
 
-
 ### Tomcat
 
 1. 安装JDK环境
@@ -1305,11 +1364,7 @@
 
    2. 
 
-### Nginx
-
 ### RabbitMQ
-
-### Redis
 
 ### Elasticsearch
 
