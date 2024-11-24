@@ -1311,18 +1311,36 @@
 ### Tomcat
 
 1. 安装JDK环境
-   1. 外部下载linux版本jdk
+   1. 外部下载linux版本jdk,后缀名为`tar.gz`
 
-   2. 上传到home目录，root链接才能上传文件
+   2. 上传到home目录，root链接才能上传文件上传到root用户的home目录，就是点击root文件夹上传
 
-   3. 新建文件夹`mkdir -p /路径/文件名`，`mkdir -p /export/server`,解压文件到新建文件夹`tar zxvf jdk-8u181-linux-x64.tar.gz -C /解压缩后存放位置`
+   3. 新建文件夹存放解压文件，和以后安装文件目录
 
-   4. 安装所有文件地址`mkdir -p /export/server`
+      ```bash
+      # mkdir -p /路径/文件名 新建
+      mkdir -p /export/server
+      # 解压文件到新建文件夹
+      tar -zxvf jdk-8u181-linux-x64.tar.gz -C /解压缩后存放位置
+      ```
+   
+   4. 可以指定安装目录的所有文件地址都安装到这个地址`mkdir -p /export/server`
+   
+   5. 构建文件名软连接
+   
+      ```bash
+      # 方便进入文件夹
+      ln -s /export/server/jdk-17.0.12 /export/server/jdk17
+      ```
 
-   5. 构建文件名软连接`ln -s /export/server/jdk-17.0.12 /export/server/jdk17`
+   6. 查看当前目录下所有文件及文件夹所有信息
+   
+      ```
+      ls -l
+      ```
 
-   6. 配置环境变量`vim /etc/profile`
-
+   7. 配置环境变量`vim /etc/profile`
+   
       1. 全局目录，搜索目录
 
          ```properties
@@ -1330,21 +1348,21 @@
          export CLASSPATH=$:CLASSPATH:$JAVA_HOME/lib/
          export PATH=$PATH:$JAVA_HOME/bin
          ```
-
+   
       2. 生效
-
+   
          ```properties
          source /etc/profile
          ```
-
+   
       3. 查看是否修改成功
-
+   
          ```properties
          echo $PATH
          ```
-
+   
       4. 删除系统自带的jdk
-
+   
          ```properties
          # 查询系统自带的jdk位置
          which java
@@ -1353,18 +1371,89 @@
          # 将自己安装的jdk放到/usr/bin/java目录下
          ln -s /export/server/jdk17/bin/java /usr/bin/java
          ```
+   
+2. 解压部署tomcat：建议使用非root用户安装
 
-2. 解压部署tomcat：使用非root用户安装
+   1. 首先,放行toncat需要使用8080端口的外部访问权限：有两种方式
 
-   1. 下载安装包
-
+      1. 关闭防火墙
+   
+         ```bash
+         systemctl Stop firewalld      #关闭防火墙
+         systemctl disable firewalld   #停止防火墙开机自启动
+         ```
+   
+      2. 配置防火墙放行端口
+   
+         ```bash
+         # --add-port=8080/tcp表示放行8080端口的tcp访问，--permanent表示永久生效
+         firewall-cmd --zone=public --add-port=8080/tcp --permanent
+         #重新载入防火墙规则使其生效
+         firewall-cmd --reload
+         # 查询指定端口是否开启成功：
+         firewall-cmd --query-port=8080/tcp
+         ```
+   
+      3. 使用root账户创建账户
+   
+         ```bash
+         # 创建用户名
+         useradd 用户名
+         创建密码
+         passwd 密码
+         ```
+   
+   2. 下载安装包
+   
       ```properties
+      # 下载tomcat
+      wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.33/bin/apache-tomcat-10.1.33.tar.gz
+      #报错https,使用--no-check-certificate不检查证书
       wget --no-check-certificate https://archive.apache.org/dist/tomcat/tomcat-10/v10.0.21/bin/apache-tomcat-10.0.21.tar.gz
+      # 也可以外部下载上传
+      ```
+   
+   3. 解压文件到安装文件的文件夹
+   
+      ```bash
+      # 切换回root账户解压
+      logout或者exit
+      # 解压到指定文件夹
+      tar -zxvf apache-tomcat-10.1.33-deployer.tar.gz -C /export/server
+      ```
+   
+   4. 构建软连接方便进入文件夹
+   
+      ```bash
+      ln -s /export/server/apache-tomcat-10.1.33-deployer /export/server/tomcat
+      ```
+   
+   5. 修改tomcat的所属者（对用户进行赋权，变更操作者）
+   
+      ```bash
+      chown -R 用户：用户组 文件夹
+      chown -R lisuxing:lisuxing tomcat
+      chown -R lisuxing:lisuxing apache-tomcat-10.1.33-deployer
+      ```
+   
+   6. 切换用户启动tomcat
+   
+      ```bash
+      # 切换用户
+      su lisuxing
+      # 启动
+      /export/server/tomcat/bin/startup.sh         启动./startup.sh
+      ```
+   
+   7. 检查8080端口是否启动成功
+   
+      ```
+      netstat -anp|grep 8080
       ```
 
-   2. 
-
 ### RabbitMQ
+
+
 
 ### Elasticsearch
 

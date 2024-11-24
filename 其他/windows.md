@@ -67,3 +67,6 @@
 12. steam
     * 用户名：zaa923
     * 密码：outtuqqwe1
+13. 小红帽
+    * 用户名：lisuxin
+    * 密码：kuT3RUX_Ed5!w6G
