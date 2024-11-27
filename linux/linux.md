@@ -1433,7 +1433,7 @@
       ```bash
       chown -R 用户：用户组 文件夹
       chown -R lisuxing:lisuxing tomcat
-      chown -R lisuxing:lisuxing apache-tomcat-10.1.33-deployer
+      chown -R lisuxing:lisuxing apache-tomcat-10.1.33
       ```
    
    6. 切换用户启动tomcat
