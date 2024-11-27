@@ -176,8 +176,8 @@ bind * -::*                      #87行，修改bind项，* -::*支持远程链�
 daemonize yes                    #309行，开启守护进程，后台运行
 logfile /opt/software/redis/redis-stable/redis.log   #355行，指定日志文件目录
 dir /opt/software/redis          #510行，指定工作目录
-requirepass 密码                  #1044行，给默认用户设置密码，主要是使用redis-cli连接redis-server时，需要通过密码进行链接
-protected-mode no                 #111行，允许远程连接       如果不设置密码必须将此设置关闭。
+requirepass 密码                 #1044行，给默认用户设置密码，主要是使用redis-cli连接redis-server时，需要通过密码进行链接
+protected-mode no                #111行，允许远程连接       如果不设置密码必须将此设置关闭。
 ```
 
 修改完成后，使用配置文件启动 Redis, 并使用 redis-cli 连接测试，需要注意由于前面我们配置了安全密码，所以连接后需要先验证密码，否则会报错。

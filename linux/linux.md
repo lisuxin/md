@@ -1419,13 +1419,13 @@
       # 切换回root账户解压
       logout或者exit
       # 解压到指定文件夹
-      tar -zxvf apache-tomcat-10.1.33-deployer.tar.gz -C /export/server
+      tar -zxvf apache-tomcat-10.1.33.tar.gz -C /export/server
       ```
    
    4. 构建软连接方便进入文件夹
    
       ```bash
-      ln -s /export/server/apache-tomcat-10.1.33-deployer /export/server/tomcat
+      ln -s /export/server/apache-tomcat-10.1.33 /export/server/tomcat
       ```
    
    5. 修改tomcat的所属者（对用户进行赋权，变更操作者）
@@ -1433,7 +1433,7 @@
       ```bash
       chown -R 用户：用户组 文件夹
       chown -R lisuxing:lisuxing tomcat
-      chown -R lisuxing:lisuxing apache-tomcat-10.1.33-deployer
+      chown -R lisuxing:lisuxing apache-tomcat-10.1.33
       ```
    
    6. 切换用户启动tomcat
