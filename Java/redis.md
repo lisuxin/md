@@ -71,7 +71,7 @@ Redis多种部署模式，每种模式特定的用途和优缺点。
 
 以下是在不同类型的防火墙中开放Redis端口的基本步骤：
 
-### 对于`iptables`防火墙：
+**对于`iptables`防火墙：**
 
 1. 打开终端。
 2. 输入命令来添加新的规则，允许Redis的默认端口6379：
@@ -85,7 +85,7 @@ Redis多种部署模式，每种模式特定的用途和优缺点。
    sudo systemctl restart iptables
    ```
 
-### 对于`firewalld`防火墙：
+**对于`firewalld`防火墙：**
 
 1. 打开终端。
 2. 使用以下命令来添加端口到公共区域：
@@ -160,6 +160,46 @@ ll /usr/local/bin
 redis-server
 ```
 
+1. 启动报错
+
+   ```
+   28779:C 26 Nov 2024 05:57:22.596 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+   28779:C 26 Nov 2024 05:57:22.596 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+   28779:C 26 Nov 2024 05:57:22.596 * Redis version=7.4.1, bits=64, commit=00000000, modified=0, pid=28779, just started
+   28779:C 26 Nov 2024 05:57:22.596 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+   28779:M 26 Nov 2024 05:57:22.596 # Failed to configure LOCALE for invalid locale name.
+   ```
+
+2. **方法一：**临时更改
+
+   * 更改 `LC_COLLATE`，可以直接在命令行中设置环境变量。例如，将其更改为 `C`（默认排序方式）或者 `en_US.UTF-8`，可以使用如下命令：这种方法只对当前的 shell 会话有效，一旦关闭终端窗口或注销登录，设置就会失效。
+
+     ```bash
+     export LC_COLLATE=C
+     或者
+     export LC_COLLATE=en_US.UTF-8
+     ```
+
+3.  **方法二：**永久更改
+
+   * 编辑 `~/.bashrc`这个文件中的设置仅影响特定用户的 shell 会话。
+
+     ```bash
+     使用文本编辑器打开 `~/.bashrc` 文件：
+     vi ~/.bashrc
+     在文件末尾添加：
+     export LC_COLLATE=en_US.UTF-8
+     保存并退出编辑器。
+     让更改生效，可以重新加载 `.bashrc` 文件：
+     source ~/.bashrc
+     ```
+
+   * 验证更改、无论选择哪种方法，都可以通过运行 `locale` 命令来验证更改是否成功：
+
+     ```bash
+     locale
+     ```
+
 ### 配置Redis
 
 前面的启动方式无法再后台运行，退出之后直接关闭了 Redis 服务，所以我们还需要针对 Redis 做一些设置。
@@ -183,14 +223,15 @@ protected-mode no                 #111行，允许远程连接       如果不�
 修改完成后，使用配置文件启动 Redis, 并使用 redis-cli 连接测试，需要注意由于前面我们配置了安全密码，所以连接后需要先验证密码，否则会报错。
 
 ```bash
+--使用redis.conf配置文件的方式启动
 redis-server redis.conf
+--关闭redis
+redis-cli shutdown
 --远程链接
 redis-cli -h redis所在地址 -p redis的端口（默认6379） -a 用户密码
 ```
 
 ## 主从部署（响度均衡）
-
-
 
 ## 哨兵部署（响度均衡）
 
