@@ -176,6 +176,7 @@ redis-server
 
      ```bash
      export LC_COLLATE=C
+     在 C locale 中，字符串排序是基于字节值的，即 ASCII 码值。这意味着排序是按字符的二进制值进行的，而不是根据特定语言的规则。
      或者
      export LC_COLLATE=en_US.UTF-8
      ```
@@ -188,7 +189,7 @@ redis-server
      使用文本编辑器打开 `~/.bashrc` 文件：
      vi ~/.bashrc
      在文件末尾添加：
-     export LC_COLLATE=en_US.UTF-8
+     export LC_COLLATE=C
      保存并退出编辑器。
      让更改生效，可以重新加载 `.bashrc` 文件：
      source ~/.bashrc
