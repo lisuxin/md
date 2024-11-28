@@ -234,15 +234,86 @@ redis-cli -h redis所在地址 -p redis的端口（默认6379） -a 用户密码
 
 ## 主从部署（响度均衡）
 
+![](../typoratuxiang/reides/zcbs.jpeg)
+
+主从部署，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为主节点 (Master), 后者称为从节点（ Slave ）；数据的复制是单向的，只能由主节点到从节点。默认情况下，每台 Redis 服务器都是主节点；且一个主节点可以有多个从节点（或没有从节点 ), 但一个从节点只能有一个主节点。
+
+**主从部署的作用**
+
+* 数据冗余：主从复制实现了数据的热备份，是持久化之外的一种数据冗余方式。
+* 故障恢复：当主节点出现问题时，可以由从节点提供服务，实现快速的故障恢复；实际上是一种服务的冗余。
+* 负载均衡：在主从复制的基础上，配合读写分离，可以由主节点提供写服务，由从节点提供读服务（即写 Redis 数据时应用连接主节点，读 Redis 数据时应用连接从节点），分担服务器负载；尤其是在写少读多的场景下，通过多个从节点分担读负载，可以大大提高 Redis 服务器的并发量。
+* 高可用基石：除了上述作用以夕卜，主从复制还是哨兵和集群能够实施的基础，因此说主从复制是 Redis 高可用的基础。
+
+**配置**
+
+1. 在主节点与从节点同样安装redis,配置与主节点一样
+
+2. 在从节点的redis.conf文件中加入配置
+
+   ```bash
+   # 进入安装目录
+   cd redis-stable
+   # 找到replicaof添加配置
+   replicaof 主节点IP地址
+   ```
+
+3. 查看主节点（从节点）信息
+
+   ```bash
+   # 从节点不支持写的请求
+   info replication
+   ```
+
 ## 哨兵部署（响度均衡）
+
+1. 每个机器都安装redis按照配置配置完，配置主从部署
+
+2. 在每一个机器上都修改redis安装目录下的`sentinel.conf`配置文件，配置完成后最先启动主节点
+
+   ```bash
+   protected-mode no                                                             # 关闭保护模式
+   daemonize yes                                                                 # 指定sentinel为后台启动
+   logfile "安装目录redis/sentinel.log"                                           # 指定日志存放路径
+   dir /opt/                                                                     # 指定数据库存放路径
+   sentinel monitor mymaster 主节点IP 端口 需要几个配置同意主节点已失效，才执行故障转移  # 修改，指定该哨兵监控主节点
+   sentinel down-after-milliseconds mymaster 时间毫秒                             # 判定服务器 down 掉的时间周期，默认 30000 毫秒（30秒）
+   sentinel failover-timeout mymaster 时间毫秒                                    # 故障节点的最大超时时间为 180000 （180秒）
+   ```
+
+3. 启动redis哨兵
+
+   ```bash
+   redis-sentinel sentinel.conf
+   ```
+
+4. 查看哨兵状态
+
+   ```
+   redis-cli -p 26379 info sentinel
+   ```
+
+5. 查看当前节点信息
+
+   ```
+   redis-cli info replication
+   ```
+
+6. 关闭哨兵
+
+   ```
+   redis-cli -p 26379 shutdown
+   ```
 
 ## 集群部署（响度均衡）
 
+
+
 # 客户端工具
 
-## Redis insight 客户端工具
+## Redis insight
 
-## Tiny RDM 客户端工具
+## Tiny RDM
 
 ## SpringBoot 连接 Redis
 
