@@ -130,7 +130,7 @@ cd /opt/software/redis
 wget https://download.redis.io/redis-stable.tar.gz
 
 --解压下载的redis包
-tar -xzf redis-stable.tar.gz
+tar -zxvf redis-stable.tar.gz
 
 --进入redis-stable目录，然后使用make install编译并安装，安装完成后 /usr/local/bin会生成相应服务
 cd redis-stable
@@ -232,6 +232,17 @@ redis-cli shutdown
 redis-cli -h redis所在地址 -p redis的端口（默认6379） -a 用户密码
 ```
 
+写入和输出
+
+```bash
+set
+get
+# 查看所有
+keys *
+```
+
+
+
 ## 主从部署（响度均衡）
 
 ![](../typoratuxiang/reides/zcbs.jpeg)
@@ -255,7 +266,11 @@ redis-cli -h redis所在地址 -p redis的端口（默认6379） -a 用户密码
    # 进入安装目录
    cd redis-stable
    # 找到replicaof添加配置
-   replicaof 主节点IP地址
+   replicaof 主节点IP地址 端口
+   # --add-port=6379/tcp表示放行6379端口的tcp访问，--permanent表示永久生效
+   firewall-cmd --zone=public --add-port=6379/tcp --permanent
+   #重新载入防火墙规则使其生效
+   firewall-cmd --reload
    ```
 
 3. 查看主节点（从节点）信息
@@ -284,13 +299,19 @@ redis-cli -h redis所在地址 -p redis的端口（默认6379） -a 用户密码
 3. 启动redis哨兵
 
    ```bash
+   redis-server redis.conf
    redis-sentinel sentinel.conf
    ```
 
 4. 查看哨兵状态
 
-   ```
+   ```bash
+   # 清除不再存在的 Sentinel 实例
+   redis-cli -p 26379 sentinel reset mymaster
+   # 查看哨兵状态
    redis-cli -p 26379 info sentinel
+   # 查看所有（主）从服务器状态
+   redis-cli -p 26379 sentinel slaves mymaster
    ```
 
 5. 查看当前节点信息
@@ -302,12 +323,108 @@ redis-cli -h redis所在地址 -p redis的端口（默认6379） -a 用户密码
 6. 关闭哨兵
 
    ```
+   redis-cli shutdown
    redis-cli -p 26379 shutdown
    ```
 
 ## 集群部署（响度均衡）
 
+==Redis 集群部署是一种通过将数据分布到多个 Redis 实例上来实现高可用性和水平扩展的架构。与单个 Redis 实例相比，集群部署可以提供更高的性能、更好的容错能力和更大的存储容量。Redis 集群通过分片（sharding）和复制（replication）来实现这些特性。==
 
+1. 创建每个节点信息的存储目录(配置文件文件夹)（每个节点都创建）
+
+   ```bash
+   mkdir -p 地址/文件夹名
+   mkdir -p /export/server/redis-stable/cluster
+   mkdir -p /export/server/redis/cluster
+   ```
+
+2. 在配置文件文件夹里面创建两个不同端口的配置文件
+
+   ```bash
+   vim redis安装目录/cluster/redis_端口.conf
+   vim ./cluster/redis_6379.conf
+   vim ./cluster/redis_6380.conf
+   ```
+
+3. 配置文件内容
+
+   ```bash
+   # 6379与6380配置仅仅端口号不同
+   # 允许所有IP访问
+   bind * -::*
+   # 修改为允许后台运行
+   daemonize yes
+   # 关闭保护模式(允许远程连接)
+   protected-mode no
+   # 开启集群模式
+   cluster-enabled yes
+   # 集群节点超时间
+   cluster-node-timeout 5000
+   # 指定数据文件存储位置（数据存储目录）
+   dir "/export/server/redis/cluster"
+   # 开启aof模式持久化
+   appendonly yes
+   
+   # 修改端口号
+   port 6379
+   # 日志存放
+   logfile "/export/server/redis-stable/cluster/redis6379.log"
+   # 集群节点信息文件配置
+   cluster-config-file nodes_6379.conf
+   # AOF文件名
+   appendfilename "appendonly6379.aof"
+   # RBD文件名
+   dbfilename "dump6379.rdb"
+   ```
+
+4. 通过配置文件启动redis(redis安装目录)
+
+   ```bash
+   redis-server ./cluster/redis_6379.conf
+   redis-server ./cluster/redis_6380.conf
+   ```
+
+5. 检查服务
+
+   ```bash
+   ps aux | grep redis
+   ```
+
+6. 创建主节点和从节点的集群
+
+   ```bash
+   # 开放端口6379、6380、16379、16380等等端口后在执行
+   redis-cli --cluster create --cluster-replicas 每个主节点存在的副本 主节1IP:端口1 主节1IP:端口2 主节2IP:端口1 主节2IP:端口2
+   redis-cli --cluster create --cluster-replicas 1 192.168.31.98:6379 192.168.31.98:6380 192.168.31.97:6379 192.168.31.97:6380 192.168.31.96:6379 192.168.31.96:6380
+   ```
+
+7. 查看集群信息
+
+   ```bash
+   redis-cli cluster info
+   ```
+
+8. 查看单个节点信息
+
+   ```bash
+   redis-cli info replication
+   ```
+
+9. 查看集群节点身份信息
+
+   ```bash
+   redis-cli cluster nodes
+   ```
+
+10. 停止redis服务
+
+    ```bash
+    redis-cli -p 6379 shutdown
+    redis-cli -p 6380 shutdown
+    ```
+
+    
 
 # 客户端工具
 

@@ -125,7 +125,7 @@
    3. 需要修改的网卡配置
 
       ```
-      #BOOTPROTI=static   禁用
+      BOOTPROTI=static
       ONBOOT=yes 
       ```
 
@@ -152,9 +152,9 @@
       ip addr add 192.168.31.98/24 dev ens160
       ip route add default via 192.168.31.1
       ```
-   
+
    6. 重启网络服务
-   
+
       ```
       systemctl restart network
       ```
@@ -165,25 +165,60 @@
       systemctl stop NetworkManager
       systemctl disable NetworkManager
       ```
-   
+
    8. 重新启用 `NetworkManager`：
-   
+
       ```
       systemctl enable NetworkManager
       systemctl start NetworkManager
       ```
-   
+
    9. 查询`NetworkManager`网络状态
-   
+
       ```
       systemctl status NetworkManager
       ```
-   
+
    10. 手动开启（关闭）网络接口
-   
+
       ```
       ip link set dev ens160 down     #（关闭）
       ip link set dev ens160 up       #（开启）
+      ```
+
+6. 配置数据源
+
+   ```bash
+   #查看本机yum数据源
+   yum repolist
+   #备份
+   mv /etc/yum.repos.d/ /etc/yum.repos.d_bak 
+   #创建新的 YUM 配置文件夹
+   mkdir /etc/yum.repos.d/
+   #下载阿里云的 CentOS 8.5.2111 镜像源配置文件
+   wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-vault-8.5.2111.repo
+   ```
+
+7. 报错
+
+   ```bash
+   Errors during downloading metadata for repository 'appstream':
+     - Curl error (6): Couldn't resolve host name for http://mirrorlist.centos.org/?release=8&arch=x86_64&repo=AppStream&infra=stock [Could not resolve host: mirrorlist.centos.org]
+   Error: Failed to download metadata for repo 'appstream': Cannot prepare internal mirrorlist: Curl error (6): Couldn't resolve host name for http://mirrorlist.centos.org/?release=8&arch=x86_64&repo=AppStream&infra=stock [Could not resolve host: mirrorlist.centos.org]
+   ```
+
+   1. 测试 DNS 解析
+
+      ```bash
+      nslookup mirrors.aliyun.com
+      # 或者
+      dig mirrors.aliyun.com
+      ```
+
+   2. 在文件内配置网关(添加)
+
+      ```bash
+      nameserver 网关地址
       ```
 
 ## Linux基础命令
@@ -484,7 +519,20 @@
    
    17. kill -9:强制杀死进程，发送的是exit命令，不会被阻塞
    
-   18. 清理屏幕`ctrl+l`
+   18. tail:查看文件末尾内容`tail 选项 文件`
+   
+       ```bash
+       # 选项	                          描述
+       -n                     NUM 或 -NUM	显示文件的最后 NUM 行
+       -c                     NUM	显示文件的最后 NUM 字节
+       -f	                   实时监控文件的变化，显示新添加的内容
+       --follow=name	       即使文件被删除或重命名，也继续监控同名的新文件
+       --follow=descriptor	   只监控当前打开的文件描述符，不跟踪新文件
+       -q	                   不显示文件名前缀（适用于多个文件）
+       -v	                   总是显示文件名前缀（即使只有一个文件）
+       ```
+   
+   19. 清理屏幕`ctrl+l`
 
 ## Linux权限管理
 
