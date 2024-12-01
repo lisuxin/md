@@ -430,9 +430,39 @@ keys *
 
 ## Redis insight
 
+1. 下载
+
+   ```
+   https://redis.io/insight/
+   ```
+
+2. 安装
+
+3. 链接
+
+   ![image-20241202041838181](../typoratuxiang/reides/xj.png)
+
+   点击==add==
+
+   ![image-20241202042100130](../typoratuxiang/reides/lj.png)
+
 ## Tiny RDM
 
+1. 下载
+
+   ```
+   https://redis.tinycraft.cc/zh/
+   ```
+
+2. 安装
+
+3. 链接
+
 ## SpringBoot 连接 Redis
+
+
+
+
 
 # 数据结构
 
