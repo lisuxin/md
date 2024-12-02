@@ -1136,9 +1136,9 @@
 
 10. 启动mysql并设置开机自启动
 
-   ```properties
-   systemctl start mysqld.service
-   ```
+    ```bash
+    systemctl start mysqld.service
+    ```
 
 11. 检查MySQL运行状态
 
