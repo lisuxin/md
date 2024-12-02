@@ -551,3 +551,38 @@ git add .
 
 3. **检查冲突**：如果存在冲突，Git会在发生冲突的文件中标记出来，你需要手动编辑这些文件，解决冲突，然后才能继续变基。
 
+
+
+## git pull 出现（error: Your local changes to the following files would be overwritten by merge:        Java/redis.md Please commit your changes or stash them before you merge. Aborting Updating 364696f..71190af）
+
+这个错误是因为你对本地仓库中的 `Java/redis.md` 文件进行了修改，而这些修改尚未提交（commit）。同时，远程仓库中也有更新需要合并到你的本地仓库中。由于存在未提交的本地更改，Git 无法安全地进行合并操作，因为它可能会覆盖你所做的更改。
+
+1. 提交更改
+
+   如果你希望保留对 `Java/redis.md` 文件的更改，可以先将这些更改提交到仓库。你可以按照如下步骤操作：
+
+   ```bash
+   git add Java/redis.md
+   git commit -m "Your commit message here"
+   git pull
+   ```
+
+2. 存储更改 (Stash)
+
+   如果你不想立即提交更改，但又想保留它们，可以使用 `git stash` 命令来临时存储这些更改。完成 `pull` 操作后，你可以再恢复这些更改。步骤如下：
+
+   ```bash
+   git stash
+   git pull
+   git stash pop
+   # `git stash pop` 不仅会恢复你之前存储的更改，还会尝试将这些更改应用到当前的工作目录中。如果有冲突，你可能需要手动解决。
+   ```
+
+3. 丢弃更改
+
+   如果你不关心对 `Java/redis.md` 文件的更改，并且愿意放弃这些更改，可以直接丢弃它们，然后进行 `pull` 操作。请注意，这样做会导致所有未提交的更改丢失。
+
+   ```bash
+   git checkout -- Java/redis.md
+   git pull
+   ```

@@ -448,11 +448,7 @@ keys *
 
 ## Tiny RDM
 
-1. 下载
-
-   ```
-   https://redis.tinycraft.cc/zh/
-   ```
+1. 下载`https://redis.tinycraft.cc/zh/`
 
 2. 安装
 
@@ -460,9 +456,88 @@ keys *
 
 ## SpringBoot 连接 Redis
 
+1. 引入依赖
 
+   ```xml
+   <dependency><!--默认客户端操作redis，引入客户端依赖-->
+     <groupId>org.springframework.boot</groupId>
+     <artifactId>spring-boot-starter-data-redis</artifactId>
+   </dependency>
+   <dependency><!--redis连接池-->
+     <groupId>org.apache.commons</groupId>
+     <artifactId>commons-lang3</artifactId>
+   </dependency>
+   <dependency><!--简化实体类开发-->
+     <groupId>org.projectlombok</groupId>
+     <artifactId>lombok</artifactId>
+   </dependency>
+   ```
 
+2. 创建实体类实现接口`java.io.Serializable;`序列化
 
+   ```java
+   public class Student implements Serializable{
+       private Integer id;
+       private String username;
+       private String password;
+       private String classg;
+   ```
+
+3. 在Controller类里面注入RedisTemplate，进行存入取出
+
+   ```java
+   package org.example.webappboot.controller;
+   
+   import org.example.webappboot.main.Student;
+   import org.example.webappboot.mapper.StudentMapper;
+   import org.springframework.beans.factory.annotation.Autowired;
+   import org.springframework.data.redis.core.RedisTemplate;
+   import org.springframework.web.bind.annotation.GetMapping;
+   import org.springframework.web.bind.annotation.PathVariable;
+   import org.springframework.web.bind.annotation.RequestMapping;
+   import org.springframework.web.bind.annotation.RestController;
+   import java.util.List;
+   
+   @RestController
+   @RequestMapping("/mybatis")
+   public class MybatisController {
+   
+       @Autowired
+       private StudentMapper studentMapper;
+   
+       @Autowired
+       private RedisTemplate redisTemplate;
+   
+       @RequestMapping("/all")
+       public List<Student> getAll(){
+           redisTemplate.opsForValue().set("student",studentMapper.selectAll());
+           return studentMapper.selectAll();
+       }
+   
+       @GetMapping("/st/{key}")
+       public List<Student> getst(@PathVariable("key") String keys){
+       return (List<Student>)redisTemplate.opsForValue().get(keys);
+       }
+   }
+   ```
+
+4. 在启动类上加注解`@EnableCaching`
+
+5. 先查询redis在查询数据库
+
+   ```
+   @RequestMapping("/all")
+       public List<Student> getAll() {
+           List<Student> students = (List<Student>) redisTemplate.opsForValue().get("student");
+           if (students == null) {
+               redisTemplate.opsForValue().set("student", studentMapper.selectAll());
+               System.out.println("1");
+               return studentMapper.selectAll();
+           }
+           System.out.println("2");
+           return students;
+       }
+   ```
 
 # 数据结构
 
