@@ -539,23 +539,125 @@ keys *
        }
    ```
 
+6. 配置
+
+   ```yml
+     data:
+       redis:
+         database: 0                 # 使用的数据库
+         host: 192.168.31.98         # 地址
+         port: 6379                  # 端口
+   ```
+
+7. CRUD
+
+   ```Java
+   // 查询
+   List<Student> students = (List<Student>) redisTemplate.opsForValue().get("student");
+   // 增加
+   redisTemplate.opsForValue().set("student", studentMapper.selectAll());
+   // 删除
+   @DeleteMapping("/delect/{key}")
+       public boolean delect(@PathVariable("key") String key){
+           redisTemplate.delete(key)//删除
+           return redisTemplate.hasKey(key);//判断key是否存在，删除成功返回fales
+       }
+   // 跟新
+   @PostMapping("/zj")
+       public void set(@RequestBody Student student) {
+           redisTemplate.opsForValue().set("student", student);
+       }
+   redisTemplate.opsForValue().set("student", student);
+   ```
+
+   
+
 # 数据结构
 
-## 字符串
+## 基本数据结构
 
-## 列表
+1. 字符串（String）
 
-## 哈希
+   1. 基本操作
 
-## 有序集合
+      ```
+      SET key value:设置指定的key值
+      GET key :获取指定key的值
+      EXISTS KEY:判断指定key 是否存在
+      DEL key:删除指定的 key
+      ```
 
-## 位图
+   2. 批量设置
 
-## 超日志
+      ```
+      MSET key value [key value ...]:同时设置一个或多个键值对
+      MSET key [key2]:获取所有（一个或多个）给定key的值
+      ```
 
-## 地理位置
+   3. 数值操作
 
-# 其他
+      ```
+      INCR key：将key中存储的数字增一
+      DECR key：将key中存储的数字减一
+      ```
+
+   4. 设置过期时间
+
+      ```
+      EXPIRE key seconds: 给指定的key设置过期时间
+      SETNX key seconds value: 设置值并设置过期时间
+      TTL key：查看剩余过期时间
+      ```
+
+   5. 在springboot中的操作
+
+      ```java
+      //opsForValue()所有操作都是string类型的
+      redisTemplate.opsForValue().set(key, value);//写入
+      redisTemplate.opsForValue().get(key);//获取
+      redisTemplate.opsForValue().increment();//累加值
+      redisTemplate.opsForValue().decrement();//减值
+      redisTemplate.opsForValue().setIfAbsent();//分布式锁,当key不存在
+      redisTemplate.opsForValue().setIfAbsent(,Duration.ofSeconds(时间));//设置过期时间
+      ```
+
+2. 列表（List）
+
+   1. 应用场景
+
+      ```
+      最新文章、最新动态
+      LPUSH、LRANGE
+      实现栈（先进先出）
+      LPUSH、LPOP
+      实现队列（先进后出）
+      RPUSH、LPOP
+      ```
+
+   2. 基本操作
+
+      ```
+      
+      ```
+
+   3. 操作范围
+
+      ```
+      
+      ```
+
+3. 哈希（Hash）
+
+4. 集合（Set）
+
+5. 有序集合（Sorted Set）
+
+## 高级数据结构
+
+1. 位图
+2. 超日志
+3. 地理位置
+4. 发布订阅
 
 ## 缓存穿透、击穿、雪崩问题
 

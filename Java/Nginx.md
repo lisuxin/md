@@ -17,6 +17,8 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
    ```bash
    # root 执行
    yum install -y yum-utils
+   # 查看nginx
+   nginx -v
    ```
 
 2. 手动添加，nginx的yum仓库==yum 程序使用的仓库配置文件，存放在：` /etc/yum.repos.d` 内。==
@@ -85,8 +87,6 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
 
 ## nginx配置和配置说明
 
-
-
 ## http协议简单介绍
 
 ## Nginx多端口部署多站点
@@ -121,4 +121,3 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
 
 ## Nginx搭建php动态网站
 
-## 网盘的一个漏洞演示示例
