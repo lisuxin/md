@@ -637,34 +637,170 @@ keys *
    2. 基本操作
 
       ```
-      
+      RPUSH key value[...]：在列表中添加一个或多个值
+      LPOP key：移出并获取列表的第一个元素
+      RPOP key：移除并获取列表最后一个元素
+      LLEN key：获取列表长度
       ```
 
    3. 操作范围
 
       ```
-      
+      LRANGE key start stop：获取列表指定范围内的元素
+      ```
+
+   4. 在springboot中的操作
+
+      ```java
+      redisTemplate.opsForList().leftPush("",);//插入数据,从头部开始
+      redisTemplate.opsForList().range("",0,1);//获取下标0-1的数据
+      redisTemplate.opsForList().leftPop("");//获取全部数据从头部开始
+      redisTemplate.opsForList().size();//获取长度
       ```
 
 3. 哈希（Hash）
 
+   1. 应用场景
+
+      ```
+      对象数据类型存储场景,各类信息
+      HSET(设置单个字段的值)、HMSET(设置多个字段的值)、HGET(获取单个字段的值)、HMGET(获取多个字段的值)。
+      HSET(单个值)、HINCR(加数量)、HLEN(所有数量)、HDEL()、HGETALL()。
+      ```
+
+   2. 基本操作
+
+      ```
+      HSET key field value：将哈希表key中的字段field的值设置为value
+      HMSET key field1 value1[field2 value2]：同时将多个field-value(域-值)对设置到哈希表key中
+      HVALS key：获取哈希表中所有值
+      HDEL key field1 [field2]：删除一个或多个哈希表字段
+      HEXISTS key field：查看哈希表中key，指定的字段是否存在
+      HGETALL key：获取在哈希表中指定key的所有字段和值
+      ```
+
+   3. 在springboot中操作
+
+      ```java
+      redisTemplate.opsForHash().put("对象:值","对象","值");//增加
+      HashMap<Object, Object> hashMap = new HashMap<>();//创建对象
+      hashMap.put("对象","值");//向对象里面添加值
+      redisTemplate.opsForHash().putAll("对象:值",hashMap);//将对象添加到key里面
+      redisTemplate.opsForHash().increment();//修改key,里面某个对象的值
+      redisTemplate.opsForHash().size();//查看key的长度
+      redisTemplate.opsForHash().delete();//删除key
+      redisTemplate.opsForHash().entries();//查看key里面的所有值
+      ```
+
 4. 集合（Set）
 
+   1. 基本操作
+
+      ```
+      SADD key member1 [member2]：向集合中添加一个或多个成员
+      SMEMBERS key：返回集合中所有成员
+      SISMEMBER key member：判断member元素是否是集合key的成员
+      SPOP key：移除并返回集合中的一个随机元素
+      SREM key member1 [member2]：移除集合中一个或多个成员
+      SCARD：获取刚刚添加元素的用户
+      ```
+
+   2. 集
+
+      ```
+      交集
+      SINTER key1 [...]：返回给定所有集合的交集
+      并集
+      SUNION key1 [key2]：返回给定所有集合的并集
+      差集
+      SDIFF key1 [key2]：返回给定所有集合的差集
+      ```
+
+   3. 在springboot中操作
+
+      ```java 
+      redisTemplate.opsForSet().add();//添加
+      redisTemplate.opsForSet().members();//返回集合中所有的成员
+      redisTemplate.opsForSet().pop();//移除并返回集合中的一个随机元素
+      redisTemplate.opsForSet().randomMember();//随机抽取一个元素
+      redisTemplate.opsForSet().randomMembers();//随机抽取指定数量的元素
+      redisTemplate.opsForSet().remove();//删除
+      redisTemplate.opsForSet().isMember();//检查某个用户是否添加
+      redisTemplate.opsForSet().size();//查看当前集合下有多少个元素
+      ```
+
 5. 有序集合（Sorted Set）
+
+   1. 基本操作
+
+      ```
+      ZADD key score menberl [score2 menber2]：向有序集合添加一个或者多个成员，或者史新己存在的成员分数
+      ZCARD key ：获取有序集合的元素个数
+      ZREM key menber [member]：移除有序集合中的一个或多个成员
+      ZSCORE key member ：获取指定有序集合中指定元素的 score 值
+      ZRANGE key start stop ：通过索引区间返回有序集合成指定区间内的成员(score从低到高）
+      ZREVRANGE key start stop ：通过索引区间返回有序集合成指定区间内的成员 (score 从高到低）
+      ```
+
+   2. 在springboot中的操作
+
+      ```java
+      redisTemplate.opsForZSet().add();//用于向有序集合中添加一个或多个成员，或者更新已存在成员的分数。
+      redisTemplate.opsForZSet().incrementScore();//为有序集合中指定成员的分数增加给定值
+      redisTemplate.opsForZSet().reverseRange();//返回有序集合中指定排名区间内的成员，成员按分数从高到低排序
+      redisTemplate.opsForZSet().reverseRangeWithScores();//类似于 reverseRange()，但是它返回的是一个包含成员及其分数的 Tuple 对象集合，同样是从高分到低分排序。
+      redisTemplate.opsForZSet().unionAndStore();//计算多个有序集合的并集，并将结果存储在一个新的有序集合中
+      ```
 
 ## 高级数据结构
 
 1. 位图
+
+   1. 基本操作
+
+      ```
+      setbit key offset val: 给指定key的值的第offset赋值val 时间复杂度：0(1)
+      getbit key offset ：获取指定key的第offset 位时间复杂度：0(1)
+      bitcount key sta rt end: 返回指定 key 中[ start, end ]中为 1 的数量时间复杂度： 0 (n)BITPOS k ey b it start end: 查找字符串中第一个设置为 1 或 9 的位的位置
+      ```
+
 2. 超日志
+
+   1. 基本操作
+
+      ```
+      
+      ```
+
 3. 地理位置
+
+   1. 基本操作
+
+      ```
+      
+      ```
+
 4. 发布订阅
+
+   1. 基本操作
+
+      ````
+      ````
+
+      
+
+# 其他
 
 ## 缓存穿透、击穿、雪崩问题
 
+
+
 ## Redis 数据库和缓存一致性问题
+
+
 
 ## Redis 事务
 
-## Redis 持久化
 
-# 实战
+
+## Redis 持久化
