@@ -105,6 +105,7 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
    
    # 卸载
    systemctl stop nginx停止服务
+   systemctl disable nginx.service禁止nginx开机自启
    rm -rf /usr/local/nginx删除安装目录
    rm -rf /export/server/nginx-1.20.2删除可执行文件
    rm -rf /etc/nginx删除配置文件
@@ -122,6 +123,7 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
    # nginx自动注册了systemctl系统服务
    systemctl start nginx		# 启动
    systemctl stop nginx		# 停止
+   systemctl restart nginx		#重启
    systemctl status nginx		# 运行状态
    systemctl enable nginx		# 开机自启
    systemctl disable nginx		# 关闭开机自启
@@ -188,6 +190,7 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
    rm -rf /usr/libexec/initscripts/legacy-actions/nginx
    # 清理缓存
    yum clean all
+   rm -rf /etc/yum.repos.d/nginx.repo
    ```
 
 您提到的两种安装 Nginx 的方式——通过 YUM 包管理器安装和从源代码编译安装——有显著的区别。以下是它们的主要差异：
@@ -318,29 +321,182 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
    -rw-r--r--. 1 root root 3610 Dec  9 05:57 win-utf
    ```
 
-1. 删除文件中的空行和注释
+   * `.default`都是备份文件
+   * `nginx.conf`nginx的主配置文件，每次nginx启动都会加载它
+
+1. 提取`nginx.conf.default`文件中的非空行和非注释到`nginx.conf`
 
    ```bash
    grep -Ev '#|^$' nginx.conf.default(修改的文件) > nginx.conf(需要覆盖的文件)
    ```
 
-2. nginx文件的最小配置
+2. nginx文件的最小配置（重启nginx`systemctl restart nginx`）
 
    ```bash
-   
+   worker_processes  1;
+   # 启动nginx的worker_process进程数、aout和cpu核数一致，1表示只启动一个worker_process进程，一般与cpu核数一致
+   events {
+       worker_connections  1024;
+       # 能同时处理的请求数，一个worker_process能同时处理1024个请求
+   }
+   http {
+       include       mime.types;
+       # nginx能够识别的文件类型，存与mime.types文件下；yungin.conf同级目录下
+       default_type  application/octet-stream;
+       # 在mime.types里面没有的类型会以application/octet-stream（八进制数据流）的形式导出到浏览器
+       server {
+       # 给网站做部署配置
+           listen       80;
+           # nginx的端口
+           server_name  localhost;
+           
+           location / {
+               root   html;
+               index  index.html index.htm;
+           }
+       }
+   }
    ```
    
-   
 
-## http协议简单介绍
+## http协议
+
+HTTP（HyperText Transfer Protocol，超文本传输协议）是用于在Web浏览器和Web服务器之间传输网页的协议。它是应用层协议，基于客户端-服务器模型工作。HTTP 是无状态的，这意味着每个请求都是独立的，服务器不会保留之前请求的状态信息。
+
+### HTTP 的基本概念
+
+1. **请求与响应**：
+   - **请求**：客户端（通常是浏览器）向服务器发送一个请求，这个请求包含请求行、请求头和请求体。
+   - **响应**：服务器处理请求后返回一个响应，这个响应也包含状态行、响应头和响应体。
+
+2. **方法（Methods）**：
+   HTTP 定义了多种请求方法，最常见的包括：
+   - **GET**：请求指定的资源。通常用于获取数据，不应有副作用。
+   - **POST**：向指定资源提交数据，通常用于提交表单或上传文件。
+   - **PUT**：上传一个资源到指定位置，通常用于更新现有资源或创建新资源。
+   - **DELETE**：请求服务器删除指定的资源。
+   - **HEAD**：类似于 GET 请求，但不返回资源主体，只返回头部信息。
+   - **OPTIONS**：请求关于目标资源所支持的通信选项。
+   - **PATCH**：对资源进行部分修改。
+
+3. **状态码（Status Codes）**：
+   服务器在响应中会返回一个状态码，用来表示请求的结果。常见的状态码分类如下：
+   - **1xx (信息性响应)**：请求已被接收，继续处理。
+   - **2xx (成功)**：请求已成功接收、理解和处理。
+     - 200 OK：请求成功。
+     - 201 Created：请求成功并且服务器创建了新的资源。
+   - **3xx (重定向)**：需要进一步操作以完成请求。
+     - 301 Moved Permanently：请求的资源已被永久移动到新位置。
+     - 302 Found：请求的资源临时从不同的 URI 响应请求。
+   - **4xx (客户端错误)**：请求包含语法错误或无法完成。
+     - 400 Bad Request：服务器无法理解请求的格式。
+     - 401 Unauthorized：请求要求用户的身份认证。
+     - 403 Forbidden：服务器理解请求，但是拒绝执行。
+     - 404 Not Found：请求的资源在服务器上未找到。
+   - **5xx (服务器错误)**：服务器在处理请求时发生错误。
+     - 500 Internal Server Error：服务器遇到意外情况，无法完成请求。
+     - 502 Bad Gateway：作为网关或者代理工作的服务器尝试执行请求时，从上游服务器收到无效响应。
+     - 503 Service Unavailable：服务器暂时无法处理请求，可能是过载或维护中。
+
+4. **头部（Headers）**：
+   请求和响应都包含头部信息，这些信息提供了关于请求或响应的元数据。例如：
+   - `Content-Type`：指明实体的媒体类型。
+   - `Content-Length`：指明实体主体的大小。
+   - `Authorization`：包含访问资源所需的认证信息。
+   - `Cache-Control`：控制缓存的行为。
+   - `Set-Cookie`：由服务器发送，告诉客户端存储 cookie。
+
+5. **消息体（Body）**：
+   请求体通常包含要发送给服务器的数据，如表单数据或上传的文件。响应体则包含服务器返回的内容，如 HTML 页面、JSON 数据等。
+
+6. **无状态性（Statelessness）**：
+   HTTP 是无状态的，这意味着每次请求都是独立的，服务器不会记住之前的请求。为了实现会话管理，通常使用 cookie 或者在 URL 中传递会话标识符。
+
+7. **持久连接（Persistent Connections）**：
+   HTTP/1.1 引入了持久连接的概念，允许在一个 TCP 连接上发送多个请求和响应，从而减少了建立和关闭连接的开销。
+
+8. **版本（Versioning）**：
+   HTTP 协议有不同的版本，最常见的是 HTTP/1.1 和 HTTP/2。HTTP/2 提供了多路复用、头部压缩等特性，提高了性能。
+
+9. **安全性（Security）**：
+   HTTPS 是 HTTP 的安全版本，通过 SSL/TLS 加密来保护数据传输的安全性，防止中间人攻击。
+
+### HTTP 请求示例
+
+**GET 请求**
+
+```http
+GET /index.html HTTP/1.1
+Host: www.example.com
+User-Agent: Mozilla/5.0
+Accept: text/html
+```
+
+**POST 请求**
+
+```http
+POST /submit_form HTTP/1.1
+Host: www.example.com
+User-Agent: Mozilla/5.0
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 27
+
+name=John+Doe&email=john@example.com
+```
+
+### HTTP 响应示例
+
+**成功响应**
+
+```http
+HTTP/1.1 200 OK
+Date: Tue, 12 Dec 2023 12:00:00 GMT
+Server: Apache/2.4.41 (Ubuntu)
+Content-Type: text/html; charset=UTF-8
+Content-Length: 612
+
+<html>
+<head><title>Example Page</title></head>
+<body>
+  <h1>Welcome to Example.com!</h1>
+  <!-- More HTML content -->
+</body>
+</html>
+```
+
+**错误响应**
+
+```http
+HTTP/1.1 404 Not Found
+Date: Tue, 12 Dec 2023 12:00:00 GMT
+Server: Apache/2.4.41 (Ubuntu)
+Content-Type: text/html; charset=UTF-8
+Content-Length: 205
+
+<html>
+<head><title>404 Not Found</title></head>
+<body>
+  <h1>Not Found</h1>
+  <p>The requested URL was not found on this server.</p>
+</body>
+</html>
+```
+
+HTTP 是 Web 应用程序中最常用的协议之一，它定义了客户端和服务器之间如何交换数据。理解 HTTP 的基本概念、请求和响应结构、常用方法和状态码对于开发和调试 Web 应用程序至关重要。如果你有更多具体的问题或需要深入了解某个方面，请随时告诉我！
 
 ## 部署多站点
 
 ### Nginx多端口部署多站点
 
+
+
 ### Nginx多ip部署多站点
 
+
+
 ### Nginx多域名部署多站点
+
+
 
 ## Nginx的include配置加载
 
