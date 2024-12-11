@@ -324,13 +324,13 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
    * `.default`都是备份文件
    * `nginx.conf`nginx的主配置文件，每次nginx启动都会加载它
 
-1. 提取`nginx.conf.default`文件中的非空行和非注释到`nginx.conf`
+3. 提取`nginx.conf.default`文件中的非空行和非注释到`nginx.conf`
 
    ```bash
    grep -Ev '#|^$' nginx.conf.default(修改的文件) > nginx.conf(需要覆盖的文件)
    ```
 
-2. nginx文件的最小配置（重启nginx`systemctl restart nginx`）
+4. nginx文件的最小配置（重启nginx`systemctl restart nginx`）
 
    ```bash
    worker_processes  1;
@@ -345,11 +345,164 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
        default_type  application/octet-stream;
        # 在mime.types里面没有的类型会以application/octet-stream（八进制数据流）的形式导出到浏览器
        server {
-       # 给网站做部署配置
+       # 给网站做部署配置、复制多个server就可以部署多个网站只需要listen端口值不一样
            listen       80;
            # nginx的端口
            server_name  localhost;
-           
+           # 部署网站域名
+           location / { # 站点所在目录，这里表示根目录
+               root   html;
+               # 这些root后面跟的是相对路径、也可以放网站所在绝对路径;也就是代码存放路径
+               index  index.html index.htm;
+               # 访问对应nginx服务器首先打开页面
+           }
+       }
+   }
+   ```
+
+   * `nginx -t`：查看更改的配置是否有问题：syntax is ok表示没有问题
+   * `mv 文件夹/* .`：将下级目录的所有文件，放到现在这个目录
+
+5. 所有配置
+
+   ```bash
+   # 设置Nginx的用户，这里设置为nobody，表示Nginx进程将以nobody用户的身份运行
+   user  nobody;
+   
+   # 定义工作进程的数量，通常设置为CPU核心数
+   worker_processes  1;
+   
+   # 指定错误日志的位置和记录级别（可以是debug, info, notice, warn, error, crit）
+   #error_log  logs/error.log;
+   #error_log  logs/error.log  notice;
+   #error_log  logs/error.log  info;
+   
+   # 指定Nginx主进程的PID存放位置(进程标识)
+   #pid        logs/nginx.pid;
+   
+   # 配置事件模块参数，这里是epoll模型下的最大连接数
+   events {
+       worker_connections  1024;  # 每个工作进程的最大并发连接数
+   }
+   
+   # 配置HTTP服务器
+   http {
+       # 包含MIME类型定义文件，用于根据文件扩展名确定内容类型
+       include       mime.types;
+   
+       # 当无法确定内容类型时，默认使用二进制流格式
+       default_type  application/octet-stream;
+   
+       # 日志格式定义，此处被注释掉，可以取消注释并根据需要修改
+       log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                         '$status $body_bytes_sent "$http_referer" '
+                         '"$http_user_agent" "$http_x_forwarded_for"';
+   
+       # 访问日志路径及格式，此行被注释，取消注释后将启用访问日志
+       access_log  logs/access.log  main;
+   
+       # 开启高效文件传输模式，sendfile会直接从磁盘读取文件到socket，减少内存拷贝
+       sendfile        on;
+   
+       # 关闭Nagle算法，减少延迟，但可能增加网络包数量（此行被注释）
+       tcp_nopush     on;
+   
+       # 禁用keepalive连接（此行被注释）
+       keepalive_timeout  0;
+   
+       # 设置长连接超时时间，单位为秒
+       keepalive_timeout  65;
+   
+       # 开启Gzip压缩（此行被注释）
+       gzip  on;
+   
+       # 定义一个server块，代表一个虚拟主机
+       server {
+           # 监听80端口，处理HTTP请求
+           listen       80;
+   
+           # 该虚拟主机的域名，localhost表示本机
+           server_name  localhost;
+   
+           # 设置字符集（此行被注释）
+           charset koi8-r;
+   
+           # 访问日志路径及格式（此行被注释）
+           access_log  logs/host.access.log  main;
+   
+           # 定义location /，即根目录的处理规则
+           location / {
+               # 设置网站根目录，相对路径相对于Nginx安装目录
+               root   html;
+   
+               # 设置默认索引文件，当访问目录时，Nginx会尝试加载这些文件
+               index  index.html index.htm;
+           }
+   
+           # 自定义错误页面，将500, 502, 503, 504错误重定向到/50x.html
+           error_page   500 502 503 504  /50x.html;
+   
+           # 定义/50x.html的处理规则
+           location = /50x.html {
+               root   html;  # 设置/50x.html文件所在的目录
+           }
+   
+           # 将PHP脚本代理给Apache处理（此段被注释）
+           location ~ \.php$ {
+               proxy_pass   http://127.0.0.1;
+           }
+   
+           # 将PHP脚本交给FastCGI服务器处理（此段被注释）
+           location ~ \.php$ {
+               root           html;
+               fastcgi_pass   127.0.0.1:9000;
+               fastcgi_index  index.php;
+               fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+               include        fastcgi_params;
+           }
+   
+           # 禁止访问.htaccess文件，防止泄露Apache配置信息（此段被注释）
+           location ~ /\.ht {
+               deny  all;
+           }
+       }
+   
+       # 定义另一个虚拟主机，可以基于IP、名称或端口进行配置（此段被注释）
+       server {
+           listen       8000;
+           # 只监听名为somename的主机名对应的IP地址上的8080端口
+           listen       somename:8080;
+           server_name  somename  alias  another.alias;
+   
+           location / {
+               root   html;
+               index  index.html index.htm;
+           }
+       }
+   
+       # HTTPS服务器配置（此段被注释）
+       server {
+           listen       443 ssl;  # 监听443端口，并启用SSL/TLS加密
+           server_name  localhost;
+   
+           # SSL证书文件路径
+           ssl_certificate      cert.pem;
+   
+           # SSL私钥文件路径
+           ssl_certificate_key  cert.key;
+   
+           # SSL会话缓存设置
+           ssl_session_cache    shared:SSL:1m;
+   
+           # SSL会话超时时间
+           ssl_session_timeout  5m;
+   
+           # 启用的SSL加密套件，选择高强度加密算法
+           ssl_ciphers  HIGH:!aNULL:!MD5;
+   
+           # 优先使用服务器端的加密套件
+           ssl_prefer_server_ciphers  on;
+   
            location / {
                root   html;
                index  index.html index.htm;
@@ -357,7 +510,6 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
        }
    }
    ```
-   
 
 ## http协议
 
