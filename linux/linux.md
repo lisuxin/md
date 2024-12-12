@@ -108,7 +108,9 @@
          2. 第二步：修改高级共享设置
             1. 打开 **控制面板**，查看方式选择 **类别**，选择 **网络和 Internet**，选择 **网络和共享中心**，打开左边的 **更改高级共享设置**，按图中选择：**启用网络发现** 和 **启用文件和打印机共享** 后点击下方的 **保存更改**
 
-5. 配置桥接网络锁定IP
+### 配置锁定IP
+
+1. 配置桥接网络锁定IP
 
    1. 查询本地网卡配置信息
 
@@ -186,7 +188,7 @@
       ip link set dev ens160 up       #（开启）
       ```
 
-6. 配置数据源
+2. 配置数据源
 
    ```bash
    #查看本机yum数据源
@@ -199,7 +201,7 @@
    wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-vault-8.5.2111.repo
    ```
 
-7. 报错
+3. 报错
 
    ```bash
    Errors during downloading metadata for repository 'appstream':

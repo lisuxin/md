@@ -344,6 +344,7 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
        # nginx能够识别的文件类型，存与mime.types文件下；yungin.conf同级目录下
        default_type  application/octet-stream;
        # 在mime.types里面没有的类型会以application/octet-stream（八进制数据流）的形式导出到浏览器
+       charset utf-8;# 设置字符集
        server {
        # 给网站做部署配置、复制多个server就可以部署多个网站只需要listen端口值不一样
            listen       80;
@@ -638,41 +639,153 @@ HTTP 是 Web 应用程序中最常用的协议之一，它定义了客户端和�
 
 ## 部署多站点
 
+==一个 nginx上可以运行多个网站==
+
+* `http:// + ip/域名 + 端口 + URL`
+* 其中：ip/域名变了，那么网站入口就变了，端口变了，网站入口也变了
+
 ### Nginx多端口部署多站点
 
-
+```bash
+worker_processes  1;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    charset utf-8;# 设置字符集
+    # 第一个战点
+    server {
+        listen       80;
+        server_name  localhost;
+        location / {
+            root   html/zhandian1;
+            index  index.html index.htm;
+        }
+    }
+    # 第二个站点
+    server {
+        listen       81;# 端口
+        server_name  localhost;
+        location / {
+            root   html/zhandian2;
+            index  index.html index.htm;
+        }
+}
+```
 
 ### Nginx多ip部署多站点
 
+* 修改linux网卡配置信息`vi /etc/sysconfig/network-scripts/ifcfg-ens160`
 
+   ```
+   IPADDR1=192.168.31.98
+   IPADDR2=192.168.31.98
+   IPADDR3=192.168.31.98
+   NETMASK=255.255.255.0
+   GATEWAY=192.168.31.1
+   ```
+
+* 重启网络服务
+
+* 修改nginx.conf文件`listen       ip:80;`，ip与配置的ip地址
+
+   ```
+   worker_processes  1;
+   events {
+       worker_connections  1024;
+   }
+   http {
+       include       mime.types;
+       default_type  application/octet-stream;
+       sendfile        on;
+       keepalive_timeout  65;
+       charset utf-8;# 设置字符集
+       # 第一个战点
+       server {
+           listen       ip:80;
+           server_name  localhost;
+           location / {
+               root   html/zhandian1;
+               index  index.html index.htm;
+           }
+       }
+       # 第二个站点
+       server {
+           listen       ip:80;# 端口
+           server_name  localhost;
+           location / {
+               root   html/zhandian2;
+               index  index.html index.htm;
+           }
+   }
+   ```
 
 ### Nginx多域名部署多站点
 
+* 修改配置文件的`server_name` 域名配置
+
+* 测试：修改windows的host文件，配置ip与域名对应关系，本机优先访问
+
+   ```
+   worker_processes  1;
+   events {
+       worker_connections  1024;
+   }
+   http {
+       include       mime.types;
+       default_type  application/octet-stream;
+       sendfile        on;
+       keepalive_timeout  65;
+       charset utf-8;# 设置字符集
+       # 第一个战点
+       server {
+           listen       80;
+           server_name  a.a.com;
+           location / {
+               root   html/zhandian1;
+               index  index.html index.htm;
+           }
+       }
+       # 第二个站点
+       server {
+           listen       80;# 端口
+           server_name  b.b.com;
+           location / {
+               root   html/zhandian2;
+               index  index.html index.htm;
+           }
+   }
+   ```
+
+## Nginx的include配置文件
 
 
-## Nginx的include配置加载
 
-## Nginx的日志记录
+## Nginx日志
 
-## Nginx开启basic认证
+## 开启basic认证
 
-## Nginx的SSL证书配置
+## SSL证书配置
 
 ## Nginx的return跳转
 
-## Nginx的rewrite跳转和不能上网的原因
+#### Nginx的rewrite跳转和不能上网的原因
 
-## Nginx的gzip压缩
+## Nginx gzip压缩
 
-## Nginx开启目录浏览功能
+## Nginx目录浏览
 
-## Nginx的访问控制
+## Nginx访问控制allow和deny
 
-## Nginx的location和符号优先级
+## Nginx location优先级
 
-## Nginx的常用变量
+## Nginx常用变量
 
-## Nginx根据语言配置不同语言的站点
+## Nginx语言配置
 
-## Nginx搭建php动态网站
+## Nginx + php
 
