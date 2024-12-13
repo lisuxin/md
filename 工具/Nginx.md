@@ -761,11 +761,77 @@ http {
    }
    ```
 
-## Nginx的include配置文件
+### Nginx的配置文件include配置项
 
+1. **步骤**
 
+   1. 在conf文件夹下新建`conf.d`配置文件夹
+
+   2. 删除nginx.conf文件里面所有server配置项
+
+      ```bash
+      server {
+         listen       80;# 端口
+         server_name  b.b.com;
+         location / {
+             root   html/zhandian;
+             index  index.html index.htm;
+             }
+      }
+      ```
+
+   3. 在nginx.conf文件http大括号下加入include配置`include conf.d/*.conf`
+
+      ```bash
+      worker_processes  1;
+      events {
+          worker_connections  1024;
+      }
+      http {
+          include       mime.types;
+          default_type  application/octet-stream;
+          charset utf-8;        # 设置字符集
+          include conf.d/*.conf # 设置配置文件映射地址
+      }
+      ```
+
+   4. 将原来的server配置项，每一个单独作为以`.conf`结尾的配置文件，命名方式`站点名.conf`
+
+   5. 在默认站点文件中`listen 80;`配置改为`listen 80 default_server;`表示默认访问站点
+
+      ```bash
+      server {
+         listen       80 default_server;# 端口
+         server_name  b.b.com;
+         location / {
+             root   html/zhandian;
+             index  index.html index.htm;
+             }
+      }
+      ```
+
+2. **注意**
+
+   1. 如果nginx没有配置默认访问网站，那么当当前网站不能访问时，nginx默认访问第一个站点作为默认网站
+   2. 所有配置文件的更改都需要重启nginx才能使配置文件生效
 
 ## Nginx日志
+
+1. 位置
+   * yum安装
+      1. `var/log/nginx/`
+   * 源码安装（压缩文件）
+      1. `local/nginx/logs/`
+         * `access.log`：访问日志
+         * `error.log`：错误日志
+
+### 访问日志
+
+
+
+### 错误日志
+
+
 
 ## 开启basic认证
 
