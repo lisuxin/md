@@ -67,6 +67,8 @@ Nginx在WEB开发领域、基本上也是必备组件之一了。
    # 下载依赖
    yum install pcre pcre-devel
    yum install zlib zlib-devel
+   # 查看安装
+   yum list installed | grep pcre-devel
    # 解压下载的Nginx源代码包：
    tar -zxvf nginx-1.20.2.tar.gz
    编译和安装进入解压后的Nginx目录并进行编译和安装：
@@ -821,23 +823,150 @@ http {
    * yum安装
       1. `var/log/nginx/`
    * 源码安装（压缩文件）
-      1. `local/nginx/logs/`
+      1. `usr/local/nginx/logs/`
          * `access.log`：访问日志
          * `error.log`：错误日志
+2. 清空日志：`> access.log`
 
 ### 访问日志
 
+1. 定制日志格式，在nginx.conf文件中，与server配置平级，在http配置项下面
+
+   ```bash
+   # 定制日志记录格式
+   log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                     '$status $body_bytes_sent "$http_referer" '
+                     '"$http_user_agent" "$http_x_forwarded_for"';
+                     
+   log_format  格式名字  '客户端地址 - 客户端用户名 当前时间 请求起始行 '
+                     '$http状态码 响应资源大小 记录资源的跳转地址 '
+                     '"用户的终端信息 gzip的压缩级别';
+   192.168.31.71 - - [15/Dec/2024:06:23:48 -0800] "GET / HTTP/1.1" 304 0 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+   main
+   # main格式名字，使用这个格式直接使用这个名字
+   $remote_addr
+   # 含义：客户端的 IP 地址。
+   # 说明：这是发起 HTTP 请求的客户端（通常是浏览器或代理服务器）的 IP 地址。如果请求经过了多个代理服务器，这可能是最后一个代理的 IP 地址。
+   -
+   # 含义：分隔符，通常是一个固定的 - 符号。
+   # 说明：这个符号是 Nginx 日志格式中的一个占位符，用于分隔不同的字段。在传统的 Apache 日志格式中，这个位置通常用于记录 RFC 1413 标准的用户身份验证信息（如 identd），但在现代环境中，这个字段通常为空，因此使用 - 作为占位符。
+   $remote_user
+   # 含义：通过 HTTP 基本认证（Basic Authentication）验证的用户名。
+   # 说明：如果启用了 HTTP 基本认证，这里会显示通过认证的用户名。如果没有启用认证或请求未经过认证，这里会显示一个空字符串（即 -）。
+   [$time_local]
+   # 含义：请求的时间，使用本地时区表示。
+   # 说明：这是请求到达 Nginx 服务器的时间，格式为 [day/month/year:hour:minute:second zone]，例如 [15/Dec/2024:22:39:45 +0800]。+0800 表示时区偏移量，这里是东八区（北京时间）。
+   "$request"
+   # 含义：完整的 HTTP 请求行。
+   # 说明：这包括 HTTP 方法、请求的 URI 和 HTTP 版本。例如，"GET /index.html HTTP/1.1"。这可以帮助你了解客户端请求的具体内容。
+   $status
+   # 含义：HTTP 状态码。
+   # 说明：这是 Nginx 返回给客户端的 HTTP 状态码，表示请求的处理结果。常见的状态码包括：
+   # 200：请求成功。
+   # 301 或 302：重定向。
+   # 404：页面未找到。
+   # 500：内部服务器错误。
+   # 502：网关错误（通常是后端服务器不可用）。
+   $body_bytes_sent
+   # 含义：发送给客户端的响应体大小（以字节为单位）。
+   # 说明：这是 Nginx 发送给客户端的实际响应体大小，不包括 HTTP 头部。如果你需要统计传输的数据量，这个字段非常有用。
+   "$http_referer"
+   # 含义：HTTP 请求头中的 Referer 字段。
+   # 说明：这是客户端从哪个页面链接到当前页面的 URL。例如，如果用户从 https://example.com/page1 点击链接访问 https://example.com/page2，那么 Referer 就是 https://example.com/page1。这个字段可以帮助你分析流量来源。
+   "$http_user_agent"
+   # 含义：HTTP 请求头中的 User-Agent 字段。
+   # 说明：这是客户端使用的浏览器或爬虫的信息。User-Agent 字段通常包含浏览器的名称、版本、操作系统等信息。例如，Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36。这个字段可以帮助你分析用户的浏览器和设备信息。
+   "$http_x_forwarded_for"
+   # 含义：HTTP 请求头中的 X-Forwarded-For 字段。
+   # 说明：当请求经过多个代理服务器时，X-Forwarded-For 头部会包含客户端的真实 IP 地址以及所有中间代理的 IP 地址。格式为 client_ip, proxy1_ip, proxy2_ip, ...。例如，192.168.1.1, 10.0.0.1, 172.16.0.1。这个字段可以帮助你获取客户端的真实 IP 地址，尤其是在使用反向代理（如负载均衡器）的情况下。
+   ```
+
+2. 单独为站点配置nginx的访问日志格式，在server配置项里面配置
+
+   ```bash
+   access_log  logs/host.access.log  main;
+   access_log  存放地址/日志文件每次 日志格式名称
+   ```
+
+   1. 存放地址（一般存放与opt目录下）
+
+      ```bash
+      makdir nginx # 在opt目录下新建nginx文件夹 
+      ```
+
+   2. 给nginx文件夹付权给nginx用户（因为nginx是nginx用户启动的）
+
+      ```
+      chown nginx:nginx opt/nginx
+      ```
+
+3. favicon.ico
+
+   * 图标：网页前端页面访问的图标
+
+4. 错误日志
+
+   1. 无法更改格式，只能更改存放地址
+
+      ```bash
+      error_log 存放地址/日志文件每次 info
+      ```
+
+## basic认证
+
+用于在客户端和服务器之间进行用户身份验证。它通过在 HTTP 请求头中传递用户名和密码来实现。尽管基本认证的实现简单，但它并不安全，因为用户名和密码是以 Base64 编码的形式传输的，而不是加密的。因此，建议在使用基本认证时结合 HTTPS 以确保数据的安全性。
+
+### 工作原理
+
+1. **客户端请求**：当客户端（如浏览器）访问一个受保护的资源时，服务器会返回一个 `401 Unauthorized` 状态码，并在响应头中包含 `WWW-Authenticate: Basic realm="some realm"`，告知客户端需要进行基本认证。
+2. **客户端响应**：客户端弹出一个用户名和密码输入框，用户输入凭证后，客户端会将这些凭证编码为 Base64 格式，并在后续的 HTTP 请求头中添加 `Authorization: Basic <base64-encoded-credentials>`。
+3. **服务器验证**：服务器接收到带有 `Authorization` 头的请求后，解码 Base64 字符串，提取用户名和密码，并验证它们是否正确。如果验证通过，服务器返回请求的资源；否则，返回 `401 Unauthorized`。
+
+### 开启认证
+
+1. 生成htpassword文件，存放到自定义目录下，一般存放与安装目录下conf文件内
+
+   ```bash
+   vim htpassword 用户名:密码 # 用户名密码一般由网页生产
+   ```
+
+2. 生成htpassword方式
+
+   1. windows网页生产：随便找一个网页生成，复制粘贴
+
+   2. linux软件生成
+
+      1. 安装htpassword工具
+
+         ```bash
+         # centos
+         yum install httpd-tools
+         # ubuntu
+         apt-get install apache2-utils
+         ```
+
+      2. 使用 `htpasswd` 创建一个密码文件，并添加用户。例如，创建一个名为 `htpasswd` 的文件并添加用户 `admin`：
+
+         ```bash
+         sudo htpasswd -c /etc/nginx/.htpasswd admin
+         ```
+
+3. 修改nginx.conf配置文件server选项
+
+   ```bash
+   auth_basic "" # 开启basic认证,""双引号中为备注信息
+   auth_basic_user_file /htpssword存放htpassword文件的地址 # 加载用户名密码文件
+   ```
+
+## SSL认证
+
+1. http协议传输为明文传输所以不安全，配置`SSL`证书
 
 
-### 错误日志
-
-
-
-## 开启basic认证
-
-## SSL证书配置
 
 ## Nginx的return跳转
+
+
 
 #### Nginx的rewrite跳转和不能上网的原因
 
@@ -845,13 +974,438 @@ http {
 
 ## Nginx目录浏览
 
-## Nginx访问控制allow和deny
+## Nginx访问控制
 
-## Nginx location优先级
+### allow
+
+### deny
+
+## Nginx 的location优先级
+
+
 
 ## Nginx常用变量
 
 ## Nginx语言配置
 
-## Nginx + php
+## Cookie 和 Session
 
+### **Cookie**
+
+- **设置 Cookie**：
+  - Nginx 可以通过 `add_header` 指令在响应头中添加 Cookie。
+    ```nginx
+    location / {
+        add_header Set-Cookie "example_cookie=example_value; Path=/; HttpOnly";
+        proxy_pass http://backend;
+    }
+    ```
+
+- **读取 Cookie**：
+  - Nginx 可以通过 `$http_cookie` 变量读取客户端发送的 Cookie。
+    ```nginx
+    if ($http_cookie ~* "example_cookie=example_value") {
+        set $is_example_cookie_set 1;
+    }
+    ```
+
+- **删除 Cookie**：
+  - 通过设置过期时间为过去的时间来删除 Cookie。
+    ```nginx
+    add_header Set-Cookie "example_cookie=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/";
+    ```
+
+### **Session**
+
+- **会话管理**：
+  - Nginx 本身不直接处理会话，但可以通过与后端应用程序（如 PHP、Node.js）协作来管理会话。
+  - **Sticky Sessions**：在负载均衡时，可以配置 Nginx 使用 `ip_hash` 或 `sticky` 模块确保同一用户的请求总是被转发到同一个后端服务器。
+    ```nginx
+    upstream backend {
+        ip_hash;
+        server backend1.example.com;
+        server backend2.example.com;
+    }
+    
+    server {
+        location / {
+            proxy_pass http://backend;
+        }
+    }
+    ```
+
+- **Session 缓存**：
+  - 可以使用 Redis 或 Memcached 来存储和共享会话数据，确保多个服务器之间的会话一致性。
+  - **PHP-FPM 配置示例**：
+    ```php
+    session.save_handler = redis
+    session.save_path = "tcp://127.0.0.1:6379"
+    ```
+
+## 的 LNMP 网站架构
+
+### **LNMP 架构**：Linux + Nginx + MySQL + PHP
+
+- **Linux**：操作系统，提供稳定的基础环境。
+- **Nginx**：高性能的 Web 服务器，处理静态文件、反向代理、负载均衡等。
+- **MySQL**：关系型数据库管理系统，存储和管理数据。
+- **PHP**：服务器端脚本语言，用于开发动态网站和应用。
+
+**配置示例**：
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+
+    root /var/www/html;
+    index index.php index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+```
+
+## MySQL
+
+- **连接池**：
+  
+  - Nginx 可以通过 `ngx_http_mysql_module` 或 `ngx_http_postgres_module` 直接查询 MySQL 数据库，但这不是常见的做法。通常，Nginx 作为反向代理或负载均衡器，将请求转发给后端的应用服务器（如 PHP-FPM），由应用服务器处理数据库查询。
+  
+- **优化**：
+  - **缓存机制**：可以通过 Nginx 配置缓存机制（如 FastCGI 缓存、Redis 缓存）来减少对 MySQL 的直接访问，提高性能。
+  - **读写分离**：配置 Nginx 进行读写分离，将读操作分发到只读副本，写操作分发到主数据库。
+    ```nginx
+    upstream mysql_master {
+        server 192.168.1.1:3306;
+    }
+    
+    upstream mysql_slave {
+        server 192.168.1.2:3306;
+        server 192.168.1.3:3306;
+    }
+    
+    location /write {
+        proxy_pass http://mysql_master;
+    }
+    
+    location /read {
+        proxy_pass http://mysql_slave;
+    }
+    ```
+
+## WordPress
+
+- **配置示例**：
+  ```nginx
+  server {
+      listen 80;
+      server_name example.com;
+  
+      root /var/www/html;
+      index index.php;
+  
+      location / {
+          try_files $uri $uri/ /index.php?$args;
+      }
+  
+      location ~ \.php$ {
+          include snippets/fastcgi-php.conf;
+          fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+      }
+  
+      location ~ /\.ht {
+          deny all;
+      }
+  
+      # WordPress 伪静态规则
+      location /wp-content/uploads/ {
+          try_files $uri =404;
+      }
+  
+      location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+          expires max;
+          log_not_found off;
+      }
+  }
+  ```
+
+- **优化**：
+  - **启用缓存**：使用 W3 Total Cache 或 WP Super Cache 插件来缓存页面，减少数据库查询。
+  - **CDN**：使用内容分发网络（CDN）加速静态资源的加载。
+  - **SSL**：配置 SSL 证书，确保通信的安全性。
+
+## Discuz 论坛
+
+- **配置示例**：
+  ```nginx
+  server {
+      listen 80;
+      server_name forum.example.com;
+  
+      root /var/www/html;
+      index index.php;
+  
+      location / {
+          try_files $uri $uri/ /index.php?$query_string;
+      }
+  
+      location ~ \.php$ {
+          include snippets/fastcgi-php.conf;
+          fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+      }
+  
+      location ~ /\.ht {
+          deny all;
+      }
+  
+      # Discuz 伪静态规则
+      location /forum- {
+          rewrite ^/forum-(\d+)-(\d+).html$ /forum.php?fid=$1&page=$2 last;
+      }
+  
+      location /thread- {
+          rewrite ^/thread-(\d+)-(\d+)-(\d+).html$ /viewthread.php?tid=$1&extra=page%3D$3&page=$2 last;
+      }
+  }
+  ```
+
+- **优化**：
+  - **启用缓存**：Discuz 提供了内置的缓存机制，可以在后台启用。
+  - **CDN**：使用 CDN 加速静态资源的加载。
+  - **SSL**：配置 SSL 证书，确保通信的安全性。
+
+## 伪静态
+
+- **定义**：伪静态是通过 URL 重写技术，将动态页面的 URL 转换为看似静态页面的 URL。
+- **实现**：使用 `rewrite` 指令或 `try_files` 指令。
+  - **rewrite 示例**：
+    ```nginx
+    location / {
+        rewrite ^/product/([0-9]+)$ /product.php?id=$1 last;
+    }
+    ```
+  - **try_files 示例**：
+    ```nginx
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+    ```
+
+- **常见伪静态规则**：
+  - **WordPress**：
+    ```nginx
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+    ```
+  - **Discuz**：
+    ```nginx
+    location /forum- {
+        rewrite ^/forum-(\d+)-(\d+).html$ /forum.php?fid=$1&page=$2 last;
+    }
+    ```
+
+## 正向代理
+
+- **定义**：正向代理是客户端通过代理服务器访问互联网资源的方式。
+- **配置示例**：
+  ```nginx
+  http {
+      server {
+          listen 8080;
+  
+          location / {
+              resolver 8.8.8.8;  # DNS 解析服务器
+              proxy_pass http://$http_host$request_uri;
+          }
+      }
+  }
+  ```
+
+- **应用场景**：
+  - **绕过地理限制**：访问受地理限制的网站。
+  - **过滤内容**：阻止或允许特定类型的流量。
+  - **加速访问**：通过缓存机制加速访问速度。
+
+## 反向代理
+
+- **定义**：反向代理位于服务器端，客户端不知道它正在通过代理服务器访问资源。
+- **配置示例**：
+  ```nginx
+  upstream backend {
+      server backend1.example.com;
+      server backend2.example.com;
+  }
+  
+  server {
+      listen 80;
+      server_name example.com;
+  
+      location / {
+          proxy_pass http://backend;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+      }
+  }
+  ```
+
+- **应用场景**：
+  - **负载均衡**：将请求分发到多个后端服务器。
+  - **SSL 终止**：解密 HTTPS 请求，减轻后端服务器的负担。
+  - **缓存**：缓存静态资源，减少后端服务器的压力。
+
+## Nginx 的架构部署
+
+### **高可用性 (HA) 和负载均衡**
+
+- **负载均衡**：
+  - **轮询 (Round Robin)**：默认的负载均衡算法，每个请求按顺序分配给不同的后端服务器。
+    ```nginx
+    upstream backend {
+        server backend1.example.com;
+        server backend2.example.com;
+    }
+    ```
+
+  - **加权轮询 (Weighted Round Robin)**：为不同后端服务器分配权重，权重越高的服务器接收到的请求越多。
+    ```nginx
+    upstream backend {
+        server backend1.example.com weight=3;
+        server backend2.example.com weight=1;
+    }
+    ```
+
+  - **IP 哈希 (IP Hash)**：根据客户端 IP 地址的哈希值选择后端服务器，确保同一客户端的请求总是被转发到同一台服务器。
+    ```nginx
+    upstream backend {
+        ip_hash;
+        server backend1.example.com;
+        server backend2.example.com;
+    }
+    ```
+
+  - **最少连接 (Least Connections)**：将请求分配给当前连接数最少的后端服务器。
+    ```nginx
+    upstream backend {
+        least_conn;
+        server backend1.example.com;
+        server backend2.example.com;
+    }
+    ```
+
+- **健康检查**：
+  - **Nginx Plus** 提供了内置的健康检查功能，可以自动检测后端服务器的状态，并在服务器不可用时将其从负载均衡池中移除。
+  - **第三方模块**：对于开源版 Nginx，可以使用第三方模块（如 `nginx-upstream-check-module`）来实现健康检查。
+
+### **缓存**
+
+- **FastCGI 缓存**：Nginx 可以缓存 PHP 等动态内容，减少对后端服务器的压力。
+  - **配置示例**：
+    ```nginx
+    fastcgi_cache_path /var/cache/nginx levels=1:2 keys_zone=my_cache:10m max_size=1g inactive=60m use_temp_path=off;
+    
+    server {
+        location ~ \.php$ {
+            fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+            fastcgi_cache my_cache;
+            fastcgi_cache_valid 200 60m;
+            fastcgi_cache_bypass $no_cache;
+            fastcgi_no_cache $no_cache;
+        }
+    }
+    ```
+
+- **Redis 缓存**：使用 Redis 存储和共享会话数据，确保多个服务器之间的会话一致性。
+  - **PHP-FPM 配置示例**：
+    ```php
+    session.save_handler = redis
+    session.save_path = "tcp://127.0.0.1:6379"
+    ```
+
+### **SSL/TLS**
+
+- **Let's Encrypt**：使用 Let's Encrypt 提供的免费 SSL 证书，确保通信的安全性。
+  - **Certbot**：Certbot 是一个自动化工具，可以帮助你获取和安装 Let's Encrypt 证书。
+    ```bash
+    sudo apt-get install certbot python3-certbot-nginx
+    sudo certbot --nginx -d example.com -d www.example.com
+    ```
+
+- **自动续期**：配置定时任务自动续期 SSL 证书。
+  - **crontab 配置**：
+    ```bash
+    0 0 * * * /usr/bin/certbot renew --quiet
+    ```
+
+### **日志和监控**
+
+- **访问日志和错误日志**：配置 Nginx 的访问日志和错误日志，记录服务器的运行情况。
+  - **配置示例**：
+    ```nginx
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+    ```
+
+- **监控工具**：使用 Prometheus、Grafana 等监控工具实时监控系统性能。
+  - **Prometheus Exporter**：安装 Nginx Exporter 收集 Nginx 的指标数据。
+    
+    ```bash
+    sudo apt-get install prometheus-node-exporter
+    ```
+  
+- **报警系统**：配置报警系统（如 Prometheus Alertmanager、Zabbix）在出现问题时及时通知管理员。
+
+### **自动扩展**
+
+- **容器化**：使用 Docker 和 Kubernetes 实现自动扩展和弹性伸缩。
+  - **Docker Compose**：使用 Docker Compose 文件定义和运行多容器应用。
+    ```yaml
+    version: '3'
+    services:
+      web:
+        image: nginx
+        ports:
+          - "80:80"
+        volumes:
+          - ./html:/usr/share/nginx/html
+      php:
+        image: php:7.4-fpm
+        volumes:
+          - ./html:/var/www/html
+    ```
+
+  - **Kubernetes**：使用 Kubernetes 管理容器化的应用，实现自动扩展和故障恢复。
+    ```yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: nginx-deployment
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: nginx
+      template:
+        metadata:
+          labels:
+            app: nginx
+        spec:
+          containers:
+          - name: nginx
+            image: nginx:1.19
+            ports:
+            - containerPort: 80
+    ```
