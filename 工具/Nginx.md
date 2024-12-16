@@ -1034,6 +1034,39 @@ http {
    }
    ```
 
+2. 必要配置
+
+   ```bash
+   server {
+       # 监听443端口以处理HTTPS流量
+       listen 443 ssl;
+       # 指定服务器的域名或IP地址
+       server_name yourdomain.com;
+       # 指定SSL证书文件的位置
+       ssl_certificate /etc/nginx/ssl/yourdomain.com.crt;
+       # 指定SSL私钥文件的位置
+       ssl_certificate_key /etc/nginx/ssl/yourdomain.com.key;
+       # 指定支持的TLS版本，这里仅允许TLSv1.2和TLSv1.3，更安全
+       ssl_protocols TLSv1.2 TLSv1.3;
+       # 优先使用服务器配置的加密套件，而不是客户端的偏好
+       ssl_prefer_server_ciphers on;
+       # 设置使用的加密套件，选择更安全的组合
+       ssl_ciphers "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256";
+       # 定义处理所有其他请求的location块
+       location / {
+           # 在这里放置您的应用程序配置，例如代理设置、静态文件服务等
+       }
+   }
+   # 重定向
+   server{
+       listen 80;
+       server_name yourdomain.com;
+       location / {
+           return 302 https://yourdomain.com;$request_uri;
+       }
+   }
+   ```
+
 ## Nginx跳转
 
 ### return
@@ -1044,37 +1077,174 @@ http {
 2. 一个server配置文件中可用配置多个server配置项
 
 ```bash
-listen 80
-server_name
-location / {
-return 302 https://域名$request_uri;
+server{
+    listen 80
+    server_name
+    location / {
+        return 302 https://yourdomain.com$request_uri;
+    }
 }
 # $request_uri：下级目录访问路径
 ```
 
 ### rewrite
 
+```bash
+server{
+    listen 80
+    server_name yourdomain.com;
+    location / {
+        rewrite ^/(.*) https://yourdomain.com/$1 redirect;
+        # rewrite ^/(.*) https://yourdomain.com/$1 permanent;
+    }
+}
+```
 
+1. `redirect`：代表状态302，零时跳转
+2. `permanent`：代表状态301，永久跳转
+3. `^`：代表网址
+4. `/(.*)`：匹配uri
+5. `$1`：表示匹配括号中的内容，也就是`.*`
 
 ### 不能上网的原因
 
+==我们配首了静态 ip 的涞个 NAT 樘式餉虚拟不能上网是因为被 NetworkManager 给干忧了，关闭一下它即可==
 
+```bash
+# 在 centOS 中有 NetworkManager 和 network 两种管理工具，如果这两个服务都工作时会产生冲突进而导机器无法联网
+systemctl stop NetworkManager
+systemctl disable NetworkManager
+# 重启网卡
+systemctl restart network
+# 查看网关
+route -n
+```
 
 ## Nginx gzip压缩
 
+1. 压缩：省流量、加快传输速度。服务的流量都是要花钱的。尢具是要做加速的网站，比如 CDN 加速，都是要收取流量费的。
+
+   ```bash
+   [root@localhost ~]# ll
+   total 8
+   -rw-------. 1 root root 2813 Nov 22 11:46 anaconda-ks.cfg
+   -rw-------. 1 root root 2131 Nov 22 11:46 original-ks.cfg
+   [root@localhost ~]# gzip anaconda-ks.cfg
+   [root@localhost ~]# ll
+   total 8
+   -rw-------. 1 root root 1221 Nov 22 11:46 anaconda-ks.cfg.gz
+   -rw-------. 1 root root 2131 Nov 22 11:46 original-ks.cfg
+   ```
+
+1. 配置nginx的gzip压缩，配置到server选项下
+
+   ```shell
+   gzip on;
+   gzip_min_length 1k;
+   gzip_buffers 4 32k;
+   gzip_http_version 1.1;
+   gzip_comp_level 9;
+   gzip_types text/html text/css text/xml application/javascript;
+   gzip_proxied on;
+   gzip_vary on;
+   gzip_disable "MSIE [1-7]\";
+   
+   # 启用或禁用 Gzip 压缩。
+   # "on" 表示启用压缩，"off" 表示禁用压缩。
+   gzip on;
+   # 设置允许压缩的页面最小字节数。
+   # 只有当响应体大小超过这个值时才会被压缩。设置为 1k (1024 字节)。
+   gzip_min_length 1k;
+   # 设置系统获取几个单位的缓存用于存储 gzip 的压缩结果数据流。
+   # 每个单位为32k，默认情况下会分配4个这样的单位，即总共128k的缓冲区。
+   gzip_buffers 4 32k;
+   # 设置压缩HTTP响应的最低版本。
+   # 这里设置为 "1.1"，意味着只有当客户端支持HTTP/1.1或更高版本时才进行压缩。
+   gzip_http_version 1.1;
+   # 设置Gzip模块压缩等级。
+   # 数值范围从 1 到 9，1 表示最快但压缩率最低，9 表示最慢但压缩率最高。
+   gzip_comp_level 9;
+   # 设置需要压缩的MIME类型。
+   # 默认只压缩文本文件（如HTML、CSS、XML）和JavaScript文件。
+   gzip_types text/html text/css text/xml application/javascript;
+   # 控制是否在响应头中添加 Vary: Accept-Encoding。
+   # 当设置为 "on" 时，Nginx 会在响应头中添加 Vary: Accept-Encoding，
+   # 以确保不同客户端（支持或不支持Gzip）获得正确的缓存内容。
+   gzip_vary on;
+   # 启用或禁用对代理请求的压缩。
+   # "on" 表示启用，"off" 表示禁用。这里启用了对代理请求的压缩。
+   gzip_proxied on;
+   # 禁用指定浏览器的压缩。
+   # 在这里，对于Internet Explorer 1到7版本的浏览器，不使用Gzip压缩。
+   # 使用正则表达式匹配浏览器标识字符串来决定是否禁用压缩。
+   gzip_disable "MSIE [1-7]\.";
+   ```
+
+   **注释说明**
+
+   - **`gzip on;`**：此配置项用于开启或关闭Gzip压缩功能。在高流量网站中，启用Gzip可以显著减少传输的数据量，提高页面加载速度，但也会增加服务器的CPU负载。
+   - **`gzip_min_length 1k;`**：规定了只有当响应内容长度大于等于1KB时，才会对其进行压缩。较小的文件压缩后可能不会带来明显的好处，反而可能因为压缩和解压的过程而增加了延迟。
+   - **`gzip_buffers 4 32k;`**：定义了用于存储压缩结果的缓冲区数量和大小。根据你的服务器性能和预期处理的文件大小调整这些值可以优化压缩效率。
+   - **`gzip_http_version 1.1;`**：指定了支持压缩的最低HTTP协议版本。大多数现代浏览器都支持HTTP/1.1及以上版本，因此这是一个合理的默认值。
+   - **`gzip_comp_level 9;`**：设定了压缩级别。较高的数值意味着更好的压缩比，但也意味着更高的CPU消耗。通常建议使用5或6作为平衡点，除非你有特别的需求。
+   - **`gzip_types ...;`**：列出了所有应该被压缩的内容类型。你可以根据自己的网站需求添加更多的MIME类型，比如JSON、字体文件等。
+   - **`gzip_proxied on;`**：确定是否对通过代理服务器传来的请求启用压缩。如果你的网站经常通过代理访问，确保这项设置正确是非常重要的。
+   - **`gzip_disable "MSIE [1-7]\.";`**：用于排除特定的老版本浏览器（例如Internet Explorer 1-7），因为这些浏览器可能存在与Gzip压缩相关的兼容性问题。随着旧版IE用户的减少，这条规则在现代环境中变得越来越不重要。
+
 ## Nginx目录浏览
+
+### 开启目录浏览功能
+
+1. 在server配置项里面配置
+
+   ```shell
+   autoindex on;# 开启目录浏览
+   autoindex_exact_size off;# 显示文件大小的时候带单位
+   ```
+
+2. 目录下不能有index.html文件
 
 ## Nginx访问控制
 
-### allow
+* 访问控制行为两种，允许（加白）和禁止（加黑）
+* 访问控制有两个方式，一种是在 OSI 模型的四层传输层，一种是在第七层应用层。主机防火墙就是在四层控制， nginx 就是在七层控制。
+* 访问控制需要开启防火墙
 
-### deny
+### 基于OSI四层
+
+1. 防火墙直接禁用IP
+
+2. 开启防火墙
+
+   ```bash
+   # 开启
+   systemctl start firewalld.service
+   # 关闭
+   systemctl stop firewalld.service
+   ```
+
+3. 拉黑某些ip地址
+
+   ```
+   
+   ```
+
+   
+
+### 基于OSI七层
+
+* 拉黑的，叫做加入黑名单，被禁止访问的
+* 加白的，叫做加入自名单，是允许访问的
+* allow(允许)
+* deny（拒绝）
 
 ## Nginx 的location优先级
 
 
 
 ## Nginx常用变量
+
+
 
 ## Nginx语言配置
 
