@@ -960,15 +960,105 @@ http {
 
 ## SSL认证
 
-1. http协议传输为明文传输所以不安全，配置`SSL`证书
+1. http协议传输为明文传输所以不安全，配置`SSL`证书，成为`htpts`：==https==等于==http==加==ssl==
+
+**申请ssl证书**
+
+1. 流程
+   * 进入云服务器申请域名
+   * ICP备案
+   * 然后申请ssl证书
+   * 将ssl证书压缩包下载到本地
+2. 将证书上传到nginx的安装目录下ssl文件夹内
+
+**在nginx下配置**
+
+1. 在server配置项里面配置
+
+   ```bash
+   server {
+       # 监听443端口以处理HTTPS流量
+       listen 443 ssl;
+   
+       # 指定服务器的域名或IP地址
+       server_name yourdomain.com;
+   
+       # 指定SSL证书文件的位置
+       ssl_certificate /etc/nginx/ssl/yourdomain.com.crt;
+   
+       # 指定SSL私钥文件的位置
+       ssl_certificate_key /etc/nginx/ssl/yourdomain.com.key;
+   
+       # 指定支持的TLS版本，这里仅允许TLSv1.2和TLSv1.3，更安全
+       ssl_protocols TLSv1.2 TLSv1.3;
+   
+       # 优先使用服务器配置的加密套件，而不是客户端的偏好
+       ssl_prefer_server_ciphers on;
+   
+       # 设置使用的加密套件，选择更安全的组合
+       ssl_ciphers "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256";
+   
+       # 设置SSL会话的超时时间，1天
+       ssl_session_timeout 1d;
+   
+       # 设置共享的SSL会话缓存，大小为10MB，可以存储大约40000个会话
+       ssl_session_cache shared:MozSSL:10m;
+   
+       # 禁用SSL会话票据（session tickets），以提高前向安全性
+       ssl_session_tickets off;
+   
+       # 启用HTTP严格传输安全（HSTS），强制浏览器仅通过HTTPS访问，并包括所有子域
+       add_header Strict-Transport-Security "max-age=15768000; includeSubDomains" always;
+   
+       # 启用OCSP装订（OCSP Stapling），让Nginx代替客户端从CA获取最新的OCSP响应
+       ssl_stapling on;
+   
+       # 启用OCSP装订验证，确保OCSP响应是有效的
+       ssl_stapling_verify on;
+   
+       # 指定DNS解析器用于OCSP装订，使用Google的公共DNS服务
+       resolver 8.8.8.8 8.8.4.4 valid=300s;
+   
+       # 设置DNS解析器的超时时间
+       resolver_timeout 5s;
+   
+       # 如果请求协议是HTTP，则重定向到HTTPS
+       if ($scheme = http) {
+           return 301 https://$host$request_uri;
+       }
+   
+       # 定义处理所有其他请求的location块
+       location / {
+           # 在这里放置您的应用程序配置，例如代理设置、静态文件服务等
+       }
+   }
+   ```
+
+## Nginx跳转
+
+### return
+
+==如果请求协议是HTTP，则重定向到HTTPS==
+
+1. 配置在server配置项里面的location配置项下面
+2. 一个server配置文件中可用配置多个server配置项
+
+```bash
+listen 80
+server_name
+location / {
+return 302 https://域名$request_uri;
+}
+# $request_uri：下级目录访问路径
+```
+
+### rewrite
 
 
 
-## Nginx的return跳转
+### 不能上网的原因
 
 
-
-#### Nginx的rewrite跳转和不能上网的原因
 
 ## Nginx gzip压缩
 
