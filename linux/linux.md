@@ -1152,6 +1152,13 @@ curl ifconfig.me
    * 可以通过 netstat 命令，查看指定端口的占用情况
    * 语法： `netstat -anp | grep 端口号`，安装 netstat: `yum -y install net-tools`
 
+### 禁止远程IP
+
+```shell
+firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.0/24" drop'
+firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" drop'
+```
+
 ### 进程管理
 
 1. 进程的概念

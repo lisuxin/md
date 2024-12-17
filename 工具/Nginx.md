@@ -1136,7 +1136,7 @@ route -n
    -rw-------. 1 root root 2131 Nov 22 11:46 original-ks.cfg
    ```
 
-1. 配置nginx的gzip压缩，配置到server选项下
+1. 配置nginx的gzip压缩，`gzip`相关的配置项可以放置在不同的上下文（context）中，具体取决于你希望对哪些请求启用Gzip压缩。
 
    ```shell
    gzip on;
@@ -1190,6 +1190,48 @@ route -n
    - **`gzip_types ...;`**：列出了所有应该被压缩的内容类型。你可以根据自己的网站需求添加更多的MIME类型，比如JSON、字体文件等。
    - **`gzip_proxied on;`**：确定是否对通过代理服务器传来的请求启用压缩。如果你的网站经常通过代理访问，确保这项设置正确是非常重要的。
    - **`gzip_disable "MSIE [1-7]\.";`**：用于排除特定的老版本浏览器（例如Internet Explorer 1-7），因为这些浏览器可能存在与Gzip压缩相关的兼容性问题。随着旧版IE用户的减少，这条规则在现代环境中变得越来越不重要。
+   
+   **配置位置**
+   
+   * `http`：这是最外层的上下文，适用于所有服务器和位置。如果你希望对整个Nginx服务器的所有响应启用Gzip压缩，那么你应该在这里设置。
+   
+   * `server`：这个上下文适用于特定的虚拟主机。如果你想只为一个特定的域名或IP地址启用Gzip压缩，应该在这个上下文中配置。
+   
+   * `location`：这个上下文适用于特定的URL路径。如果只希望对某些特定的资源启用Gzip压缩，例如静态文件或者API响应，那么可以在相应的`location`块中进行配置。
+   
+      ```shell
+      http {
+          # 在 http 上下文中配置 Gzip
+          gzip on;
+          gzip_types text/plain application/xml;
+      
+          server {
+              listen 80;
+              server_name example.com;
+      
+              # 在 server 上下文中覆盖 Gzip 设置
+              gzip off;
+      
+              location /static/ {
+                  # 在 location 上下文中覆盖 Gzip 设置
+                  gzip on;
+                  gzip_min_length 1000;
+                  gzip_buffers 16 8k;
+                  gzip_http_version 1.1;
+                  gzip_comp_level 6;
+                  gzip_proxied any;
+                  gzip_vary on;
+                  gzip_types text/css application/javascript;
+              }
+      
+              location /api/ {
+                  # 可以为 API 响应单独配置 Gzip
+                  gzip on;
+                  gzip_types application/json;
+              }
+          }
+      }
+      ```
 
 ## Nginx目录浏览
 
@@ -1209,6 +1251,7 @@ route -n
 * 访问控制行为两种，允许（加白）和禁止（加黑）
 * 访问控制有两个方式，一种是在 OSI 模型的四层传输层，一种是在第七层应用层。主机防火墙就是在四层控制， nginx 就是在七层控制。
 * 访问控制需要开启防火墙
+* nginx是基于第七层的访问控制
 
 ### 基于OSI四层
 
@@ -1225,28 +1268,143 @@ route -n
 
 3. 拉黑某些ip地址
 
-   ```
-   
+   ```bash
+   firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.0/24" drop'
+   firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" drop'
    ```
 
-   
+4. 查看当前系统远程链接了那些ip地址`# w`
 
 ### 基于OSI七层
 
 * 拉黑的，叫做加入黑名单，被禁止访问的
+
 * 加白的，叫做加入自名单，是允许访问的
+
 * allow(允许)
+
 * deny（拒绝）
+
+   1. 在server配置项下面的location配置项下面配置
+
+      ```bash
+      deny  ip地址 # 禁止的IP地址
+      allow ip地址 # 允许的ip地址
+      allow 0.0.0.0/0 # 允许所有的ip地址
+      ```
+
+   2. 一定是deny在allow上面，nginx先访问禁止，在允许
 
 ## Nginx 的location优先级
 
+* location，可用配置多个配置项，支持多级配置
 
+* location，可用控制优先级（支持正侧表达式）
+
+   * 没有符号，代表模糊匹配，不支持正则 location /te 可以匹配 te 开头的目录和文件
+   * `~`  表示执行一个正则匹配，区分大小与
+   * `~*`表示执行一个正则匹配，不区分大小写
+   * `=`  针对的是文件，精准匹配，不支持正则
+      * 格式：`location 匹配符 正侧表达式 地址{}`
+
+   ```shell
+   Server {
+       listen 80 default_server;
+       server_name www.we.com;
+       access—log /opt/nginx/.log jaden;
+       autoirdex on ；
+       autoindex_exact_size Off;
+       location / {
+           root /web/three;
+           index index.html index.htm;
+       }
+   #下面正则的意思是，只要用户访问 txt 文件，都返回 404 状态码。那么就可以做到各类文件的保护，或者各种路径访问的控制
+       location ~* ^.*\.txt$ {
+           return 404;
+       }
+   }
+   ```
+
+   **匹配符号优先级**
+
+   ==`=` 大于 `~` 大于 `~*` 大于 无符号==
+
+   ```shell
+   touch jpg
+   location = /jpg {
+       return 501;
+   }
+   location ~ /jpg {
+       return 501;
+   }
+   location ~* /Jpg {
+       return 501;
+   }
+   location /Jpg {
+       return 501;
+   }
+   ```
 
 ## Nginx常用变量
 
+| 变量名称                    | 描述                                         | 示例值示例                        |
+| --------------------------- | -------------------------------------------- | --------------------------------- |
+| `$args`                     | 请求中的参数字符串（查询字符串）             | `key1=value1&key2=value2`         |
+| `$content_length`           | 请求头中的 "Content-Length" 值               | `1234`                            |
+| `$content_type`             | 请求头中的 "Content-Type" 值                 | `application/json`                |
+| `$document_root`            | 当前请求的根路径 (root)                      | `/var/www/html`                   |
+| `$host`                     | 请求主机头字段，如果未设置则使用服务器名     | `example.com`                     |
+| `$http_user_agent`          | 客户端User-Agent信息                         | `Mozilla/5.0 ...`                 |
+| `$http_cookie`              | 请求中的Cookie信息                           | `session=abc123; lang=en`         |
+| `$is_args`                  | 如果请求中有参数，则为"?"，否则为空字符串    | `?` 或 空                         |
+| `$limit_rate`               | 限制连接速率，单位是字节每秒                 | `1024`                            |
+| `$request_method`           | HTTP请求方法 (GET, POST, etc.)               | `GET`                             |
+| `$remote_addr`              | 客户端IP地址                                 | `192.168.1.1`                     |
+| `$remote_port`              | 客户端端口号                                 | `54321`                           |
+| `$remote_user`              | 用户名，用于HTTP基础认证                     | `user`                            |
+| `$request_filename`         | 当前请求的文件路径                           | `/var/www/html/index.html`        |
+| `$request_uri`              | 完整的原始请求URI，包括参数                  | `/path/to/file?key1=value1`       |
+| `$scheme`                   | 协议 (http, https)                           | `http`                            |
+| `$server_protocol`          | 请求使用的协议版本                           | `HTTP/1.1`                        |
+| `$server_addr`              | 服务器地址，实际处理请求的地址               | `192.168.1.10`                    |
+| `$server_name`              | 服务器名称，根据请求的主机头匹配的服务器名称 | `example.com`                     |
+| `$server_port`              | 服务器端口                                   | `80`                              |
+| `$uri`                      | 当前的URI，不包括参数                        | `/path/to/file`                   |
+| `$query_string`             | 请求中的参数字符串，同`$args`                | `key1=value1&key2=value2`         |
+| `$status`                   | 当前请求的响应状态码                         | `200`                             |
+| `$time_local`               | 访问时间，基于本地时区                       | `17/Dec/2024:16:47:00 +0800`      |
+| `$sent_http_content_type`   | 设置响应头 "Content-Type" 的值               | `text/html`                       |
+| `$sent_http_content_length` | 设置响应头 "Content-Length" 的值             | `1234`                            |
+| `$sent_http_location`       | 设置响应头 "Location" 的值                   | `http://example.com/new-location` |
+| `$body_bytes_sent`          | 发送给客户端的字节数，不包括响应头           | `1234`                            |
+| `$connection`               | 连接序列号                                   | `123`                             |
+| `$connection_requests`      | 当前连接上的请求数                           | `5`                               |
+| `$msec`                     | 从Epoch开始的时间，以毫秒为单位              | `1702812420.123`                  |
+| `$pipe`                     | 如果请求是通过管道传递的，则为"p"，否则为"." | `.` 或 `p`                        |
+| `$ssl_cipher`               | SSL/TLS连接使用的密码套件                    | `ECDHE-RSA-AES128-GCM-SHA256`     |
+| `$ssl_client_cert`          | 客户端提供的SSL证书                          | `-----BEGIN CERTIFICATE-----...`  |
+| `$ssl_client_verify`        | 客户端证书验证状态                           | `SUCCESS`, `FAILED`               |
+| `$ssl_protocol`             | 使用的SSL/TLS协议版本                        | `TLSv1.2`                         |
 
+**百度网盘辅助下载工具：油猴**
+
+```shell
+location / {
+    if( $host != '192.168.18.25'){
+        return 304 https://192.168.18.25/gun.html
+    }
+}
+```
+
+**重点变量**
+
+```shell
+
+```
 
 ## Nginx语言配置
+
+
 
 ## Cookie 和 Session
 
