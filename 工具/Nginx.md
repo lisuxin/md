@@ -1399,12 +1399,26 @@ location / {
 **重点变量**
 
 ```shell
-
+host           # http请求头的域名
+referer        # 从那个url跳转过来的
+user_agent     # 用户的浏览器客户端信息
+Connection     # 是否为常链接
+remote_addr    # 客户端的ip
+status         # http的状态码
 ```
 
 ## Nginx语言配置
 
+* nginx是通过写多个语言版本的网站来进行相互之间的切换
 
+* 写在server项location项里面
+
+   ```shell
+   if($http_accept_language ~* ^en){
+   root 英文网站
+   }
+   root中文网站
+   ```
 
 ## Cookie 和 Session
 
