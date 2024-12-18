@@ -1536,121 +1536,139 @@ server {
     }
     ```
 
-## WordPress
-
-- **配置示例**：
-  ```nginx
-  server {
-      listen 80;
-      server_name example.com;
-  
-      root /var/www/html;
-      index index.php;
-  
-      location / {
-          try_files $uri $uri/ /index.php?$args;
-      }
-  
-      location ~ \.php$ {
-          include snippets/fastcgi-php.conf;
-          fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
-      }
-  
-      location ~ /\.ht {
-          deny all;
-      }
-  
-      # WordPress 伪静态规则
-      location /wp-content/uploads/ {
-          try_files $uri =404;
-      }
-  
-      location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
-          expires max;
-          log_not_found off;
-      }
-  }
-  ```
-
-- **优化**：
-  - **启用缓存**：使用 W3 Total Cache 或 WP Super Cache 插件来缓存页面，减少数据库查询。
-  - **CDN**：使用内容分发网络（CDN）加速静态资源的加载。
-  - **SSL**：配置 SSL 证书，确保通信的安全性。
-
-## Discuz 论坛
-
-- **配置示例**：
-  ```nginx
-  server {
-      listen 80;
-      server_name forum.example.com;
-  
-      root /var/www/html;
-      index index.php;
-  
-      location / {
-          try_files $uri $uri/ /index.php?$query_string;
-      }
-  
-      location ~ \.php$ {
-          include snippets/fastcgi-php.conf;
-          fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
-      }
-  
-      location ~ /\.ht {
-          deny all;
-      }
-  
-      # Discuz 伪静态规则
-      location /forum- {
-          rewrite ^/forum-(\d+)-(\d+).html$ /forum.php?fid=$1&page=$2 last;
-      }
-  
-      location /thread- {
-          rewrite ^/thread-(\d+)-(\d+)-(\d+).html$ /viewthread.php?tid=$1&extra=page%3D$3&page=$2 last;
-      }
-  }
-  ```
-
-- **优化**：
-  - **启用缓存**：Discuz 提供了内置的缓存机制，可以在后台启用。
-  - **CDN**：使用 CDN 加速静态资源的加载。
-  - **SSL**：配置 SSL 证书，确保通信的安全性。
-
 ## 伪静态
 
-- **定义**：伪静态是通过 URL 重写技术，将动态页面的 URL 转换为看似静态页面的 URL。
-- **实现**：使用 `rewrite` 指令或 `try_files` 指令。
-  - **rewrite 示例**：
-    ```nginx
-    location / {
-        rewrite ^/product/([0-9]+)$ /product.php?id=$1 last;
-    }
-    ```
-  - **try_files 示例**：
-    ```nginx
-    location / {
-        try_files $uri $uri/ /index.php?$args;
-    }
-    ```
+**伪静态（Pseudo-Static）** 是一种通过 URL 重写技术，将动态页面的 URL 转换为看似静态页面的 URL 的方法。实际上，这些 URL 仍然是由后端动态生成的，但对外界看起来像是静态文件的路径。伪静态的主要目的是为了提高用户体验、搜索引擎优化（SEO）以及简化 URL 结构。在 Nginx 中，伪静态是通过 `rewrite` 指令或 `location` 块中的正则表达式匹配来实现的。Nginx 不会直接处理动态内容（如 PHP、Python、Java 等），而是将请求转发给相应的应用服务器（如 FastCGI、uWSGI、Tomcat 等），但在转发之前，它可以通过 URL 重写规则将动态 URL 转换为静态样式。
 
-- **常见伪静态规则**：
-  - **WordPress**：
-    ```nginx
+### 伪静态的好处
+
+1. **更好的用户体验**：
+   - 伪静态 URL 更简洁、易读，用户更容易记住和分享。例如，`/article/123` 比 `/index.php?action=view&id=123` 更直观。
+
+2. **搜索引擎优化（SEO）**：
+   - 搜索引擎更倾向于抓取和索引静态样式的 URL，因为它们通常被认为是更稳定和可靠的资源。伪静态 URL 可以提高网站在搜索引擎中的排名。
+
+3. **隐藏技术细节**：
+   - 伪静态可以隐藏后端使用的编程语言和技术栈，增加系统的安全性。攻击者无法轻易猜测出你使用的是哪种服务器端技术。
+
+4. **缓存友好**：
+   - 伪静态 URL 通常更容易被浏览器和 CDN 缓存，从而减少服务器负载并提高页面加载速度。
+
+5. **URL 标准化**：
+   - 伪静态可以帮助统一 URL 格式，避免重复内容问题。例如，`/article/123` 和 `/article/123/` 可以被视为同一个资源。
+
+### Nginx 实现伪静态的常见方式
+
+#### 1. 使用 `rewrite` 指令
+
+`rewrite` 指令用于根据正则表达式匹配 URL，并将其重写为新的 URL 或转发给后端服务器。以下是一个简单的示例，将动态 URL 重写为静态样式：
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+
+    # 伪静态规则：将 /article/123 重写为 /index.php?action=view&id=123
+    rewrite ^/article/([0-9]+)$ /index.php?action=view&id=$1 last;
+
     location / {
-        try_files $uri $uri/ /index.php?$args;
+        try_files $uri $uri/ /index.php?$query_string;
     }
-    ```
-  - **Discuz**：
-    ```nginx
-    location /forum- {
-        rewrite ^/forum-(\d+)-(\d+).html$ /forum.php?fid=$1&page=$2 last;
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
     }
-    ```
+}
+```
+
+- **`rewrite ^/article/([0-9]+)$ /index.php?action=view&id=$1 last;`**：
+  - 这条规则将 URL `/article/123` 重写为 `/index.php?action=view&id=123`。
+  - `([0-9]+)` 是一个正则表达式，匹配数字 ID，并将其捕获为 `$1`。
+  - `last` 表示如果匹配成功，则停止进一步的 rewrite 规则处理，并继续处理后续的 location 块。
+
+#### 2. 使用 `try_files` 指令
+
+`try_files` 指令可以根据文件是否存在来决定如何处理请求。它可以用于实现伪静态，尤其是在结合框架（如 Laravel、WordPress 等）时非常常用。以下是一个常见的用法：
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+
+    root /var/www/html;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+    }
+}
+```
+
+- **`try_files $uri $uri/ /index.php?$query_string;`**：
+  - 这条规则首先尝试查找请求的文件或目录（`$uri` 和 `$uri/`）。如果找不到，则将请求转发给 `index.php`，并将查询字符串传递给它。
+  - 这种方式非常适合基于 MVC 框架的应用程序，因为它们通常将所有请求路由到一个入口文件（如 `index.php`），然后由框架内部进行路由解析。
+
+#### 3. 使用 `location` 块和正则表达式
+
+你还可以在 `location` 块中使用正则表达式来匹配特定的 URL 模式，并将其重写或转发给后端服务器。以下是一个示例，将 `/user/profile/username` 重写为 `/user.php?username=username`：
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+
+    location ~ ^/user/profile/([^/]+)$ {
+        rewrite ^/user/profile/([^/]+)$ /user.php?username=$1 last;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+    }
+}
+```
+
+- **`location ~ ^/user/profile/([^/]+)$`**：
+  - 这个 `location` 块使用正则表达式匹配 URL `/user/profile/username`，其中 `([^/]+)` 匹配用户名部分。
+  - `rewrite` 规则将匹配的 URL 重写为 `/user.php?username=username`，并将请求转发给 PHP 处理。
+
+### 伪静态与真实静态的区别
+
+- **伪静态**：
+  - URL 看起来像静态文件，但实际上是由后端动态生成的。每次访问时，服务器都会根据请求参数生成内容。
+  - 伪静态 URL 更适合需要频繁更新的内容，因为它不会真正生成静态文件。
+
+- **真实静态**：
+  - 真正的静态文件是指提前生成并存储在服务器上的 HTML、CSS、JavaScript 文件等。每次访问时，服务器直接返回这些文件，而不需要经过后端处理。
+  - 真实静态文件适合不经常变化的内容，如博客文章、图片等。它们可以显著提高性能，因为不需要每次都调用后端应用。
+
+### 伪静态的注意事项
+
+1. **缓存**：
+   - 伪静态 URL 通常更容易被浏览器和 CDN 缓存，但要注意设置适当的缓存策略，避免缓存过期导致用户看到旧内容。
+
+2. **SEO**：
+   - 确保伪静态 URL 是唯一的，避免重复内容问题。例如，`/article/123` 和 `/article/123/` 应该被视为同一个资源。
+
+3. **性能**：
+   - 虽然伪静态可以提高用户体验和 SEO，但它并不会显著提升性能，因为每次请求仍然需要经过后端处理。如果你希望进一步优化性能，可以考虑使用真实的静态文件或启用 Nginx 的缓存功能。
+
+4. **安全性**：
+   - 伪静态可以隐藏后端的技术细节，增加系统的安全性，但不要依赖它作为唯一的防护措施。确保你的应用程序本身也是安全的，防止 SQL 注入、XSS 等漏洞。
 
 ## 正向代理
 
 - **定义**：正向代理是客户端通过代理服务器访问互联网资源的方式。
+- **正向代理（Forward Proxy）** 是一种服务器配置，它位于客户端和目标服务器之间，作为中间层来处理客户端的请求。与反向代理不同，正向代理的主要目的是为客户端提供访问控制、匿名性或优化网络性能。通过正向代理，客户端可以间接地访问外部网络资源，而不需要直接连接到目标服务器。在正向代理的工作模式中，客户端首先将请求发送给正向代理服务器，而不是直接发送给目标服务器。正向代理服务器接收到请求后，会根据配置决定是否允许该请求通过，并将其转发给目标服务器。目标服务器响应后，正向代理再将响应返回给客户端。
 - **配置示例**：
   ```nginx
   http {
@@ -1673,7 +1691,9 @@ server {
 ## 反向代理
 
 - **定义**：反向代理位于服务器端，客户端不知道它正在通过代理服务器访问资源。
+- **反向代理（Reverse Proxy）** 是一种服务器配置，它位于客户端和后端服务器之间，作为中间层来处理客户端的请求。与正向代理不同，反向代理的主要目的是保护和优化后端服务器，而不是为客户端提供匿名性或访问控制。在反向代理的工作模式中，客户端并不直接与后端服务器通信，而是通过反向代理服务器进行请求和响应的转发。反向代理服务器接收来自客户端的请求，然后将这些请求转发给适当的后端服务器，最后将后端服务器的响应返回给客户端。对于客户端来说，它们只知道反向代理的存在，而不知道实际的后端服务器。
 - **配置示例**：
+  
   ```nginx
   upstream backend {
       server backend1.example.com;
@@ -1693,18 +1713,37 @@ server {
       }
   }
   ```
-
+  
 - **应用场景**：
   - **负载均衡**：将请求分发到多个后端服务器。
   - **SSL 终止**：解密 HTTPS 请求，减轻后端服务器的负担。
   - **缓存**：缓存静态资源，减少后端服务器的压力。
 
-## Nginx 的架构部署
+当然，下面是每个配置示例加上详细注释后的版本。这样可以帮助你更好地理解每个指令的作用。
 
-### **高可用性 (HA) 和负载均衡**
+### 基本反向代理
+
+```nginx
+server {
+    listen 80;  # 监听 HTTP 的 80 端口
+    server_name example.com;  # 指定服务器名称或域名
+
+    location / {  # 匹配所有请求
+        proxy_pass http://backend_server;  # 将请求转发给后端服务器
+        proxy_set_header Host $host;  # 设置 Host 头为原始请求的主机名
+        proxy_set_header X-Real-IP $remote_addr;  # 设置 X-Real-IP 头为客户端的真实 IP 地址
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # 添加 X-Forwarded-For 头，包含客户端 IP 和任何中间代理的 IP
+        proxy_set_header X-Forwarded-Proto $scheme;  # 设置 X-Forwarded-Proto 头为请求协议（http 或 https）
+    }
+}
+```
+
+### 负载均衡
 
 - **负载均衡**：
+
   - **轮询 (Round Robin)**：默认的负载均衡算法，每个请求按顺序分配给不同的后端服务器。
+
     ```nginx
     upstream backend {
         server backend1.example.com;
@@ -1713,6 +1752,7 @@ server {
     ```
 
   - **加权轮询 (Weighted Round Robin)**：为不同后端服务器分配权重，权重越高的服务器接收到的请求越多。
+
     ```nginx
     upstream backend {
         server backend1.example.com weight=3;
@@ -1721,6 +1761,7 @@ server {
     ```
 
   - **IP 哈希 (IP Hash)**：根据客户端 IP 地址的哈希值选择后端服务器，确保同一客户端的请求总是被转发到同一台服务器。
+
     ```nginx
     upstream backend {
         ip_hash;
@@ -1730,6 +1771,7 @@ server {
     ```
 
   - **最少连接 (Least Connections)**：将请求分配给当前连接数最少的后端服务器。
+
     ```nginx
     upstream backend {
         least_conn;
@@ -1739,58 +1781,180 @@ server {
     ```
 
 - **健康检查**：
+
   - **Nginx Plus** 提供了内置的健康检查功能，可以自动检测后端服务器的状态，并在服务器不可用时将其从负载均衡池中移除。
   - **第三方模块**：对于开源版 Nginx，可以使用第三方模块（如 `nginx-upstream-check-module`）来实现健康检查。
 
-### **缓存**
+```nginx
+upstream backend_servers {  # 定义一个名为 backend_servers 的上游服务器组
+    least_conn;  # 使用最少连接数算法来选择后端服务器
+    server backend1.example.com;  # 第一个后端服务器
+    server backend2.example.com;  # 第二个后端服务器
+    server backend3.example.com backup;  # 第三个后端服务器，作为备用服务器
+}
 
-- **FastCGI 缓存**：Nginx 可以缓存 PHP 等动态内容，减少对后端服务器的压力。
-  - **配置示例**：
-    ```nginx
-    fastcgi_cache_path /var/cache/nginx levels=1:2 keys_zone=my_cache:10m max_size=1g inactive=60m use_temp_path=off;
-    
+server {
+    listen 80;  # 监听 HTTP 的 80 端口
+    server_name example.com;  # 指定服务器名称或域名
+
+    location / {  # 匹配所有请求
+        proxy_pass http://backend_servers;  # 将请求转发给 upstream 中定义的服务器组
+        proxy_set_header Host $host;  # 设置 Host 头为原始请求的主机名
+        proxy_set_header X-Real-IP $remote_addr;  # 设置 X-Real-IP 头为客户端的真实 IP 地址
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # 添加 X-Forwarded-For 头，包含客户端 IP 和任何中间代理的 IP
+        proxy_set_header X-Forwarded-Proto $scheme;  # 设置 X-Forwarded-Proto 头为请求协议（http 或 https）
+        
+        # 可选：增加超时时间，防止长连接被过早关闭
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+}
+```
+
+### 缓存
+
+```nginx
+http {
+    proxy_cache_path /data/nginx/cache  # 定义缓存路径和参数
+        levels=1:2  # 缓存目录结构为两级
+        keys_zone=my_cache:10m  # 定义缓存区域名称和大小
+        max_size=1g  # 最大缓存大小
+        inactive=60m  # 非活动资源在缓存中的过期时间
+        use_temp_path=off;  # 不使用临时文件路径存储缓存
+
     server {
-        location ~ \.php$ {
-            fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
-            fastcgi_cache my_cache;
-            fastcgi_cache_valid 200 60m;
-            fastcgi_cache_bypass $no_cache;
-            fastcgi_no_cache $no_cache;
+        listen 80;  # 监听 HTTP 的 80 端口
+        server_name example.com;  # 指定服务器名称或域名
+
+        location / {  # 匹配所有请求
+            proxy_pass http://backend_server;  # 将请求转发给后端服务器
+            proxy_set_header Host $host;  # 设置 Host 头为原始请求的主机名
+            proxy_set_header X-Real-IP $remote_addr;  # 设置 X-Real-IP 头为客户端的真实 IP 地址
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # 添加 X-Forwarded-For 头，包含客户端 IP 和任何中间代理的 IP
+            proxy_set_header X-Forwarded-Proto $scheme;  # 设置 X-Forwarded-Proto 头为请求协议（http 或 https）
+
+            proxy_cache my_cache;  # 启用缓存，使用之前定义的缓存区域
+            proxy_cache_valid 200 302 10m;  # 对状态码 200 和 302 的响应缓存 10 分钟
+            proxy_cache_valid 404 1m;  # 对状态码 404 的响应缓存 1 分钟
         }
     }
-    ```
+}
+```
 
-- **Redis 缓存**：使用 Redis 存储和共享会话数据，确保多个服务器之间的会话一致性。
-  - **PHP-FPM 配置示例**：
-    ```php
-    session.save_handler = redis
-    session.save_path = "tcp://127.0.0.1:6379"
-    ```
+### 跨域资源共享 (CORS)
 
-### **SSL/TLS**
+```nginx
+location /api/ {  # 匹配以 /api/ 开头的请求
+    if ($request_method = 'OPTIONS') {  # 如果请求方法是 OPTIONS
+        add_header 'Access-Control-Allow-Origin' '*';  # 允许所有来源访问
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';  # 允许的方法
+        add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';  # 允许的头部
+        add_header 'Access-Control-Max-Age' 1728000;  # 预检请求结果的有效期
+        add_header 'Content-Type' 'text/plain charset=UTF-8';  # 内容类型
+        add_header 'Content-Length' 0;  # 内容长度
+        return 204;  # 返回 204 No Content 响应
+    }
+    if ($request_method = 'POST') {  # 如果请求方法是 POST
+        add_header 'Access-Control-Allow-Origin' '*';  # 允许所有来源访问
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';  # 允许的方法
+        add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';  # 允许的头部
+    }
+    if ($request_method = 'GET') {  # 如果请求方法是 GET
+        add_header 'Access-Control-Allow-Origin' '*';  # 允许所有来源访问
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';  # 允许的方法
+        add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';  # 允许的头部
+    }
 
-- **Let's Encrypt**：使用 Let's Encrypt 提供的免费 SSL 证书，确保通信的安全性。
-  - **Certbot**：Certbot 是一个自动化工具，可以帮助你获取和安装 Let's Encrypt 证书。
-    ```bash
-    sudo apt-get install certbot python3-certbot-nginx
-    sudo certbot --nginx -d example.com -d www.example.com
-    ```
+    proxy_pass http://backend_server;  # 将请求转发给后端服务器
+    proxy_set_header Host $host;  # 设置 Host 头为原始请求的主机名
+    proxy_set_header X-Real-IP $remote_addr;  # 设置 X-Real-IP 头为客户端的真实 IP 地址
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # 添加 X-Forwarded-For 头，包含客户端 IP 和任何中间代理的 IP
+    proxy_set_header X-Forwarded-Proto $scheme;  # 设置 X-Forwarded-Proto 头为请求协议（http 或 https）
+}
+```
 
-- **自动续期**：配置定时任务自动续期 SSL 证书。
-  - **crontab 配置**：
-    ```bash
-    0 0 * * * /usr/bin/certbot renew --quiet
-    ```
+### SSL/TLS 配置
+
+```nginx
+server {
+    listen 443 ssl;  # 监听 HTTPS 的 443 端口，并启用 SSL
+    server_name example.com;  # 指定服务器名称或域名
+
+    ssl_certificate /etc/nginx/ssl/example.com.crt;  # SSL 证书路径
+    ssl_certificate_key /etc/nginx/ssl/example.com.key;  # SSL 私钥路径
+
+    ssl_protocols TLSv1.2 TLSv1.3;  # 支持的 SSL/TLS 协议版本
+    ssl_prefer_server_ciphers on;  # 优先使用服务器端的加密套件
+    ssl_ciphers HIGH:!aNULL:!MD5;  # 加密套件设置，确保高安全性
+
+    location / {  # 匹配所有请求
+        proxy_pass http://backend_server;  # 将请求转发给后端服务器
+        proxy_set_header Host $host;  # 设置 Host 头为原始请求的主机名
+        proxy_set_header X-Real-IP $remote_addr;  # 设置 X-Real-IP 头为客户端的真实 IP 地址
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # 添加 X-Forwarded-For 头，包含客户端 IP 和任何中间代理的 IP
+        proxy_set_header X-Forwarded-Proto $scheme;  # 设置 X-Forwarded-Proto 头为请求协议（http 或 https）
+    }
+}
+```
+
+### WebSocket 支持
+
+```nginx
+location /ws/ {  # 匹配以 /ws/ 开头的请求
+    proxy_pass http://backend_server;  # 将请求转发给后端服务器
+    proxy_http_version 1.1;  # 使用 HTTP/1.1 版本，因为 WebSocket 需要它
+    proxy_set_header Upgrade $http_upgrade;  # 如果客户端发送了 Upgrade 头，则转发它
+    proxy_set_header Connection "upgrade";  # 如果客户端发送了 Connection 头，则设置为 upgrade
+    proxy_set_header Host $host;  # 设置 Host 头为原始请求的主机名
+    proxy_set_header X-Real-IP $remote_addr;  # 设置 X-Real-IP 头为客户端的真实 IP 地址
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # 添加 X-Forwarded-For 头，包含客户端 IP 和任何中间代理的 IP
+    proxy_set_header X-Forwarded-Proto $scheme;  # 设置 X-Forwarded-Proto 头为请求协议（http 或 https）
+}
+```
+
+### 防盗链
+
+```nginx
+location ~* \.(gif|jpg|png|css|js)$ {  # 匹配指定类型的静态资源文件
+    valid_referers none blocked *.example.com example.com;  # 允许来自 example.com 及其子域名的请求，其他来源将被视为无效
+    if ($invalid_referer) {  # 如果 referer 是无效的
+        return 403;  # 返回 403 Forbidden 错误
+    }
+
+    proxy_pass http://backend_server;  # 将请求转发给后端服务器
+    proxy_set_header Host $host;  # 设置 Host 头为原始请求的主机名
+    proxy_set_header X-Real-IP $remote_addr;  # 设置 X-Real-IP 头为客户端的真实 IP 地址
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # 添加 X-Forwarded-For 头，包含客户端 IP 和任何中间代理的 IP
+    proxy_set_header X-Forwarded-Proto $scheme;  # 设置 X-Forwarded-Proto 头为请求协议（http 或 https）
+}
+```
+
+### URL 重写和重定向
+
+```nginx
+server {
+    listen 80;  # 监听 HTTP 的 80 端口
+    server_name olddomain.com;  # 指定旧域名
+
+    rewrite ^/(.*)$ http://newdomain.com/$1 permanent;  # 301 永久重定向到新域名，保留原始路径
+
+    # 下面是一个在同一服务器块内的重写规则示例
+    location /oldpath/ {  # 匹配以 /oldpath/ 开头的请求
+        rewrite ^/oldpath/(.*)$ /newpath/$1 break;  # 仅重写路径，不改变域名
+    }
+}
+```
 
 ### **日志和监控**
 
 - **访问日志和错误日志**：配置 Nginx 的访问日志和错误日志，记录服务器的运行情况。
+  
   - **配置示例**：
     ```nginx
     access_log /var/log/nginx/access.log;
     error_log /var/log/nginx/error.log;
     ```
-
+  
 - **监控工具**：使用 Prometheus、Grafana 等监控工具实时监控系统性能。
   - **Prometheus Exporter**：安装 Nginx Exporter 收集 Nginx 的指标数据。
     
@@ -1799,45 +1963,3 @@ server {
     ```
   
 - **报警系统**：配置报警系统（如 Prometheus Alertmanager、Zabbix）在出现问题时及时通知管理员。
-
-### **自动扩展**
-
-- **容器化**：使用 Docker 和 Kubernetes 实现自动扩展和弹性伸缩。
-  - **Docker Compose**：使用 Docker Compose 文件定义和运行多容器应用。
-    ```yaml
-    version: '3'
-    services:
-      web:
-        image: nginx
-        ports:
-          - "80:80"
-        volumes:
-          - ./html:/usr/share/nginx/html
-      php:
-        image: php:7.4-fpm
-        volumes:
-          - ./html:/var/www/html
-    ```
-
-  - **Kubernetes**：使用 Kubernetes 管理容器化的应用，实现自动扩展和故障恢复。
-    ```yaml
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: nginx-deployment
-    spec:
-      replicas: 3
-      selector:
-        matchLabels:
-          app: nginx
-      template:
-        metadata:
-          labels:
-            app: nginx
-        spec:
-          containers:
-          - name: nginx
-            image: nginx:1.19
-            ports:
-            - containerPort: 80
-    ```
