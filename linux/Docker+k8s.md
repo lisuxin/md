@@ -21,6 +21,8 @@
 * 虚拟化与容器的对比
 
    ![image-20241219162121302](../typoratuxiang/linux/dockerks1.png)
+   
+   
 
 Docker 是一个开源的平台，用于自动化开发、部署和运行应用程序。它利用容器化技术来打包应用程序及其所有依赖项（如库、配置文件、环境变量等），使得应用程序可以在任何支持 Docker 的环境中一致地运行，无论是在开发人员的笔记本电脑上、测试服务器上还是生产环境中。以下是 Docker 的主要作用和优势：
 
@@ -46,7 +48,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 
 ==利用 Docker 可以实现开发，测试，生产环境的部署一致性，极大的减少运维成本。==
 
-`第六个视频记得画图`
+![image](../typoratuxiang/linux/dockerks2.png)
 
 * 使用docker的优点
    * 容器内的应用程序直接运行在宿主机的内核上，容器内没有自己的内核，也没有对硬件进行虚拟，因此容器比起虚拟机更为轻便。
@@ -58,11 +60,94 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 
 ### docker基础组件
 
+<svg width="1500" height="500">
+  <!-- 第三个园，面积最大 -->
+  <circle cx="500" cy="250" r="250" fill="hsl(214, 33%, 82%)" opacity="0.5"/>
+  <!-- 第二个园，面积是第一个的一倍 -->
+  <circle cx="500" cy="300" r="200" fill="hsl(218, 29%, 67%)" opacity="0.5"/>
+  <!-- 第一个园，面积最小 -->
+  <circle cx="500" cy="350" r="150" fill="hsl(225, 27%, 45%)" opacity="0.5"/>
+  <rect x="70" y="50" width="200" height="70" fill="white" stroke="black" stroke-width="1" />
+  <rect x="" y="300" width="200" height="70" fill="white" stroke="black" stroke-width="1" />
+  <rect x="730" y="50" width="200" height="70" fill="white" stroke="black" stroke-width="1" />
+  <rect x="800" y="300" width="200" height="70"  fill="white" stroke="black" stroke-width="1"/>
+    <text x="50" y="20" text-anchor="middle" dominant-baseline="central" font-size="20" fill="black">
+        Docker 引擎
+  </text>
+    <text x="180" y="20" text-anchor="middle" dominant-baseline="central" font-size="14" fill="black">
+        Docker Engine是C/S架构
+  </text>
+    <text x="500" y="400" text-anchor="middle" dominant-baseline="central" font-size="14" fill="black">
+        服务器端 Docker进程 (Server Docker Daemon)
+  </text>
+    <text x="500" y="170" text-anchor="middle" dominant-baseline="central" font-size="14" fill="black">
+    API接口 (REST API)
+  </text>
+    <text x="500" y="70" text-anchor="middle" dominant-baseline="central" font-size="14" fill="black">
+    Docker客户端命令行 (Client Docker CLI)
+  </text>
+    <text x="170" y="90" text-anchor="middle" dominant-baseline="central" font-size="14" fill="black">
+    容器 (Containers)
+  </text>
+    <text x="100" y="340" text-anchor="middle" dominant-baseline="central" font-size="14" fill="black">
+    网络 (Networks)
+  </text>
+    <text x="830" y="90" text-anchor="middle" dominant-baseline="central" font-size="14" fill="black">
+    镜像 (Images)
+  </text>
+    <text x="900" y="340" text-anchor="middle" dominant-baseline="central" font-size="14" fill="black">
+    数据卷 (Data Volumes)
+  </text>
+    <line x1="270" y1="90" x2="310" y2="90" stroke="black" stroke-width="1" />
+    <line x1="200" y1="340" x2="270" y2="340" stroke="black" stroke-width="1" />
+    <line x1="690" y1="90" x2="730" y2="90" stroke="black" stroke-width="1" />
+    <line x1="730" y1="340" x2="800" y2="340" stroke="black" stroke-width="1" />
+</svg>
 
+**Docker Daemon**
+
+* 安装使用 Docker ，得先运行 Docker Daemon 进程，用于管理 docker ，如
+   * 镜像 images
+   * 容器 containers
+   * 网络 network
+   * 数据卷 Data V0lumes
+
+**Rest 接口**
+
+* 提供和Daemon交互的API接口
+
+**Docker Client**
+
+* 客户端使用的REST API和Docker Daemon进行访问。
+
+**docker 平台组成**
+
+![image-20241220173435629](../typoratuxiang/linux/docker3.png)
+
+* 客户端
+   1. Docker构建：基于dockerfile构建镜像
+   2. Docker拉取：下载别人的镜像docker pull
+   3. Docker启动：启动docker 容器
+* 镜像厂库
+   1. 在网络中的一个仓库，用于管理docker的镜像image
+   2. 运行image生成容器
+* Docker主机：从镜像中拉取到容器中
+* 核心组件
+   * image 镜像，构建容器（我们讲应用程序运行所需的环境，打包为镜像文件）
+   * Container ，容器（你的应用程序，就跑在容器中）
+   * 镜像仓库 (dockerhub) （保存镜像文件，提供上传，下载镜像）作用好比 github
+   * Dockerfi1e ，将你部署项目的操作，写成一个部署脚本，这就是 dockerfile, 且该脚本还能够构建出镜像文件
 
 ## docker-ce安装启动
+
+
+
 ## 光速学会docker用法
+
+
+
 ## docker生命周期详解
+
 ## 用docker使用三种操作系统
 ## docker让老王早点下班
 ## 详解docker镜像原理(一)

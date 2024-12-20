@@ -598,13 +598,12 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant 99 as 救救
+    participant commer as 救救
     participant seller as 炸鸡店小哥
-    99 ->> seller: 还有炸鸡吗？
-    seller -->> 99: 没有，要现炸。
-    99 -x +seller:给我炸！
-    seller -->> -99: 您的炸鸡好了！
-    
+    commer ->> seller: 还有炸鸡吗？
+    seller -->> commer: 没有，要现炸。
+    commer -x +seller:给我炸！
+    seller -->> -commer: 您的炸鸡好了！
 ```
 
 #### 注解（note）
@@ -640,16 +639,15 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant 99 as 救救
+    participant commer as 救救
     participant seller as 炸鸡店小哥
-    Note over 99,seller : 热爱炸鸡
-    Note left of 99 : 女
+    Note over commer,seller : 热爱炸鸡
+    Note left of commer : 女
     Note right of seller : 男
-    99 ->> seller: 还有炸鸡吗？
-    seller -->> 99: 没有，要现炸。
-    99 -x +seller : 给我炸！
-    seller -->> -99: 您的炸鸡好了！
-
+    commer ->> seller: 还有炸鸡吗？
+    seller -->> commer: 没有，要现炸。
+    commer -x +seller : 给我炸！
+    seller -->> -commer: 您的炸鸡好了！
 ```
 
 #### 循环（loop）
@@ -675,17 +673,17 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant 99 as 救救
+    participant commer as 救救
     participant seller as 炸鸡店小哥
    
-    99 ->> seller: 还有炸鸡吗？
-    seller -->> 99: 没有，要现炸。
-    99 ->> +seller:给我炸！
+    commer ->> seller: 还有炸鸡吗？
+    seller -->> commer: 没有，要现炸。
+    commer ->> +seller:给我炸！
     loop 三分钟一次
-        99 ->> seller : 我的炸鸡好了吗？
-        seller -->> 99 : 正在炸
+        commer ->> seller : 我的炸鸡好了吗？
+        seller -->> commer : 正在炸
     end
-    seller -->> -99: 您的炸鸡好了！
+    seller -->> -commer: 您的炸鸡好了！
 ```
 
 #### 选择（alt）
@@ -712,20 +710,20 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram    
-    participant 99 as 救救
+    participant commer as 救救
     participant seller as 炸鸡店小哥
-    99 ->> seller : 现在就多少只炸好的炸鸡？
-    seller -->> 99 : 可卖的炸鸡数
+    commer ->> seller : 现在就多少只炸好的炸鸡？
+    seller -->> commer : 可卖的炸鸡数
     
     alt 可卖的炸鸡数 > 3
-        99 ->> seller : 买三只！
+        commer ->> seller : 买三只！
     else 1 < 可卖的炸鸡数 < 3
-        99 ->> seller : 有多少买多少
+        commer ->> seller : 有多少买多少
     else 可卖的炸鸡数 < 1
-        99 ->> seller : 那我明天再来
+        commer ->> seller : 那我明天再来
     end
 
-    seller -->> 99 : 欢迎下次光临
+    seller -->> commer : 欢迎下次光临
 ```
 
 #### 可选（opt）
@@ -746,11 +744,11 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant 99 as 救救
+    participant commer as 救救
     participant seller as 炸鸡店小哥
-    99 ->> seller : 买炸鸡
+    commer ->> seller : 买炸鸡
     opt 全都卖完了
-        seller -->> 99 : 下次再来
+        seller -->> commer : 下次再来
     end
 ```
 
@@ -776,18 +774,19 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-   participant 99 as 救救
-   participant seller as 炸鸡店小哥
-   
-    99 ->> seller : 一个炸鸡，一杯可乐！
+   participant Customer as 顾客
+   participant Seller as 炸鸡店小哥
 
-    par 并行执行
-        seller ->> seller : 装可乐
+   Customer ->> Seller : 一个炸鸡，一杯可乐！
+
+    par 准备订单
+        Seller ->> Seller : 装可乐
     and
-        seller ->> seller : 炸炸鸡
+        Seller ->> Seller : 炸炸鸡
     end
 
-    seller -->> 99 : 您的炸鸡好了！
+    Seller -->> Customer : 您的订单好了！
+    Customer -->> Seller : (取走餐点)
 ```
 
 
@@ -807,7 +806,7 @@ pie
     title Pie Chart
     "Dogs" : 386
     "Cats" : 85
-    "Rats" : 150 
+    "Rats" : 150
     "panda" : 200
 ```
 

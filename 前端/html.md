@@ -362,7 +362,7 @@ S:Server服务器
 - ***** 号代表前面的字符可以不出现，也可以出现一次或者多次（0次、或1次、或多次）。
 - **?** 问号代表前面的字符最多只可以出现一次（0次或1次）。
 
-![image-20220527004830433](D:/笔记/md/typoratuxiang/zawu/zcbds1.png)
+![image-20220527004830433](../typoratuxiang/zawu/zcbds1.png)
 
 ## `java正侧表达式`
 
