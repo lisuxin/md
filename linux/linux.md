@@ -1896,6 +1896,56 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
 
 
 
+
+
+## CentOS配置阿里云yum源和阿里云epel源
+
+**阿里云地址**
+
+```shell
+https://developer.aliyun.com/mirror/
+```
+
+### 一、 备份
+
+```shell
+cd /etc/yum.repos.d/ && mkdir bak
+mv *.repo *repo.rpmnew ./bak/
+```
+
+### 二、 配置阿里云yum源
+
+```shell
+wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
+#或者
+curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
+#进入目录
+cd /etc/yum.repos.d/
+wget https://mirrors.aliyun.com/repo/Centos-7.repo
+
+yum clean all
+yum makecache
+```
+
+### 三、 配置阿里云epel源
+
+```shell
+wget -O /etc/yum.repos.d/epel.repo https://mirrors.aliyun.com/repo/epel-7.repo
+wget -O /etc/yum.repos.d/epel.repo https://mirrors.aliyun.com/repo/epel-8.repo
+#或者
+cd /etc/yum.repos.d/
+wget https://mirrors.aliyun.com/repo/epel-7.repo
+
+yum clean all
+yum makecache
+```
+
+### 四、测试
+
+```shell
+yum install -y httpd
+```
+
 # 数据结构
 
 ## 线性表
