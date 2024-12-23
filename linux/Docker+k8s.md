@@ -153,11 +153,24 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
      # 阿里云源
      wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-vault-8.5.2111.repo
      # 安装 epel 配置包
-     wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-8.repo
+     yum install -y https://mirrors.aliyun.com/epel/epel-release-latest-8.noarch.rpm
+     # 将 repo 配置中的地址替换为阿里云镜像站地址
+     sed -i 's|^#baseurl=https://download.example/pub|baseurl=https://mirrors.aliyun.com|' /etc/yum.repos.d/epel*
+     sed -i 's|^metalink|#metalink|' /etc/yum.repos.d/epel*
+     
      # 清理缓存
      yum clean all
      # 从新加载yum缓存
      yum makecache
+     
+     # 查看所有已启用和禁用的仓库：
+     yum repolist all
+     # 只查看已启用的仓库：
+     yum repolist enabled
+     # 只查看已禁用的仓库：
+     yum repolist disabled
+     # 启用禁用的仓库：如果你想启用一个禁用的仓库，可以通过编辑相应的 .repo 文件将 enabled 设置为 1，或者使用命令行工具如 yum-config-manager 来更改仓库的状态。对于 EPEL 仓库，你可以使用如下命令来启用它：位置/etc/yum.repos.d/
+     yum-config-manager --enable epel
      ```
   
   2. 安装常用工具
@@ -345,29 +358,31 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
        # 添加配置
        vim /etc/docker/daemon.json
        {
-         "registry-mirrors": ["https://qpr2tvq3.mirror.aliyuncs.com"]
+         "registry-mirrors": ["https://qpr2tvq3.mirror.aliyuncs.com","http://hub-mirror.c.163.com","https://registry.docker-cn.com"]
        }
+       curl -v https://qpr2tvq3.mirror.aliyuncs.com
        # 重启，设置开机自启
        systemctl daemon-reload # 重新加载systemctl服务
        systemctl enable docker # 启动docker服务，开机自启动
+       systemctl restart docke
        ```
 
   3. **启动测试docker**
 
      1. 启动docker服务
-
+  
         ```shell
         systemctl start docker
         ```
 
      2. 查看docker服务状态
-
+  
         ```shell
         systemctl status docker
         ```
 
      3. 停止docker
-
+  
         ```shell
         # 关闭docker开机自启
         systemctl disable docker
@@ -376,12 +391,22 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
         systemctl stop docker.socket && systemctl stop docker
         ps -ef | grep docker
         ```
-
+  
         * `docker.socket` 是 Docker 服务的一个重要组成部分，它允许 Docker 守护程序按需启动，而不是一直运行在后台。通过 `docker.socket`，你可以提高系统的效率，同时确保 Docker 在需要时能够快速响应。你可以根据自己的需求选择是否启用或禁用 `docker.socket`，并使用 `systemctl` 命令来管理它的状态。
 
 ### docker用法
 
+1. 第一个docker容器：运行nginx
 
+   * 查看镜像
+
+      ```
+      docker search 名称
+      # 查看你nginx镜像
+      docker search nginx
+      ```
+
+      
 
 ## docker生命周期详解
 
