@@ -364,7 +364,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
        # 重启，设置开机自启
        systemctl daemon-reload # 重新加载systemctl服务
        systemctl enable docker # 启动docker服务，开机自启动
-       systemctl restart docke
+       systemctl restart docke # 重启
        ```
 
   3. **启动测试docker**
@@ -404,6 +404,15 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
       docker search 名称
       # 查看你nginx镜像
       docker search nginx
+      ```
+
+2. 使用自己的docker阿里云私有仓库
+
+   * 登录
+
+      ```shell
+      docker login --username=lisuxin crpi-qo0vvg6tfj5fe102.us-west-1.personal.cr.aliyuncs.com
+      # 密码w}+tK6UB
       ```
 
       

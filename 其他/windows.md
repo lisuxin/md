@@ -70,3 +70,13 @@
 13. 小红帽
     * 用户名：lisuxin
     * 密码：kuT3RUX_Ed5!w6G
+14. Registry登录密码
+    * 用户名：阿里云账户全名 ：lisuxin
+    * 密码：tk-(.<fA
+15. docker客户端登录时使用的密码
+    * 用户名：阿里云账户全名：lisuxin
+    * 密码：w}+tK6UB
+16. 云服务器ecs
+    * 用户名：root
+    * 密码：J2vEkF/H
+
