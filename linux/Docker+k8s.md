@@ -360,27 +360,26 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
        {
          "registry-mirrors": ["https://qpr2tvq3.mirror.aliyuncs.com","http://hub-mirror.c.163.com","https://registry.docker-cn.com"]
        }
-       curl -v https://qpr2tvq3.mirror.aliyuncs.com
        # 重启，设置开机自启
        systemctl daemon-reload # 重新加载systemctl服务
        systemctl enable docker # 启动docker服务，开机自启动
        systemctl restart docke # 重启
        ```
-
+     
   3. **启动测试docker**
-
+  
      1. 启动docker服务
   
         ```shell
         systemctl start docker
         ```
-
+  
      2. 查看docker服务状态
   
         ```shell
         systemctl status docker
         ```
-
+  
      3. 停止docker
   
         ```shell
@@ -400,7 +399,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 
    * 查看镜像
 
-      ```
+      ```shell
       docker search 名称
       # 查看你nginx镜像
       docker search nginx
