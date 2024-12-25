@@ -401,9 +401,17 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 
       ```shell
       docker search 名称
-      # 查看你nginx镜像
+      # 查看nginx镜像，搜索镜像文件是否存在
       docker search nginx
       ```
+      
+   * 步骤
+
+      1. 获取镜像
+      2. 运行镜像，生成容器，想要的容器就运行在容器中
+      3. 
+
+      
 
 2. 使用自己的docker阿里云私有仓库
 
@@ -414,9 +422,142 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
       # 密码w}+tK6UB
       ```
 
-      
+3. 使用命令
+
+   * 拉取镜像：`docker pull 需要的镜像:版本号`
+
+      * 自己的镜像`docker pull crpi-qo0vvg6tfj5fe102.us-west-1.personal.cr.aliyuncs.com/lisuxin/nginx:版本号`
+
+   * 查看本地docker镜像有哪些`docker image ls`
+
+      ```shell
+      厂库地址                                                                  标签       镜像ID          创建时间         大小
+      REPOSITORY                                                               TAG       IMAGE ID       CREATED         SIZE
+      crpi-qo0vvg6tfj5fe102.us-west-1.personal.cr.aliyuncs.com/lisuxin/nginx   1.24      6c0218f16876   20 months ago   142MB
+      ```
+
+   * 删除镜像`docker rmi 镜像ID`
+
+   * 运行镜像`dockers run 参数`
+
+      * 参数：镜像名字或ID
+      * `docker run -d -p 80:80 nginx`
+      * `-d`：后台运行
+      * `-p 80:80`：端口映射，访问宿主机端口也就访问容器内端口
+      * 运行容器后会返回容器ID
+
+   * 查看docker容器有哪些在运行`docker ps`
+
+      ```
+      容器ID          镜像ID         容器启动时执行的默认命令      创建时间          状态          端口映射                            （名称）docker为容器分配的名称
+      CONTAINER ID   IMAGE          COMMAND                   CREATED         STATUS         PORTS                               NAMES
+      697111ff423a   6c0218f16876   "/docker-entrypoint.…"   2 minutes ago   Up 2 minutes   0.0.0.0:80->80/tcp, :::80->80/tcp   trusting_robinson
+      ```
+
+   * 查看linux所有被占用的端口`netstat -tunlp`
+
+   * 停止容器`docker stop 容器ID`
+
+   * 重启容器`docker start 容器ID`
+
+### docker常用命名
+
+#### 容器管理
+
+- **`docker run [OPTIONS] IMAGE [COMMAND] [ARG...]`** 
+  创建并启动一个新的容器。可以使用 `-d` 后台运行，`-p` 映射端口，`-v` 挂载卷等选项。
+  
+- **`docker start [CONTAINER]`** 
+  启动一个或多个已经停止的容器。
+
+- **`docker stop [CONTAINER]`** 
+  停止一个或多个正在运行的容器。发送 `SIGTERM` 信号给容器内的主进程，默认等待 10 秒后强制停止。
+
+- **`docker restart [CONTAINER]`** 
+  重启一个或多个容器。
+
+- **`docker rm [CONTAINER]`** 
+  删除一个或多个已停止的容器。使用 `-f` 强制删除正在运行的容器。
+
+- **`docker ps [OPTIONS]`** 
+  列出所有正在运行的容器。使用 `-a` 显示所有容器（包括已停止的），`-q` 只显示容器ID。
+
+- **`docker exec [OPTIONS] CONTAINER COMMAND [ARG...]`** 
+  在运行中的容器内执行命令。常用 `-it` 选项以交互模式运行命令。
+
+- **`docker logs [CONTAINER]`** 
+  查看容器的日志输出。使用 `-f` 实时跟踪日志。
+
+- **`docker inspect [CONTAINER|IMAGE]`** 
+  获取容器或镜像的详细信息，包括配置和状态。
+
+#### 镜像管理
+
+- **`docker images [OPTIONS]`** 
+  列出本地镜像。使用 `-a` 显示所有镜像（包括中间层），`-q` 只显示镜像ID。
+
+- **`docker pull [IMAGE]`** 
+  从仓库拉取镜像到本地。
+
+- **`docker build [OPTIONS] PATH | URL | -`** 
+  使用 Dockerfile 构建镜像。可以使用 `-t` 标记镜像名称和标签。
+
+- **`docker rmi [IMAGE]`** 
+  删除一个或多个本地镜像。使用 `-f` 强制删除，即使有容器在使用该镜像。
+
+- **`docker tag [SOURCE_IMAGE] [TARGET_IMAGE]`** 
+  给镜像添加新的标签。
+
+#### 网络管理
+
+- **`docker network ls`** 
+  列出所有 Docker 网络。
+
+- **`docker network create [OPTIONS] NETWORK`** 
+  创建自定义网络。
+
+- **`docker network connect [NETWORK] [CONTAINER]`** 
+  将容器连接到指定网络。
+
+- **`docker network disconnect [NETWORK] [CONTAINER]`** 
+  将容器从指定网络断开。
+
+- **`docker network inspect [NETWORK]`** 
+  查看网络的详细信息。
+
+#### 卷管理
+
+- **`docker volume ls`** 
+  列出所有 Docker 卷。
+
+- **`docker volume create [VOLUME]`** 
+  创建一个新的卷。
+
+- **`docker volume inspect [VOLUME]`** 
+  查看卷的详细信息。
+
+- **`docker volume rm [VOLUME]`** 
+  删除一个或多个卷。
+
+#### 其他命令
+
+- **`docker system prune [OPTIONS]`** 
+  清理未使用的数据，包括停止的容器、未打标签的镜像、未使用的网络和卷。使用 `-a` 选项还可以清理所有未使用的镜像。
+
+- **`docker stats [OPTIONS] [CONTAINERS]`** 
+  实时查看容器的资源使用情况，如 CPU、内存、网络 I/O 和块 I/O。
+
+- **`docker info`** 
+  显示系统范围的信息，包括 Docker 版本、存储驱动、插件等。
+
+- **`docker version`** 
+  显示 Docker 客户端和服务器的版本信息。
+  
+-  `docker [command] --help` 来查看详细的帮助文档。
 
 ## docker生命周期详解
+
+![image-20241225180953468](../typoratuxiang/linux/docker4.png)
 
 ## 用docker使用三种操作系统
 

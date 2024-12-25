@@ -1167,6 +1167,7 @@ yum makecache
    * 语法 `nmap 被查看的IP地址`
    * 可以通过 netstat 命令，查看指定端口的占用情况
    * 语法： `netstat -anp | grep 端口号`，安装 netstat: `yum -y install net-tools`
+   * 查看所有被占用的端口`netstat -tunlp`
 
 ### 禁止远程IP
 
