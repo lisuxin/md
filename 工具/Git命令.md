@@ -504,7 +504,6 @@ git add .
 
 4. 将代码提交`git push -u origin master`
 
-
 ## 方法二
 
 1. 创建本地版本库,创建文件夹`mkdir 文件夹名`
@@ -520,9 +519,16 @@ git add .
 
 7. 创建SSH KEY`ssh-keygen -t rsa -C "地址" //不做修改一直回车`
 
+## 拉取流程
 
+1. `git stash`：将代码提交到暂存区
+2. `git pull`：拉取远程仓库的代码
+3. `git stash pop`：将自己的代码合并到远程拉取的代码
+4. `git add .` ：提交代码到本地仓库
+5. `git commit -m ''`：为提交代码加注释
+6. `git push`：提交到远程仓库
 
-# 新项目提交步骤
+## 新项目提交步骤
 
 1. `git init`：把文件夹变成Git可管理的厂库
 2. `git remote add origin 地址`：绑定远程仓库
@@ -533,8 +539,6 @@ git add .
 7. 后续项目正常提交步骤
 
 # 报错
-
-## git branch后出现* (no branch, rebasing main)
 
 当你在Git中执行 `git branch` 命令后看到输出中有 `* (no branch, rebasing main)`，这表示你当前处于一个特殊的状态，即你正在进行或已经中断了对 `main` 分支的变基操作（rebase）。
 
@@ -550,10 +554,6 @@ git add .
 2. **放弃变基**：如果你决定不再进行变基或者遇到了难以解决的问题，可以使用 `git rebase --abort` 命令来取消整个变基操作，这会回滚到变基开始前的状态。
 
 3. **检查冲突**：如果存在冲突，Git会在发生冲突的文件中标记出来，你需要手动编辑这些文件，解决冲突，然后才能继续变基。
-
-
-
-## git pull 出现（error: Your local changes to the following files would be overwritten by merge:        Java/redis.md Please commit your changes or stash them before you merge. Aborting Updating 364696f..71190af）
 
 这个错误是因为你对本地仓库中的 `Java/redis.md` 文件进行了修改，而这些修改尚未提交（commit）。同时，远程仓库中也有更新需要合并到你的本地仓库中。由于存在未提交的本地更改，Git 无法安全地进行合并操作，因为它可能会覆盖你所做的更改。
 

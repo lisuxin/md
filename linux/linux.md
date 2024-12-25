@@ -146,42 +146,48 @@
       GATEWAY=192.168.31.1                   #网关地址
       ```
 
-      保存退出
+   5. 配置公共 DNS 服务器
 
-   5. 手动添加IP网关
+      ```
+      vim /etc/resolv.conf
+      nameserver 8.8.8.8
+      nameserver 8.8.4.4
+      ```
+
+   6. 手动添加IP网关
 
       ```
       ip addr add 192.168.31.98/24 dev ens160
       ip route add default via 192.168.31.1
       ```
 
-   6. 重启网络服务
+   7. 重启网络服务
 
       ```
-      systemctl restart network
+      systemctl restart NetworkManager
       ```
 
-   7. 遇到问题`Failed to start LSB: Bring up/down networking.`解决办法
+   8. 遇到问题`Failed to start LSB: Bring up/down networking.`解决办法
 
       ```
       systemctl stop NetworkManager
       systemctl disable NetworkManager
       ```
 
-   8. 重新启用 `NetworkManager`：
+   9. 重新启用 `NetworkManager`：
 
       ```
       systemctl enable NetworkManager
       systemctl start NetworkManager
       ```
 
-   9. 查询`NetworkManager`网络状态
+   10. 查询`NetworkManager`网络状态
 
       ```
       systemctl status NetworkManager
       ```
 
-   10. 手动开启（关闭）网络接口
+   11. 手动开启（关闭）网络接口
 
       ```
       ip link set dev ens160 down     #（关闭）
@@ -318,13 +324,13 @@
        * `-p, --parents`：如果需要创建的目录的父目录不存在，则会一并创建所有必要的父目录。
        * `-v, --verbose`：输出每个创建的目录的信息。
 
-### 文件操作命令part1(touch、cat、more)
+### 文件操作命令part1(touch、cat、more、tail)
 
 1. touch创建文件
-            1. 可以通过 touch 命令创建文件
-               * 语法：`touch Linux路径`
-               * touch 命令无选项，参数必填，表示要创建的文件路径，相对、绝对、特殊路径符均可以使用
-        
+          1. 可以通过 touch 命令创建文件
+             * 语法：`touch Linux路径`
+             * touch 命令无选项，参数必填，表示要创建的文件路径，相对、绝对、特殊路径符均可以使用
+
 2. cat、more查看文件内容
      1. 准备好文件内容后，可以通过 cat 查看内容 。
                  1. 语法 ： `cat Linux路径`
@@ -343,6 +349,17 @@
          * 在查看的过程中 ， 通过空格翻页
          
          * 通过 q 退出查看
+
+3. tail查看文件末尾内容
+
+     * 语法`tail 选项 文件`
+     * `-n` NUM 或 -NUM显示文件的最后 NUM 行
+     * `-c`NUM显示文件的最后 NUM 字节
+     * `-f`实时监控文件的变化，显示新添加的内容
+     * `--follow=name`即使文件被删除或重命名，也继续监控同名的新文件
+     * `--follow=descriptor`只监控当前打开的文件描述符，不跟踪新文件
+     * `-q`不显示文件名前缀（适用于多个文件）
+     * `-v`总是显示文件名前缀（即使只有一个文件）
 
 ### cp--mv--rm
 
@@ -724,82 +741,20 @@ info [选项] [主题]
 
 ### 其他
 
-1. 在Linux系统中想要查看本机IP地址
-   1. 使用ifconfig命令：这将显示网络接口的详细信息，包括IP地址。
+1. 在Linux系统中想要查看本机IP地址、显示网络接口的详细信息，包括IP地址。`ifconfig`
 
-```
-ifconfig
-```
+2. 使用ip命令：这将显示网络接口的详细信息，包括IP地址。`ip addr show`
 
-2. 使用ip命令：这将显示网络接口的详细信息，包括IP地址。
+3. 使用hostname命令：这将显示本机的所有IP地址。`hostname -I`
 
-```
-ip addr show
-```
+4. 使用curl命令：这将使用curl命令从ifconfig.me网站获取本机的公共IP地址。`curl ifconfig.me`
+4. service sshd restart重启sshd服务
+4. free:查看内存占用情况
 
-3. 使用hostname命令：这将显示本机的所有IP地址。
+### linux版本相关
 
-```
-hostname -I
-```
-
-4. 使用curl命令：这将使用curl命令从ifconfig.me网站获取本机的公共IP地址。
-
-```
-curl ifconfig.me
-```
-
-2. service sshd restart重启sshd服务
-
-3. ping：查看与某主机是否能联通
-
-4. ps：列出系统中正在运行的各种进程的状态信息，包括但不限于进程ID（PID）、父进程ID（PPID）、用户、内存使用情况、CPU占用率等。
-
-   * `-a`：显示所有用户的进程（不包括会话领导进程）。
-
-   * `-u`：根据用户名或UID显示进程。
-
-   * `-x`：显示没有控制终端的进程。
-
-   * `-f`：全格式输出，显示更详细的信息。
-
-   * `-l`：长格式输出。
-
-   * `-t`：指定终端显示进程。
-
-   * `--forest`：以树状图显示进程之间的父子关系。
-
-   * `--sort`：按照指定的字段排序输出结果。
-
-     ```
-     ps -ef | grep 进程名称 # 查看进程号
-     ps aux --forest       # 列出所有用户的所有进程，并以树形结构显示
-     ps aux --sort=-%mem   # 按照内存使用率降序排列进程
-     ps -u username        # 显示特定用户的进程
-     ```
-
-5. lost -i 端口 ：查看端口占用情况
-
-   6. top:查看系统负载情况，包括系统时间、系统所有进程状态、cpu情况
-
-   7. free:查看内存占用情况
-
-   8. kill:正常杀死进程，发出的信号可能会被阻塞
-
-      * kill -9:强制杀死进程，发送的是exit命令，不会被阻塞
-
-   9. tail:查看文件末尾内容`tail 选项 文件`
-
-      ```bash
-      # 选项	                          描述
-      -n                     NUM 或 -NUM	显示文件的最后 NUM 行
-      -c                     NUM	显示文件的最后 NUM 字节
-      -f	                   实时监控文件的变化，显示新添加的内容
-      --follow=name	       即使文件被删除或重命名，也继续监控同名的新文件
-      --follow=descriptor	   只监控当前打开的文件描述符，不跟踪新文件
-      -q	                   不显示文件名前缀（适用于多个文件）
-      -v	                   总是显示文件名前缀（即使只有一个文件）
-      ```
+* 查看centos发行版版本`cat /etc/redhat-release`
+* 查看linux内核版本`uname -r`
 
 ## Linux权限管理
 
@@ -1047,7 +1002,7 @@ curl ifconfig.me
    1. 通过快捷键 ctrl + l, 可以清空终端内容
    2. 通过命令 clear 得到同样效果
 
-### 软件安装
+### 软件安装(yum、apt)
 
 * 使用 yum 为 CentOS 系统安装软件
    * yum 命令
@@ -1061,7 +1016,7 @@ curl ifconfig.me
 * 使用 apt 为 Ubuntu 安装软件（扩展）
    * 语法： `apt [-y ] (install | remove | search] 软件名称`
 
-### systemctl控制软件启动关闭
+### 控制软件启动关闭 systemctl
 
 * Linu ×系统很多软件（内置或第三方）均支持使用 systemctl 命令控制：启动、停止、开机自启
 * 能够被 systemctl 管理的软件，一般也称之为：服务
@@ -1073,7 +1028,7 @@ curl ifconfig.me
    * firewalld, 防火墙服务
    * sshd, ssh 服务（ Fina [ Shell 远程登录 Linu ×使用的就是这个服务）
 
-### 软链接
+### 软链接 ln
 
 * 使用 ln 命令创建软连接
 * 在系统中创建软链接，可以将文件、文件夹链接到其它位置。类似 Windows 系统中的《快捷方式》
@@ -1082,7 +1037,7 @@ curl ifconfig.me
    * 参数 1 ：被链接的文件或文件夹
    * 参数 2 ：要链接去的目的地
 
-### 日期和时区
+### 日期和时区(date、ntp)
 
 * date 命令查看日期时间
 
@@ -1118,7 +1073,7 @@ curl ifconfig.me
 * 主机名`hostname`修改主机名`hostnamectl set-hostname 主机名，修改主机名`（需root）
 * 域名解析
 
-### 网络请求和下载
+### 网络请求和下载(ping、wget、curl)
 
 1. 使用 ping 命令检查服务器是否可联通
    * 可以通过 ping 命令，检查指定的网络服务器是否是可朕通状态
@@ -1130,7 +1085,7 @@ curl ifconfig.me
    * 语法：`wget [-b] url`
       * 选项： -b, 可选，后台下载，会将日志写入到当前工作目录的wget-log 文件
       * 参数：url, 下载链接
-3. 使用 cur [命令发起网络请求
+3. 使用 curl 命令发起网络请求
    * curl 可以发送 http 网络请求可用于：下载文件、获取信息等
    * 语法：`curl [-O] url`
       * 选项：-O ，用于下载文件，当 url 是下载链接时，可以使用此选项保存文件
@@ -1152,7 +1107,7 @@ yum clean all
 yum makecache
 ```
 
-### 端口
+### 端口 netstat
 
 * 端口的概念
    * 端口，是设备与外界通讯交流的出入口。端口可以分为：物理端口和虚拟端口两类
@@ -1176,17 +1131,47 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.0/24" 
 firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" drop'
 ```
 
-### 进程管理
+### 进程管理 (ps、kill)
 
 1. 进程的概念
    * 程序运行在操作系统中，是被操作系统所管理的。
    * 为管理运行的程序，每一个程序在运行的时候，便被操作系统注册为系统中的一个：进程
    * 并会为每一个进程都分配一个独有的：进程旧（进程号）
+   
 2. 如何查看进程、关闭进程
    * 可以通过 ps 命令查看 Linu ×系统中的进程信息
+   
    * 语法： `PS [-e -f]`
+   
    * 选项： -e, 显示出全部的进程
+   
    * 选顶： -f, 以完全格式化的形式展示信息（展示全部信息）
+   
+   * ps：列出系统中正在运行的各种进程的状态信息，包括但不限于进程ID（PID）、父进程ID（PPID）、用户、内存使用情况、CPU占用率等。
+   
+      * `-a`：显示所有用户的进程（不包括会话领导进程）。
+   
+      * `-u`：根据用户名或UID显示进程。
+   
+      * `-x`：显示没有控制终端的进程。
+   
+      * `-f`：全格式输出，显示更详细的信息。
+   
+      * `-l`：长格式输出。
+   
+      * `-t`：指定终端显示进程。
+   
+      * `--forest`：以树状图显示进程之间的父子关系。
+   
+      * `--sort`：按照指定的字段排序输出结果。
+   
+        ```shell
+        ps -ef | grep 进程名称 # 查看进程号
+        ps aux --forest       # 列出所有用户的所有进程，并以树形结构显示
+        ps aux --sort=-%mem   # 按照内存使用率降序排列进程
+        ps -u username        # 显示特定用户的进程
+        ```
+   
    * 一般来兑固定用法就是： ps -ef 列出全部进程的全部信息
       * UDP 进程所属的用户ID
       * PID 进程的进程号 ID
@@ -1196,12 +1181,14 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
       * TTY ，启动此程的终端序号，加显示？，表示非终端启动
       * TIMF：进程占用CPU的时间
       * CMD：进程对应名称或启动路径或启动命令
+      
    * 关闭进程语法`kill [-9] 进程ID`
+   
    * 选顶：-9，表示强制关闭进程，不使用此选项会向进程发送信号要求其关闭，但是否关闭看进程自身的处理机制。
 
-### 主机状态监控
+### 主机状态监控（top、df、sar）
 
-* **查看主机运行状态的监控命令**
+* 查看主机运行状态的监控命令
 
 * `top`:查看 CPU 、内存使用情况；默认每 5 秒刷新一次，语法：直接输入 top 即可，按 q 或 ctrl + c 退出
 
@@ -1226,11 +1213,11 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
    * i键，按下 i 键，不显示闲置或无用的进程，等同于-i参数，再次按下，变为默认显示
    * t键，按下 t 键，切换显示 CPU 态信息
    * m键，按下 m 键，切换显示内存信息
-   
+
    ![image-20240329162540879](../typoratuxiang/linux/top.png)
-   
+
    ![image-20240402160828567](../typoratuxiang/linux/top1.png)
-   
+
 * PID: 进程id
 
 * USER: 进程所属户
@@ -1269,7 +1256,6 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
 
    * 选项：-x，显示更多信息
    * num1: 数字，刷新间隔， num2: 数字，刷新几次
-
 * **网络信息监控**
 
 * 使用 sar 命令查看网络的相关统计（ sar 命令非常复杂，这里仅简单用于统计网络）
@@ -1278,7 +1264,7 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
    * 选项： -n, 查看网络，DEV 表示查看网络接口
    * num1: 刷新间隔〈不填就查看一次结束 ), num2: 查看次数（不填无限次数）
 
-### 环境变量
+### 环境变量 env
 
 1. 在 Linux 系统中执行： env 命令即可查看当前系统中记录的环境变量
 2. 在 Linux 系统中，`$`符号被用于取"变量“的值。`echo $`
@@ -1292,7 +1278,7 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
    * path环境变量添加
       * /etc/profile加入`export PATH=$PATH:/路径`
 
-### Linux文件的上传和下载
+### Linux文件的上传和下载(scp、rz、sz)
 
 1. scp命令
 
@@ -1354,7 +1340,7 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
    * sz 下载文件名
    * rz 找到文件
 
-### 压缩和解压
+### 压缩和解压(tar、gzip、unzip)
 
 1. linux压缩格式tar、gzip
 2. tar命令
