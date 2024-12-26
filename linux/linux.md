@@ -748,12 +748,21 @@ info [选项] [主题]
 3. 使用hostname命令：这将显示本机的所有IP地址。`hostname -I`
 
 4. 使用curl命令：这将使用curl命令从ifconfig.me网站获取本机的公共IP地址。`curl ifconfig.me`
-4. service sshd restart重启sshd服务
-4. free:查看内存占用情况
+
+5. service sshd restart重启sshd服务
+
+6. free:查看内存占用情况
+
+7. 反引号：取出命令的执行结果
+
+   ```
+   echo `docker image -ag`
+   ```
 
 ### linux版本相关
 
 * 查看centos发行版版本`cat /etc/redhat-release`
+* 查看ubuntu发行版版本`cat /etc/os-release`
 * 查看linux内核版本`uname -r`
 
 ## Linux权限管理
@@ -761,7 +770,7 @@ info [选项] [主题]
 ### Linux的root用户
 
 1. 无论是 Windows 、 MacOS 、 Linux均采用多用户的管理模式进行权限管理。
-   * 在 Linu ×系统中事拥有最大权限的账户名为： root （超级管理员）
+   * 在 Linux 系统中事拥有最大权限的账户名为： root （超级管理员）
    * root 用户拥有最大的系统操作权限，而普通用户在许多地方的权限是受限的
    * 普通用户的权限，一般在其 HOME 目录内是不受限的
    * 一旦出了 HOME 目录，大多数地方，普通用户仅有只读和执行权限，无修改权限

@@ -479,49 +479,161 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
   * `-t`开启一个终端
   * `bash`进入容器后执行命令
 * 退出容器空间`exit`
+* docker进入容器内:`docker exec -it 容器ID bash`
 
 **docker解决的问题**
 
+* 开发
 
+* 如果你直接在宿主机上，安裝这工具，那受限于宿主机的环境
 
-#### 详解docker镜像原理(一)
+  ![image-20241226211856568](../typoratuxiang/linux/docker5.png)
 
-#### docker镜像原理详解（二）
+* 可能会遇到到的麻烦
 
-## docker镜像管理一
+  1. 环境不兼容，比如软件需要运行在linux下·但是你是windows，只能去安装一个vmware虚拟机，或者再去买一个云服务器，安装
+  2. 会将你当前的系统环境，搞得一团糟
+  3. 比如你想卸载这些工具。。。麻烦了，不会卸载
+
+* docker怎么解决的
+
+  ![image-20241226212002557](../typoratuxiang/linux/docker6.png)
+
+  1. 解决了环境的兼容问题，在容器中运行linux发行版，以及各种软件，【windows + docker +容器 1 (centos) +容器 2 (ubuntu) 】
+  2. 环境很干净，你安装的所有内容．都在容器里，不想要了，就直接删除容器，不影的你宿主机
+  3. 比如你想把mysql容器内的数据，配置，全部迁移到服务器上，只需要提交该容器，生成镜像，镜像放到服务器上，docker run，就运行了！！！
+
+**docker镜像，分层原理**
+
+![image-20241226213053625](../typoratuxiang/linux/docker7.png)
+
+1. 当通过一个 image 启动容器时， docker 会在该 image 最顶层，添加一个读写文件系统作为容器，然后运行该容器。
+2. docker 镜像本质是基于 UnionFS 管理的分层文件系统
+3. docker 镜像为什么才几百兆？
+   * 答：因为 docker 镜像只有 rootfs 和其他镜像层，共用宿主机的 linux 内核 (bootfs) ，因此很小！
+4. 为什么下载一个docker的nginx镜像，需要133MB？nginx 安装包不是才几兆吗？
+   * 答因为 docker 的nginx镜像是分层的，安装包的确就几M，但是一个用于运行nginx的镜像文件，依赖于父镜像（上一层），和基础镜像〈发行版），所以下载的nginx镜像有一百多兆
+
+![image-20241226214012489](../typoratuxiang/linux/docker8.png)
+
+## docker镜像管理
+
+1. 下载安 docker 工具
+2. 获取该软件的 docker 镜像（你以后想要用的各种工具，基本上都能够搜素到合适的镜像去用），下载nginx镜像，docker pull nginx
+3. 运行该镜像，然后就启动了一个容器，这个 nginx 服务就运行在容器中
+4. 停止容器，删除该镜像，OK了，你的电脑上，好像就没有使用过 nginx— 样
+5. 就好比沙箱一样的环境基于镜像的增删改查维护
 
 ### 获取docker镜像
 
+1. 拉取：`docker pull 需要的镜像:版本号`
+   * 自己的`docker pull crpi-qo0vvg6tfj5fe102.us-west-1.personal.cr.aliyuncs.com/lisuxin/nginx:版本号`
+   * 自己的仓库地址：`crpi-qo0vvg6tfj5fe102.us-west-1.personal.cr.aliyuncs.com/lisuxin/`
+2. 查看docker镜像的存储路径
+   * 查看docker信息：`docker info`
+   * 查看存储路径：`docker info|grep Root`
+   * 位置centos：` Docker Root Dir: /var/lib/docker`
+   * 镜像存储位置：`ls /var/lib/docker/image/overlay2/imagedb/content/sha256/ -l`
+   * 是一个json类型的的文件，作用是：记录镜像和容器的配置关系
+3. 使用不同的镜像生成容器
+   * `docker run -it -rm 容器ID bash`
+   * `-rm`：容器退出时删除容器
+4. 查看镜像文件标签信息`https://hub.docker.com/_/`
+5. 本地镜像导入导出
+6. 私有docker仓库
+
 ### 查看docker镜像
+
+* 查看本地docker镜像：`docker image`
+  * docker查看时看到的镜像大小，如果底层有一样的就会复用，不会有实际看见的大
+* 查看具体的镜像：`docker image 镜像名称/镜像ID:标签TAG`
+* 只列出镜像ID：`docker image -q`或`docker image -quiet`
+* 格式化显示镜像：`docker image --formar "{{.ID}}--{{.Repository}}"`
+  * `{{}}`：大括号内为自己需要显示的信息
+  * 这是docker的模板语言`--formar`
+* 以表格形式展示：`docker image --formar "table{{}}"`
+* 搜索远程仓库的镜像：`docker search 镜像名`
+  * 全部`docker search 仓库地址/镜像名`
 
 ### 删除docker镜像
 
+* 根据镜像的ID、名字、摘要等
+  * `docker rmi ID`：id可以只要前三位
+  * `docker rmi 名字`
+  * `docker rmi 摘要`
+
 ### docker镜像综合管理
 
-### 玩转docker容器
+* 批量删除镜像`docker image -aq`
+  * `a`：显示所有
+  * `q`：显示镜像ID
+  * 删除所有镜像docker rmi `docker image -aq`
+* 前面加：echo `docker image -ag`：打印所有镜像ID
+* 删除所有容器：docker rm `docker ps -aq`
+* 提交该镜像、导出镜像
+  * 导出的镜像其他人可以直接使用
+  * `docker image save 镜像ID或者镜像名加标签 > 导出地址/镜像名称标签.tgz`
+  * `save`：保存
+  * `.tgz`：压缩
+* 导入镜像：`docker image load -i 镜像文件地址/镜像文件`
+  * `load`：导入
+* 查看镜像详细信息：`docker image inspect 镜像ID`
 
+## docker容器管理
 
+* `docker run`等于创建+启动
+  * 注意：容器内的进程必须处于前台运行状态，否则容器就会直接退出、前台运行会卡住一个终端
+  * 我们运行nginx基础镜像，没有运行任何程序，因此容器直接挂掉
+  * `docker run 镜像ID`：这个写法，会产多条独立的容器记录，且容器内没有程序在跑，因此挂了
+* 生成容器并进入容器内`docker run -it 容器ID bash`
+* 生成容器并在容器内执行一个命令：`docker run 容器ID linux命令`
+* 运行一个活着的容器
+  * `-d`加参数：对于宿主机而言返回容器id
+  * `docker run -d 容器ID`
+* 给运行的容器加名称：`docker run -d --rm --name 名称 容器ID`
+  * `--rm`容器挂掉后自动删除容器
+* 查看容器日志
+  * `docker logs 容器ID`：打印所有的记录
+  * `docker logs -f 容器ID`：实时刷新日志
+* docker进入容器内:`docker exec -it 容器ID bash`
+  * `exec`进入到容器内
+* 查看容器详细信息：`docker container inspect 容器ID`
+* 容器的端口映射：`-p 宿主机端口:容器内镜像`
+  * 直接`-p`会随机分配一个空闲宿主机端口：映射到容器内端口
+* 容器的提交：`docker commit 容器ID 新镜像名字`
 
 ## dockerfile学习
 
-## 应该如何使用dockerfile
+==用于构建 docker 镜像==
 
-## 趣学dockerfile指令
+==部署一个用于运行你所需的容器环境==
 
-## 再看dockerfile指令用法
+==相当于一个脚本，通过 docke e 自己的指令，来构建软件依赖，文件依赖，存储，等等等。==
 
-## 面试题：cmd和entrypoint区别
+### 使用dockerfile
 
-## 指令ENV和VOLUME玩法
 
-## 其他指令
-## docker部署python网站
-## docker小结（一）
-## docker小结（二）
-## docker小结（三）
-## docker小结（四）
-## 如何学习新容器技术
+
+### dockerfile指令
+
+
+
+### dockerfile指令用法
+
+
+
+**面试题：cmd和entrypoint区别**
+
+### 指令ENV和VOLUME玩法
+
+
+
+### 其他指令
+
+
+
 ## 物理机演进到虚拟化部署时代
+
 ## 图解名称空间三大块
 ## Docker使用原理流程
 ## 传统虚拟机部署模式
