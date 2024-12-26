@@ -438,8 +438,10 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 
    * 删除镜像`docker rmi 镜像ID`
 
-   * 运行镜像`dockers run 参数`
+   * 删除docker镜像引用标签`docker rmi 仓库地址:标签`
 
+   * 运行镜像`dockers run 参数`
+   
       * 参数：镜像名字或ID
       * `docker run -d -p 80:80 nginx`
       * `-d`：后台运行
@@ -447,7 +449,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
       * 运行容器后会返回容器ID
 
    * 查看docker容器有哪些在运行`docker ps`
-
+   
       ```
       容器ID          镜像ID         容器启动时执行的默认命令      创建时间          状态          端口映射                            （名称）docker为容器分配的名称
       CONTAINER ID   IMAGE          COMMAND                   CREATED         STATUS         PORTS                               NAMES
@@ -457,7 +459,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
    * 查看linux所有被占用的端口`netstat -tunlp`
 
    * 停止容器`docker stop 容器ID`
-
+   
    * 重启容器`docker start 容器ID`
 
 ## docker生命周期详解
@@ -470,7 +472,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 
 * linux系统的组成：linux内核加发行版
   * linux内核:所有linux解析命令后运行硬件的系统
-  * 发行版：centos、ubuntu
+  * 发行版：centos、ubuntu、suse
 * docker运行linux系统原理：使用本身宿主机的linux的内核、加上docker下载的镜像
   * 运行`docker run -it 镜像ID bash`
   * `-i`交互式操作、发送一个命令立马可以得到一个结果
@@ -478,7 +480,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
   * `bash`进入容器后执行命令
 * 退出容器空间`exit`
 
-#### docker让老王早点下班
+**docker解决的问题**
 
 
 
@@ -487,6 +489,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 #### docker镜像原理详解（二）
 
 ## docker镜像管理一
+
 ### 获取docker镜像
 
 ### 查看docker镜像
@@ -495,7 +498,9 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 
 ### docker镜像综合管理
 
-## 玩转docker容器
+### 玩转docker容器
+
+
 
 ## dockerfile学习
 
