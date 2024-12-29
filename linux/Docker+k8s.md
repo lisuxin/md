@@ -446,8 +446,9 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
       * `docker run -d -p 80:80 nginx`
       * `-d`：后台运行
       * `-p 80:80`：端口映射，访问宿主机端口也就访问容器内端口
+      * `–v`：数据目录映射
       * 运行容器后会返回容器ID
-
+   
    * 查看docker容器有哪些在运行`docker ps`
    
       ```
@@ -455,9 +456,9 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
       CONTAINER ID   IMAGE          COMMAND                   CREATED         STATUS         PORTS                               NAMES
       697111ff423a   6c0218f16876   "/docker-entrypoint.…"   2 minutes ago   Up 2 minutes   0.0.0.0:80->80/tcp, :::80->80/tcp   trusting_robinson
       ```
-
+   
    * 查看linux所有被占用的端口`netstat -tunlp`
-
+   
    * 停止容器`docker stop 容器ID`
    
    * 重启容器`docker start 容器ID`
@@ -612,36 +613,202 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 
 ### 使用dockerfile
 
+**创建镜像的两个方法**
 
+1. 手动修改容器内容，然后 docker commit 提交容器为新的镜像
+2. 通过在 dockerfile 中定义一系列的命令和参数构成的脚本，然后这些命令应用于基础镜像，依次添加层，最终生成一个新的镜像。极大的简化了部署工作。
+
+**dockerfile主要组成部分**
+
+* 基础镜像信息 `FROM centos:6.8`
+  * ` FROM 基础镜像`
+* 制作镜像操作指令 `RUN yum insatll openssh-server -Y`
+  * `RUN 在容器内下载的一些软件和执行的一些操作`
+* 容器启动时执行指令 `CMD ["/bin/bash"]`
+  * `CMD 在容器内启动一个程序`
+
+==官方提供的 dockerfile 实例==
+
+```shell
+https://github.com/CentOS/CentOS-Dockerfi1es
+```
+
+**dockerfile文件创建及使用**
+
+1. 创建 Dockerfile, 注意文件名，必须是这个`dockerfile`
+   * 新建一个存储dockerfile文件的目录`mkdir /learn_docker/docker_file`
+   * 进入到dockerfile目录下`cd /learn_docker/docker_file`
+2. 编写dockerfile文件`vim dockerfile`
+3. 构建dockerfile命令`docker build .`
+   * 会将本地就有的镜像直接拿来使用
+   * `docker build -t '镜像名字:版本'`
+   * `docker build --no-cache -t '镜像名字:版本'`
+   * `--no-cache`:不使用之前的缓存
+4. 修改镜像名称`docker tag 镜像ID 镜像名称：版本tag`
+5. 运行该镜像`docker run -d -p 80:80 镜像ID`
 
 ### dockerfile指令
 
+* `FROM`指定基础镜像
+* `MAINTAINER` 指定维护者信息，可以没有
+* `RUN` 你想让它干啥（在命令前面加上 RUN 即可）
+  * `RUN yum -y install vim`：安装vim编辑器
+* `ADD` 添加宿主机的文件到容器内(COPY 文件，会自动解压)
+* `WORKDIR`  cd 设置当前工作目录
+* `VOLUME` 设置卷，挂载主机目录；让宿主机所在目录、可以访问到容器内的目录
+* `EXPOSE` 指定对外的端囗
+* `CMD` 指定容器启动后的要干的事情
 
+**其他指令**
+
+* `COPY` 复制文件(只会拷贝不会解压):文件如果不是绝对路径会默认寻找 dockerfile 文件的同级目录下
+* `ENV` 环境变量：ENV 无论是在镜像构建时，还是容器运行，该变量都可以使用
+* `ARG` 设置环境变量：ARG 只是用于构建镜像需要设首的变量，容器运行时就消失了
+* `ENTRYPOINT` 容器启动后执行的命令
+* `USER`用于切换用户的
 
 ### dockerfile指令用法
 
+**指令语法**
 
+* FROM
 
-**面试题：cmd和entrypoint区别**
+  * 语法`FROM 基础镜像名:版本`
 
-### 指令ENV和VOLUME玩法
+* MAINTAINER
 
+  * 语法`MAINTAINER 个人信息`
 
+* RUN
 
-### 其他指令
+  * 语法`RUN linux相关命令`
 
+* ADD
 
+  * 语法`ADD 宿主机文件地址/文件名 容器内存放地址/`：特性和 COPY 基本一致，不过多了些功能
+  * 源文件是一个 URL ，此时 docker 引擎会下载该链接，放入目标路径，且权限自动设为 6 ，若这不是期望结果，还得增加一层 RUN 指令
+  * 源文件是一个 URL ，且是一个压缩包，不会自动解压，也得单独用 RUN 指令解压
+  * 源文件是一个压缩文件，且是 gzip ， bzip2 ， xz ， tar 情况， ADD 指令会自动解压缩该文件到目标路径
+
+* WORKDIR
+
+  * 语法`WORKDIR 目录`
+  * 相当于cd命令
+
+* VOLUME
+
+  * 语法`VOLUME ["/目录","/目录"]`
+  * 将容器内的 `/目录` 文件夹，在容器运行时，该目录自动挂载为匿名卷，任何向该目录中写入的操作，都不会被容器记录，保证容器存储层无状态理念
+  * 在宿主机上的目录会自动生成，使用`docker inspect 容器ID`查看
+  * 容器在运行时，应该保证在存储层不写入任何数据，运行在容器内产生的据，我们推荐是挂载，写入到宿主机上，进行维护。
+  * **两种挂载方式**
+    1. 容器数据挂载的方式，通过 dockerfile ，指定 VOLUME 目录
+    2. 通过`docker run - v 参数`，直接设置需要映射挂载的目录
+
+* EXPOSE
+
+  * 语法`EXPOSE 容器映射端口`
+
+  * 指定容器运行时对外提供的端囗服务，帮助使用该镜像的人，快速理解该容器的一个端囗业务
+
+    ```shell
+    docker port 容器 #查看容器所有端口 
+    docker run -p 宿主机端囗:容器端囗
+    docker run -P #作用是随机宿主机端口：容器内端口
+    ```
+
+* CMD
+
+  * 语法`CMD ["参数1","参数2"]`
+  * 在指定了 entrypoint 指令后，用 CMD 指定具体的参数
+  * docker 不是虚拟机，容器就是一个进程，既然是进程，那么程序在启动的时候需要指定些运行爹数，这就是 CMD 指令作用
+  * CMD 运行 shell 命令，也会被转化为 shell 形式
+  * CMD 启动程序
+    1. 错误写法`RUN systemctl start nginx`：因为容器内程序必须是前台运行
+    2. 正确写法`CMD ["nginx","-g","daemon off"]`
+
+* COPY
+
+  * 语法`COPY 宿主机文件地址/文件名 容器内存放地址/`
+  * 支持多文件传输，语法满足通配符和G0lang 的 filepath.Match
+  * COPY 指令能够保留源文件的元数据，如权限，访问时间等等，这点很重要
+
+* ENV
+
+  * 语法`ENV 变量名="值"`
+  * 后续所有的臊作，通过 `$变量名` 就可以直接获取变量值操作了，维护 dockerfile 脚本时更友好，方便
+
+* ARG
+
+  * 语法`ARG 变量名="值"`
+
+* ENTRYPOINT
+
+  * 语法`ENTRYPOINT ["参数1","参数2"]`
+  * **cmd和entrypoint区别**
+  * 作和 CMD 一样。都是在指定容器启动程序以及参数。
+  * 当指 定了 ENTRYPOINT 之后，CMD 指令的语义就有了变化，而是吧 CMD 的内容当作爹数传递给ENTRYPOINT 指令
+  * 使用CMD 命令，在命令行中运行容器时在后面加参数，那么他就会覆盖掉当前CMD后面的命令
+  * 使用ENTRYPOINT，在命令行中运行容器时在后面加参数，就会当成参数传入
+
+* USER
+
+  * 语法`USER 用户名`
+
+**dockerfile文件**
+
+```shell
+FROM centos:7.9.2009
+MAINTAINER akuya<123456@qq.com>
+
+# 宿主机目录下文件拷贝到容器内，文件如果不是绝对路径会默认寻找 dockerfile 文件的同级目录下，所以最好所有文件都在同一个目录下
+COPY readme.md /usr/local/readme.md
+
+# 添加我们自己的安装包
+ADD jdk-8u11-linux-x64.tar.gz /usr/local
+ADD apache-tomcat-9.0.22.tar.gz /usr/local
+
+#安装vim编辑器
+RUN yum -y install vim
+
+# 配置工作目录
+ENV MYPATH /usr/local
+WORKDIR $MYPATH
+
+# 配置环境变量
+ENV JAVA_HOME /usr/local/jdk1.8.0_11
+ENV CLASSPATH $JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+ENV CATALINA_HOME /usr/local/apache-tomcat-9.0.22
+ENV CATALINA_BASE /usr/local/apache-tomcat-9.0.22
+ENV PATH $PATH:$JAVA_HOME/bin:$CATALINA_HOME/lib:$CATALINA_HOME/bin
+
+# 暴露端口
+EXPOSE 8080
+
+# 启动的时候自动运行tomcat，打印日志
+CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-tomcat-9.0.22/bin/logs/catalina.out
+```
 
 ## 物理机演进到虚拟化部署时代
 
+
+
 ## 图解名称空间三大块
+
 ## Docker使用原理流程
 ## 传统虚拟机部署模式
 ## 容器化部署架构一
+
 ## 基于docker的交付模式
+
+
+
 ## 理解学k8s的本质需求
+
 ## 该如何学习k8s组件
+
 ## K8s为了解决容器部署难题
+
 ## 解读官网k8s特性
 ## K8s是容器管理平台
 ## 容器平台的几大特性
@@ -649,8 +816,11 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 ## 面试题pod创建流程
 ## 图解pod作用
 ## 图解k8s几大概念作用
+
 ## K8s-Master部署
+
 ## K8s-Node部署
+
 ## K8s-网络插件部署与pod实践
 
 ### docker常用命名
