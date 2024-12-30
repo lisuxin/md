@@ -2086,6 +2086,7 @@ Model-.JSON.-ViewModel
 1. `vue-boot3`：项目名称
 2. `node_modules`：项目创建时的依赖
 3. `public`：公共资源
+   * 图标名字：`favicon.ico`
 4. `src`：工作区
    1. `assets`：静态资源、如图片等
    2. `components`：vue的组件
@@ -2827,7 +2828,7 @@ Vue3中的具名插槽 (named slots) 是一种允许我们在组件中定义多�
 
 ## router（路由）
 
-vue-router 是 Vue 官方准出的路由管理器主要用于管理 URL ，实现 URL 和组件的对应，以及通过 IJ RL 进行组件之间的切换，从而使构建单页面应用变得更加简单。
+vue-router 是 Vue 官方准出的路由管理器主要用于管理 URL ，实现 URL 和组件的对应，以及通过 URL 进行组件之间的切换，从而使构建单页面应用变得更加简单。
 
 ### 路由的安装及配置
 
