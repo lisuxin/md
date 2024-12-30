@@ -2852,40 +2852,47 @@ vue-router 是 Vue 官方准出的路由管理器主要用于管理 URL ，实�
       //创建router实例对象，去管理一组一组的路由规则
       const routes=[
             {
-                path:'/about',
-                component: About },
+                path:'/about', //url路径这里是默认地址
+                component: About //到达的组件
+            },
             {
                 path:'/home',
                 component:Home
             },]  
       //注册路由
       const router = createRouter({
-          history:createWebHashHistory(),//路由模式
+          history:createWebHashHistory(),//路由模式，这个是哈希模式：加上参数process.env.BASE_URL，可以去除访问前的#号、history:createWebHashHistory(process.env.BASE_URL)
           routes
       })
       //导出路由实例
       export default router;
       ```
-
+   
    2. 在main.js中引入路由配置文件
-
+   
       ```js
       import router from './router/index.js'
       
       createApp(App).use(router).mount('#app')
       ```
-
+   
    3. 实现切换(active-class可配置高亮样式)
-
+   
       ```vue
       <router-link active-class="active" to="/about">About</router-link>
+      <router-link to="/about">About</router-link>
+      <!-- to="" 里面是访问路径-->
       ```
-
+   
    4. 指定展示位置
-
+   
       ```vue
       <router-view></router-view>
       ```
+
+### 路由跳转
+
+
 
 ### 动态路由
 
@@ -2905,6 +2912,7 @@ vue-router 是 Vue 官方准出的路由管理器主要用于管理 URL ，实�
 
       ```vue
       <p>{{ $route.query.name }} 不等于baidu</p>
+      router.push("地址")
 
 2. **params方式传参**
 
@@ -2919,13 +2927,12 @@ vue-router 是 Vue 官方准出的路由管理器主要用于管理 URL ，实�
    2. 在路由配置文件中携带
 
       ```js
-      {
-      path:"/about/:name",
+      {path:"/about/:name",
       component:About },
       ```
-
+      
    3. 在详情页读取
-
+   
       ```vue
       <p>{{ this.$route.params.name }} 不等于baidu</p>
       ```
@@ -2945,7 +2952,7 @@ routes:[
     {
         path:'/home',
         component:Home,
-        redirect:"/home/news"
+        redirect:"/home/news"//重定向第一个展示的页面
         children:[ //通过children配置子级路由
             {
                 path:'news', //此处一定不要写: /news
@@ -3951,7 +3958,7 @@ yarn add vue@next element-plus
 // main.js
 import { createApp } from 'vue';
 import App from './App.vue';
-import ElementPlus from 'element-plus';
+import ElementPlus from 'element-plus';// 引入 Element Plus
 import 'element-plus/dist/index.css';//导入样式表
 
 const app = createApp(App);

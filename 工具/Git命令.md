@@ -534,9 +534,10 @@ git add .
 2. `git remote add origin 地址`：绑定远程仓库
 3. `git add .`：提交到暂存区
 4. `git commit -m ''`：信息
-5. `git branch -m master main `：修改分支main分支
+5. `git branch -m master main`：修改分支main分支
 6. `git push -u origin main`提交
 7. 后续项目正常提交步骤
+8. `git checkout main`切换已经存在的远程分支
 
 # 报错
 
