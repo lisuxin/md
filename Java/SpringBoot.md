@@ -2788,7 +2788,7 @@ FreeMarker 是一个用于生成输出文本的模板引擎,类似与jsp
                     XMLMAPPER: 默认的值，生成一个简单的Java接口，并且为每个SQL语句声明一个方法。这些方法的实现通过XML配置文件来定义。需要配置sqlMapGenerator-->
            <javaClientGenerator targetPackage="org.example.webappboot.mapper" targetProject="src/main/java" type="XMLMAPPER"/>
    
-           <!-- 指定需要生成映射的表，tableName 是数据库表名，domainObjectName 是对应的实体类名称 -->
+           <!-- 指定需要生成映射的表，tableName 是数据库表名，domainObjectName 是对应的实体类名称，mapperName 接口名称 -->
            <table tableName="student" domainObjectName="Student" mapperName="StudentMapper"/>
        </context>
    </generatorConfiguration>
@@ -2817,10 +2817,11 @@ FreeMarker 是一个用于生成输出文本的模板引擎,类似与jsp
 
 7. 编写controller层
 
-定制mybatis
+**定制mybatis**
 
 1. 使用 mybatis 全局配置文件
 2. 可以使用 application.yml 中配 mconfiguration + ConfigurationCustomizer
+3. 要么使用，要么使用 springboot 的，只能用 1 种
 
 ## 自定义Starter
 
@@ -3027,8 +3028,6 @@ public class MyService {
 }
 ```
 
-# 启动原理
-
 # 小知识
 
 1. `@RestController`：是`@Controller`加上`@ResponseBody`
@@ -3064,7 +3063,7 @@ public class MyService {
    }
    ```
 
-### 解决跨域问题
+## 解决跨域问题
 
 1. 创捷工具类
 
@@ -3092,7 +3091,7 @@ public class MyService {
 
 2. 在web层的控制类上加注解`@CrossOrigin`
 
-### 对对象进行序列化、转为JSON对象
+## 对对象进行序列化、转为JSON对象
 
 ```java
 ObjectMapper mapper = new ObjectMapper();
@@ -3102,4 +3101,225 @@ headers.setContentType(MediaType.APPLICATION_JSON);//添加请求头
 HttpEntity<Student> requestEntity = new HttpEntity<>(student, headers);//拼接请求头和请求体，作为返回值JSON对象
 Student student1 = mapper.readValue(s,Student.class);//JSON转换为Student对象
 ```
+
+## springboot开发流程
+
+1. 新建springboot应用:`选择springboot版本`
+
+   * 选择web—》springweb
+   * 选择sql — 》JDBC、mybatis、mysql
+
+2. 创建成功：查看依赖
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+   	<modelVersion>4.0.0</modelVersion>
+   	<parent>
+   		<groupId>org.springframework.boot</groupId>
+   		<artifactId>spring-boot-starter-parent</artifactId>
+   		<version>3.2.7</version>
+   		<relativePath/> <!-- lookup parent from repository -->
+   	</parent>
+   	<groupId>com.example</groupId>
+   	<artifactId>demo</artifactId>
+   	<version>0.0.1-SNAPSHOT</version>
+   	<name>demo</name>
+   	<description>demo</description>
+   	<url/>
+   	<licenses>
+   		<license/>
+   	</licenses>
+   	<developers>
+   		<developer/>
+   	</developers>
+   	<scm>
+   		<connection/>
+   		<developerConnection/>
+   		<tag/>
+   		<url/>
+   	</scm>
+   	<properties>
+   		<java.version>17</java.version>
+   	</properties>
+   	<dependencies>
+           <!--jdbc-->
+   		<dependency>
+   			<groupId>org.springframework.boot</groupId>
+   			<artifactId>spring-boot-starter-jdbc</artifactId>
+   		</dependency>
+   		<dependency>
+   			<groupId>org.springframework.boot</groupId>
+   			<artifactId>spring-boot-starter-web</artifactId>
+   		</dependency>
+   		<dependency>
+   			<groupId>org.mybatis.spring.boot</groupId>
+   			<artifactId>mybatis-spring-boot-starter</artifactId>
+   			<version>3.0.4</version>
+   		</dependency>
+   
+   		<dependency>
+   			<groupId>com.mysql</groupId>
+   			<artifactId>mysql-connector-j</artifactId>
+   			<scope>runtime</scope>
+   		</dependency>
+   		<dependency>
+   			<groupId>org.springframework.boot</groupId>
+   			<artifactId>spring-boot-starter-test</artifactId>
+   			<scope>test</scope>
+   		</dependency>
+   		<dependency>
+   			<groupId>org.mybatis.spring.boot</groupId>
+   			<artifactId>mybatis-spring-boot-starter-test</artifactId>
+   			<version>3.0.4</version>
+   			<scope>test</scope>
+   		</dependency>
+   	</dependencies>
+   
+   	<build>
+   		<plugins>
+   			<plugin>
+   				<groupId>org.springframework.boot</groupId>
+   				<artifactId>spring-boot-maven-plugin</artifactId>
+   			</plugin>
+   		</plugins>
+   	</build>
+   
+   </project>
+   ```
+
+3. 因为没有连接池加一个连接池
+
+   ```xml
+   <dependency>
+               <groupId>com.alibaba</groupId>
+               <artifactId>druid-spring-boot-3-starter</artifactId>
+               <version>1.2.20</version> <!-- 确保使用最新的版本 -->
+           </dependency>
+   ```
+
+4. 创建`application.yml`配置文件、配置数据源、
+
+   ```yaml
+   spring:
+     ## 数据库
+     datasource:
+       username: root # 数据库用户名
+       password: 219798 # 数据库密码
+       url: jdbc:mysql://192.168.31.57:3306/zxkssjk # 数据库连接URL（请补全具体的数据库名称）
+       driver-class-name: com.mysql.cj.jdbc.Driver # 配置MySQL的JDBC驱动类
+       type: com.alibaba.druid.pool.DruidDataSource # 指定数据源类型为Druid
+   
+       # 数据源其他配置
+       druid:
+         initial-size: 5 # 初始创建的连接数
+         min-idle: 5 # 最小空闲连接数
+         max-active: 20 # 最大活动连接数
+         max-wait: 60000 # 获取连接的最大等待时间，单位为毫秒
+         time-between-eviction-runs-millis: 60000 # 两次连接空闲检查之间的时间间隔，单位为毫秒
+         min-evictable-idle-time-millis: 300000 # 连接在池中可空闲的最大时间，超过该时间的连接将被回收，单位为毫秒
+         test-while-idle: true # 在连接空闲时进行验证
+         test-on-borrow: false # 在获取连接时进行验证
+         test-on-return: false # 在归还连接时进行验证
+         pool-prepared-statements: true # 是否缓存PreparedStatement，默认为false
+         max-pool-prepared-statement-per-connection-size: 20 # 每个连接缓存PreparedStatement的最大数量
+         filters: stat,wall # 配置监控统计拦截的filters，去掉后监控界面sql无法统计；`wall`用于防火墙
+         use-global-data-source-stat: true # 启用全局的数据源统计功能
+         connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=500 # 配置合并SQL和慢SQL的阈值（单位为毫秒）
+   ## 初始化运行sql脚本
+     sql:
+       init:
+         schema-locations: classpath:sql/student.sql # 指定了模式初始化的SQL脚本位置。
+         mode: always # 确保每次启动时都会执行这些脚本。开发环境中可能很有用，但在生产环境中通常是不希望的行为
+         continue-on-error: true # 设置为true，即使脚本执行失败也会继续执行后续操作。
+   ```
+
+5. 插入pom依赖:mybatis-Generator代码生成器生成代码
+
+   ```xml
+   <!--Mybatis-Generator插件，自动生成代码-->
+               <plugin>
+                   <groupId>org.mybatis.generator</groupId>
+                   <artifactId>mybatis-generator-maven-plugin</artifactId>
+                   <version>1.4.2</version>
+                   <!-- 使用最新稳定版本 -->
+                   <configuration>
+                       <configurationFile>${project.basedir}/src/main/resources/generatorConfig.xml</configurationFile>
+                       <!--路径地址为src到generatorConfig.xml的地址-->
+                       <overwrite>true</overwrite> <!-- 生成时覆盖已有文件 -->
+                       <verbose>true</verbose> <!-- 输出日志 -->
+                   </configuration>
+                   <!--单独为代码生成器引入mysql的启动器-->
+                   <dependencies>
+                       <dependency>
+                           <groupId>mysql</groupId>
+                           <artifactId>mysql-connector-java</artifactId>
+                           <version>8.0.28</version> <!-- 使用与你的 MySQL 版本兼容的驱动版本 -->
+                       </dependency>
+                   </dependencies>
+               </plugin>
+   ```
+
+6. 新建`generatorConfig.xml`文件:用于代码生成
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE generatorConfiguration
+           PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+           "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+   
+   <generatorConfiguration>
+        <commentGenerator>
+       <!-- 禁用除注释外的所有注释 -->
+       <property name="suppressAllComments" value="true"/>
+       <!-- 或者仅禁用日期注释 -->
+       <!-- <property name="suppressDate" value="true"/> -->
+   </commentGenerator>
+       <!--生成上下文 配置生成规则
+                      id 随意写
+                      targetRuntime 生成策略
+                              值
+                              MyBatis3DynamicSql  默认的，会生成带动态的sql的CRUD
+                              MyBatis3 生成通用查询，可以指定动态where条件
+                              MyBatis3Simple 只生成简单的CRUD-->
+       <context id="dbTables" targetRuntime="MyBatis3Simple">
+   
+           <!--配置数据源-->
+           <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+                           connectionURL="jdbc:mysql://localhost:3306/school"
+                           userId="root"
+                           password ="219798" />
+   
+           <!--生成文件-->
+           <!--pojo对象类-->
+           <javaModelGenerator targetPackage="org.example.rlsb_zxks.main" targetProject="src/main/java"/>
+           
+           <!--mapper xml映射文件-->
+           <sqlMapGenerator targetPackage="org.example.rlsb_zxks.mapper" targetProject="src/main/resources"/>
+           
+           <!--mapper接口-->
+           <javaClientGenerator targetPackage="org.example.rlsb_zxks.mapper" targetProject="src/main/java" type="XMLMAPPER"/>
+   
+           <!-- 指定需要生成映射的表，tableName 是数据库表名，domainObjectName 是对应的实体类名称 -->
+           <table tableName="zxkssjk" domainObjectName="RlsbZxks" mapperName="RlsbZxksMapper"/>
+       </context>
+   </generatorConfiguration>
+   ```
+
+7. 打开idea右边maven选择—-插件——mybatis-Generator执行`mvn mybatis-generator:generate`、生成代码
+
+8. 配置`mapper.xml`的sql映射文件访问地址
+
+   ```yaml
+   ## 配置mybatis的mapper.xml
+   mybatis:
+     mapper-locations: classpath:org/example/rlsb_zxks/mapper/*Mapper.xml
+   ```
+
+9. 在启动类添加`@MapperScan("org.example.rlsb_zxks.mapper")`注解：为sql映射文件位置
+
+10. 
+
+## pom.xml
 

@@ -538,6 +538,7 @@ git add .
 6. `git push -u origin main`提交
 7. 后续项目正常提交步骤
 8. `git checkout main`切换已经存在的远程分支
+9. `git branch --set-upstream-to=origin/main main`:设置上游分支
 
 # 报错
 
