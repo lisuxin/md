@@ -3354,7 +3354,8 @@ onMounted(() => {
 1. 安装 
 
    1. axios ：` npm install axios` ； 
-   1.  querystring: `npm install querystring`
+   1. querystring: `npm install querystring`
+      * 用于解析和构建 URL 查询字符串的模块。它可以帮助你处理 URL 中 `?` 后面的那一部分，这部分通常用来传递参数给服务器。例如，在 URL `http://example.com/page?name=JohnDoe&age=30` 中，`name=JohnDoe&age=30` 就是查询字符串。
 
 2. 创建src/utils/request.js
 
@@ -3794,7 +3795,7 @@ export default instance;
       </style>
       ```
 
-   2. vite.config.js
+   2. vite.config.js、解决跨域
 
       ```js
       import { defineConfig } from 'vite'

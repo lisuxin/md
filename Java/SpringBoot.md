@@ -3335,6 +3335,267 @@ Student student1 = mapper.readValue(s,Student.class);//JSON转换为Student对�
 
 ## pom.xml
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 定义项目的父项目，使用 Spring Boot 提供的 starter-parent -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.7</version>
+        <relativePath /> <!-- 从远程仓库查找父 POM -->
+    </parent>
+
+    <!-- 项目的元数据 -->
+    <groupId>org.example</groupId>
+    <artifactId>rlsb_zxks</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>rlsb_zxks</name>
+    <description>rlsb_zxks</description>
+    <url />
+    <licenses>
+        <license />
+    </licenses>
+    <developers>
+        <developer />
+    </developers>
+    <scm>
+        <connection />
+        <developerConnection />
+        <tag />
+        <url />
+    </scm>
+
+    <!-- 定义全局属性，例如 Java 版本 -->
+    <properties>
+        <java.version>17</java.version> <!-- 指定项目使用的 Java 版本为 17 -->
+    </properties>
+
+    <!-- 项目依赖项 -->
+    <dependencies>
+        <!-- Spring Boot Web Starter：提供构建 RESTful Web 应用所需的依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <!-- 排除默认的日志框架，因为我们使用了 Log4j2 -->
+                <exclusion>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                    <groupId>org.springframework.boot</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Spring Boot DevTools：提供开发时的热部署和自动重启功能 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional> <!-- 仅在开发环境中启用 -->
+        </dependency>
+
+        <!-- Spring Boot Test Starter：提供测试支持，包括 JUnit、Mockito 等 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope> <!-- 仅在测试阶段使用 -->
+        </dependency>
+
+        <!-- Spring Boot JDBC Starter：提供 JDBC 数据库访问的支持 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+
+        <!-- MyBatis Spring Boot Starter：集成 MyBatis ORM 框架 -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>3.0.3</version>
+        </dependency>
+
+        <!-- MyBatis Spring Boot Test Starter：提供 MyBatis 的测试支持 -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter-test</artifactId>
+            <version>3.0.3</version>
+            <scope>test</scope> <!-- 仅在测试阶段使用 -->
+        </dependency>
+
+        <!-- Spring Boot Validation Starter：提供 Bean 验证的支持 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Druid Spring Boot 3 Starter：集成阿里巴巴的数据库连接池 Druid -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-3-starter</artifactId>
+            <version>1.2.20</version>
+        </dependency>
+
+        <!-- Lombok：简化 Java 代码编写，自动生成 getter/setter、toString 等方法 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope> <!-- 仅在编译和运行时使用 -->
+        </dependency>
+
+        <!-- MySQL Connector/J：MySQL 数据库的 JDBC 驱动 -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope> <!-- 仅在运行时使用 -->
+        </dependency>
+
+        <!-- Spring Boot Redis Starter：集成 Redis 缓存支持 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- Spring Boot FreeMarker Starter：集成 FreeMarker 模板引擎 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Tomcat Starter：提供嵌入式 Tomcat 服务器 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope> <!-- 仅在编译和运行时使用 -->
+        </dependency>
+
+        <!-- Spring Boot Thymeleaf Starter：集成 Thymeleaf 模板引擎 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!-- Spring Boot AOP Starter：提供面向切面编程（AOP）的支持 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!-- SpringDoc OpenAPI Starter：生成 API 文档（Swagger UI） -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
+        <!-- Jakarta Servlet API：提供 Servlet 6.0 规范的支持 -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version>
+            <scope>provided</scope> <!-- 仅在编译和运行时使用 -->
+        </dependency>
+
+        <!-- Spring Boot Log4j2 Starter：集成 Log4j2 日志框架 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+
+        <!-- SLF4J over JCL：将 Apache Commons Logging (JCL) 的日志调用重定向到 SLF4J -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+        </dependency>
+
+        <!-- Log4j：Log4j 1.x 日志框架（不推荐使用，建议使用 Log4j2） -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </dependency>
+
+        <!-- SLF4J API：提供统一的日志接口 -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- SLF4J Log4j12 Binding：将 SLF4J 日志调用绑定到 Log4j 1.x -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Configuration Processor：用于生成 `@ConfigurationProperties` 注解的元数据文件 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <scope>compile</scope> <!-- 修正为 compile 范围，确保在编译时可用 -->
+        </dependency>
+    </dependencies>
+
+    <!-- 构建配置 -->
+    <build>
+        <plugins>
+            <!-- Spring Boot Maven Plugin：提供打包和运行 Spring Boot 应用的功能 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- MyBatis Generator Maven Plugin：用于自动生成 MyBatis 的 Mapper 和实体类 -->
+            <plugin>
+                <groupId>org.mybatis.generator</groupId>
+                <artifactId>mybatis-generator-maven-plugin</artifactId>
+                <version>1.4.2</version>
+                <configuration>
+                    <!-- 指定 MyBatis Generator 的配置文件路径 -->
+                    <configurationFile>${project.basedir}/src/main/resources/generatorConfig.xml</configurationFile>
+                    <!-- 是否覆盖已存在的文件 -->
+                    <overwrite>true</overwrite>
+                    <!-- 是否启用详细输出 -->
+                    <verbose>true</verbose>
+                </configuration>
+                <dependencies>
+                    <!-- 添加 MySQL JDBC 驱动作为 MyBatis Generator 的依赖 -->
+                    <dependency>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>8.0.28</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
 ```
-```
+
+### 关键点解释
+
+1. **依赖项 (`<dependencies>`)**：
+   - **`spring-boot-starter-web`**：提供了构建 RESTful Web 应用所需的核心依赖，包括 Spring MVC 和 Tomcat。
+   - **`spring-boot-devtools`**：提供了开发时的热部署和自动重启功能，方便快速迭代。
+   - **`spring-boot-starter-test`**：提供了测试支持，包括 JUnit、Mockito 等。
+   - **`spring-boot-starter-jdbc`**：提供了 JDBC 数据库访问的支持。
+   - **`mybatis-spring-boot-starter`**：集成了 MyBatis ORM 框架，用于与数据库交互。
+   - **`druid-spring-boot-3-starter`**：集成了阿里巴巴的数据库连接池 Druid，适用于 Spring Boot 3.x。
+   - **`lombok`**：简化 Java 代码编写，自动生成 getter/setter、toString 等方法。
+   - **`mysql-connector-j`**：提供了 MySQL 数据库的 JDBC 驱动。
+   - **`spring-boot-starter-data-redis`**：集成了 Redis 缓存支持。
+   - **`spring-boot-starter-freemarker`** 和 **`spring-boot-starter-thymeleaf`**：分别集成了 FreeMarker 和 Thymeleaf 模板引擎，用于生成动态网页。
+   - **`spring-boot-starter-aop`**：提供了面向切面编程（AOP）的支持，用于实现横切关注点（如日志记录、事务管理等）。
+   - **`springdoc-openapi-starter-webmvc-ui`**：用于生成 API 文档（Swagger UI），方便开发者查看和测试 API。
+   - **`spring-boot-starter-log4j2`**：集成了 Log4j2 日志框架，替代了默认的日志框架。
+   - **`spring-boot-configuration-processor`**：用于生成 `@ConfigurationProperties` 注解的元数据文件，便于 IDE 提供自动补全和验证。
+
+2. **构建插件 (`<build><plugins>`)**：
+   - **`spring-boot-maven-plugin`**：提供了打包和运行 Spring Boot 应用的功能，支持创建可执行的 JAR 或 WAR 文件。
+   - **`mybatis-generator-maven-plugin`**：用于自动生成 MyBatis 的 Mapper 和实体类。通过配置文件 `generatorConfig.xml`，可以自动化生成与数据库表对应的 Java 类和 SQL 映射文件。
+
+3. **其他注意事项**：
+   - **`<scope>`**：指定了依赖的使用范围。例如，`provided` 表示该依赖仅在编译和运行时使用，不会被打包到最终的 JAR 文件中；`test` 表示该依赖仅在测试阶段使用。
+   - **`<exclusions>`**：用于排除某些依赖的传递依赖。例如，这里排除了 `spring-boot-starter-logging`，因为我们使用了 `spring-boot-starter-log4j2` 作为日志框架。
 
