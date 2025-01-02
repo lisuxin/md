@@ -1369,8 +1369,6 @@ Swagger是一个用于生成、描述和调用RESTful接口的Web服务框架。
 
 2. 自定义视图解析器
 
-   Spring Boot 3 并不是一个已经发布的版本，截至我最后更新的知识（2023年初），Spring Boot的最新稳定版本是2.x系列。不过，我们可以假设你是指在最新的Spring Boot 2.x版本中配置视图解析器，并且这个过程对于未来的版本也应该类似。
-
    在 Spring Boot 中配置视图解析器通常是为了支持Web应用中的模板引擎，如Thymeleaf、FreeMarker等。这里以Thymeleaf为例来说明如何配置视图解析器。
 
    1. 添加依赖
@@ -1383,13 +1381,13 @@ Swagger是一个用于生成、描述和调用RESTful接口的Web服务框架。
           <artifactId>spring-boot-starter-thymeleaf</artifactId>
       </dependency>
       ```
-
+   
       如果使用 Gradle，则在 `build.gradle` 文件中添加：
 
       ```properties
       implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
       ```
-
+   
    2. 配置 Thymeleaf
 
       Spring Boot 默认会自动配置 Thymeleaf，但你可以通过修改 `application.properties` 或 `application.yml` 文件来自定义配置。例如，如果你想更改视图的前缀和后缀，可以添加以下配置：
@@ -1401,14 +1399,14 @@ Swagger是一个用于生成、描述和调用RESTful接口的Web服务框架。
           prefix: classpath:/templates/
           suffix: .html
       ```
-
+   
       或者在 `application.properties` 文件中：
 
       ```properties
       spring.thymeleaf.prefix=classpath:/templates/
       spring.thymeleaf.suffix=.html
       ```
-
+   
       这些配置指定了模板文件的位置。默认情况下，Spring Boot 期望 HTML 文件位于 `src/main/resources/templates/` 目录下。
 
    3. 使用视图
@@ -1422,7 +1420,7 @@ Swagger是一个用于生成、描述和调用RESTful接口的Web服务框架。
           return "hello"; // This will look for a template file named hello.html in the configured location.
       }
       ```
-
+   
       在这个例子中，Spring Boot 将寻找名为 `hello.html` 的模板文件。
 
    4. 自定义视图解析器
@@ -1459,7 +1457,7 @@ Swagger是一个用于生成、描述和调用RESTful接口的Web服务框架。
           }
       }
       ```
-
+   
       这段代码创建了一个自定义的 `ThymeleafViewResolver` 和相关组件来处理视图解析。
 
 
@@ -2509,7 +2507,7 @@ Spring Boot 包含对嵌入式 Tomcat ， Jetty 和 lJndertow 服务器的支持
            <dependency>
              <groupId>org.springframework.boot</groupId>    
              <artifactId>spring-boot-starter-tomcat</artifactId>   
-             <scope>provided</scope>tomcat不参与项目打包  
+             <scope>provided</scope><!--tomcat不参与项目打包--> 
          </dependency>
          ```
 
@@ -2532,6 +2530,8 @@ FreeMarker 是一个用于生成输出文本的模板引擎,类似与jsp
 1. 使用
 
    添加相应的场景启动器就可以使用
+
+   - **作用**：这个启动器会自动引入 FreeMarker 模板引擎及其相关的依赖，并为 FreeMarker 配置自动化的 Spring Boot 支持。它还会自动配置 FreeMarker 与 Spring MVC 的集成，使得你可以直接在控制器中返回 FreeMarker 模板名称，而不需要手动配置视图解析器。
 
    ```xml
    <dependency>
@@ -2591,6 +2591,12 @@ FreeMarker 是一个用于生成输出文本的模板引擎,类似与jsp
        <version>1.2.20</version>
    </dependency>
    ```
+
+   * 都是连接池，三选一
+   * **选择合适的依赖**
+      - 如果你使用的是 **Spring Boot 2.x**，你应该选择 `druid-spring-boot-starter`。
+      - 如果你使用的是 **Spring Boot 3.x**，你应该选择 `druid-spring-boot-3-starter`。
+      - 如果你不需要 Spring Boot 的自动配置，或者你在非 Spring Boot 项目中使用 Druid，可以选择直接引入 `druid` 核心库。
 
 4. 编辑配置文件
 
@@ -3109,7 +3115,7 @@ Student student1 = mapper.readValue(s,Student.class);//JSON转换为Student对�
    * 选择web—》springweb
    * 选择sql — 》JDBC、mybatis、mysql
 
-2. 创建成功：查看依赖
+2. 创建成功：查看依赖最简单的springboot、mybatis、mysql链接开发的依赖
 
    ```xml
    <?xml version="1.0" encoding="UTF-8"?>
@@ -3199,7 +3205,7 @@ Student student1 = mapper.readValue(s,Student.class);//JSON转换为Student对�
            </dependency>
    ```
 
-4. 创建`application.yml`配置文件、配置数据源、
+4. 创建`application.yml`配置文件、配置数据源，一定注意初始化sql脚本
 
    ```yaml
    spring:
@@ -3319,7 +3325,16 @@ Student student1 = mapper.readValue(s,Student.class);//JSON转换为Student对�
 
 9. 在启动类添加`@MapperScan("org.example.rlsb_zxks.mapper")`注解：为sql映射文件位置
 
-10. 
+10. 创建server层接口
+
+11. 实现server接口，`@Autowired`注入mapper接口
+
+12. 在Controller层中调用`@Autowired`注入server接口
+
+13. 启动测试
 
 ## pom.xml
+
+```
+```
 
