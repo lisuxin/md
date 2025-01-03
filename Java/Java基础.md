@@ -2587,7 +2587,7 @@ public class Test01 {
 
      ````java
      for(int i=0;i<list.size();i++){
-         String s = list.gir(i);
+         String s = list.get(i);
          System.out.println(s);
      }
      ````

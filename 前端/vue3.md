@@ -2312,7 +2312,11 @@ vue 指令 (Directives) 是 vue.js 的一项核心功能，它们可以在 HTML 
    </template>
    ```
 
-3. 
+3. 提交数据到后端
+
+   ```vue
+   const response = await api.getddengluid({ username: username.value, password: password.value });
+   ```
 
 ### v-bind
 
