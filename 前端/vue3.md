@@ -3463,7 +3463,6 @@ onMounted(() => {
 
    ```js
    // src/api/index.js
-   
    import instance from "../utils/request"
    import base from "./path";
    
@@ -3475,7 +3474,7 @@ onMounted(() => {
    
    export default api;
    ```
-
+   
 4. 组件使用
 
    ```vue
@@ -3740,6 +3739,15 @@ export default instance;
    <style scoped>
    </style>
    ```
+
+4. 在main.js中引入axios
+
+   ```js
+   import axios from 'axios';
+   app.provide("axios",axios);
+   ```
+
+   
 
 ### Aixos发送接收后端数据
 

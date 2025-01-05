@@ -1460,7 +1460,6 @@ Swagger是一个用于生成、描述和调用RESTful接口的Web服务框架。
    
       这段代码创建了一个自定义的 `ThymeleafViewResolver` 和相关组件来处理视图解析。
 
-
 ### 定制springMVC的自动配置
 
 1. 定制`ViewController`
