@@ -1626,6 +1626,8 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
        打开 MySQL 的配置文件，编辑 `[mysqld]` 部分，添加或修改 `port` 选项。例如，如果你想将 MySQL 的端口更改为 3307：
 
        ```ini
+       查看端口
+       cat /etc/my.cnf | grep port
        [mysqld]
        port = 3307
        ```

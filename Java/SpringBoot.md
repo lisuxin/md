@@ -3033,6 +3033,212 @@ public class MyService {
 }
 ```
 
+# 打包
+
+```
+java -jar target/your-app-name-1.0.0.jar
+```
+
+生产上发布 Spring Boot 项目时，流程颇为繁琐且低效。但凡代码有一丁点改动，就得把整个项目重新打包部署，耗时费力不说，生成的 JAR 包还特别臃肿，体积庞大。每次更新项目，光是上传这大文件就得花费不少时间，严重影响工作节奏。
+
+为解决这一痛点，我打算把依赖库以及配置文件（lib 文件夹下的那些 jar 包,还有config下的applacation.yml等文件）从项目主体里剥离出来，后续部署时，只需发布核心代码就行，这样既能加快部署速度，又能减轻文件传输负担，让项目更新变得轻松便捷
+
+## **方法一 插件spring-boot-maven-plugin**
+
+**1. 项目应用的配置文件排除 统一打包到config目录下**
+
+利用springboot中resource插件来排除配置，并统一打包到config目录下
+
+```xml
+<resources>
+    <resource>
+        <directory>src/main/resources</directory>       <!--filerting设置为true,则打包过程中会对这些文件进行过滤处理-->
+        <filtering>true</filtering>       <!--指定目标路径为config-->
+        <targetPath>${project.build.directory}/config</targetPath>
+        <includes>      <!--使用通配符-->
+            <include>**/*.properties</include>
+            <include>**/*.yml</include>
+            <include>**/*.xml</include>
+            <include>mapper/*.xml</include>      <!-- 这里可以根据你实际想要包含的配置文件类型来添加更多的include配置 -->
+        </includes>
+    </resource>
+</resources>
+```
+
+**2. 把我们写代码打包可执行jar，并排除依赖jar包**
+
+```xml
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <configuration>   <!--项目的启动类,如果有多个main就必须指定，没有可以缺失
+        <mainClass>XXXXX.TwinWebApplication</mainClass>-->    <!--解决windows命令行窗口中文乱码-->
+        <jvmArguments>-Dfile.encoding=UTF-8</jvmArguments>
+        <layout>ZIP</layout>     <!--配置需要打包进项目的jar-->
+        <includes>     <!--填写需要打包所需要的依赖
+            。没有匹配上任何jar包机排除依赖-->
+            <include>
+                <groupId>no-exists-jar</groupId>
+                <artifactId>non-exists-jar</artifactId>
+            </include>
+        </includes>
+    </configuration>
+    <executions>
+        <execution>
+            <goals>         <!-- 表示当运行mavn package打包时，使用Springboot插件打包 -->
+                <goal>repackage</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+**3. 配置依赖的jar包 统一打包lib目录**
+
+```xml
+<!--此插件用于将依赖包抽出-->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+                <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+                <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                <excludeTransitive>false</excludeTransitive>
+                <stripVersion>false</stripVersion>
+                <includeScope>runtime</includeScope>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+打包后目录结构,如下图所示
+
+![图片](https://mmbiz.qpic.cn/mmbiz_jpg/eQPyBffYbueKg9GMagQj82qMVR9LsoFrKzTal0lHW5Ab4puu00IC644vtq2qJP5MgQq5eHbpY8X2ffBumAZNvw/640?wx_fmt=jpeg&from=appmsg&wxfrom=5&wx_lazy=1&wx_co=1&tp=wxpic)
+
+执行命令 `java -jar -Dloader.path=./lib -jar xxx.jar`
+
+> 注意 springboot启动时候会优先读取config目录下配置文件 所以这里不用指定`-Dspring.config.location=XX.yml`文件
+
+![图片](https://mmbiz.qpic.cn/mmbiz_jpg/eQPyBffYbueKg9GMagQj82qMVR9LsoFric5MCfZjXafXC1ZcQoiboHEaniaSLvAWRVMqaw2J0NX3pCBUMxYIicygpA/640?wx_fmt=jpeg&from=appmsg&wxfrom=5&wx_lazy=1&wx_co=1&tp=wxpic)
+
+注意 例如日志文件配置以及mybits等配置文件 可以配成绝对路径 如下所示：
+
+![图片](https://mmbiz.qpic.cn/mmbiz_jpg/eQPyBffYbueKg9GMagQj82qMVR9LsoFrUsnAc4oia7AduFyeMwVh0P5UAa4feqCwp29xYYacGaibbicjnBEK7Picfw/640?wx_fmt=jpeg&from=appmsg&wxfrom=5&wx_lazy=1&wx_co=1&tp=wxpic)
+
+## **方法二 使用maven-jar-plugin插件实现**
+
+**1. 使用插件maven-resources-plugin处理配置文件打包到config目录**
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-resources-plugin</artifactId>
+    <configuration>
+        <encoding>UTF-8</encoding>
+    </configuration>
+    <executions>
+        <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+                <goal>copy-resources</goal>
+            </goals>
+            <configuration><!--配置文件打包成config目录下 -->
+                <outputDirectory>${project.build.directory}/twin-web/config</outputDirectory>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                    </resource>
+                </resources>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+**2. 使用maven-jar-plugin 打包可执行jar 并排除依赖**
+
+```
+<plugin>   <groupId>org.apache.maven.plugins</groupId>   <artifactId>maven-jar-plugin</artifactId>   <configuration>      <outputDirectory>          <!--输入打包可执行的jar到twin-web\libs\下-->          ${project.build.directory}/twin-web/       </outputDirectory>      <archive>        <addMavenDescriptor>false</addMavenDescriptor>       <manifest>             <addClasspath>true</addClasspath>         <!-- 增加执行启动jar的依赖jar包目录前缀-->           <classpathPrefix>./libs/</classpathPrefix>         <!-- 指定启动类-->            <mainClass>com.keqing.twinweb.TwinWebApplication</mainClass>        </manifest>        <manifestEntries>          <!-- 增加配置文件的classpath-->          <Class-Path>./config/</Class-Path>      </manifestEntries></archive><!-- 排除配置文件-->     <excludes>         <exclude>*.yml</exclude>         <exclude>mapper/**</exclude>         <exclude>*.xml</exclude>     </excludes>  </configuration></plugin>
+```
+
+**3. 使用maven-dependency-plugin 打包libs目录下**
+
+```
+<plugin>   <groupId>org.apache.maven.plugins</groupId>   <artifactId>maven-dependency-plugin</artifactId>   <executions>   <execution>      <id>copy-dependencies</id>      <phase>package</phase>      <goals>         <goal>copy-dependencies</goal>      </goals>     <configuration>          <outputDirectory>${project.build.directory}/twin-web/libs</outputDirectory>          <excludeTransitive>false</excludeTransitive>          <stripVersion>false</stripVersion>          <includeScope>runtime</includeScope>      </configuration>    </execution>  </executions></plugin>
+```
+
+使用package打包后的目录
+
+![图片](https://mmbiz.qpic.cn/mmbiz_jpg/eQPyBffYbueKg9GMagQj82qMVR9LsoFribibibTfkPWg1LYdr5ZpZ2PNXoDnZt0MIfzeDcJh9x3l2veaPzEjEnHjg/640?wx_fmt=jpeg&from=appmsg&tp=wxpic&wxfrom=13&wx_lazy=1&wx_co=1)
+
+查看自己打包后jar目录，注意这种打包方式弊端，按照一定约定格式规范固定了，一旦依赖jar包（包括配置文件目录等）发生变化就必须重新打包
+
+![图片](https://mmbiz.qpic.cn/mmbiz_jpg/eQPyBffYbueKg9GMagQj82qMVR9LsoFrEnVFKenBtU1Ebhe5vlVpFyTrWPtW3ZFnhggqxjzzC39J222lJnweBg/640?wx_fmt=jpeg&from=appmsg&tp=wxpic&wxfrom=13&wx_lazy=1&wx_co=1)
+
+启动程序`java -jar xxx.jar`
+
+![图片](https://mmbiz.qpic.cn/mmbiz_jpg/eQPyBffYbueKg9GMagQj82qMVR9LsoFr4QNJ0ZUWchGlS8tW9R69leNucy8ENuMqdHED8dLo7KPUIOP8CeTqMQ/640?wx_fmt=jpeg&from=appmsg&wxfrom=5&wx_lazy=1&wx_co=1&tp=wxpic)
+
+## **方式三 使用maven-assembly-plugin打包**
+
+`maven-assembly-plugin` 是 Maven 中的一个插件，它允许用户将项目的输出以及依赖、模块、站点文档和其他文件打包成一个可发布的格式，例如 zip、tar.gz、jar 等。以下是使用 `maven-assembly-plugin` 的一些优势：
+
+- **自定义打包格式：** maven-assembly-plugin 允许你通过定义描述符文件（descriptor）来完全自定义打包的内容和格式。你可以选择包含或排除特定的文件和目录。
+- **一键打包：** 通过一个简单的 Maven 命令，你可以创建一个包含所有必需依赖的单一归档文件，这使得分发和部署变得非常简单。
+- **多环境支持：** 可以为不同的环境（开发、测试、生产）创建不同的打包配置，使得环境迁移更加容易。
+- **依赖管理：** 插件会自动处理项目依赖，将它们打包到最终的归档文件中，无需手动管理。
+- **模块化项目支持：** 对于多模块项目，maven-assembly-plugin 可以将所有模块的输出合并到一个归档文件中。
+- **预配置的描述符：** 插件提供了一些预定义的描述符，如 bin、jar-with-dependencies 等，可以直接使用，无需自定义。
+- **灵活性：** 你可以通过修改描述符文件来调整打包行为，以适应不同的需求。
+- **集成性：** maven-assembly-plugin 与 Maven 生态系统紧密集成，可以与其他 Maven 插件协同工作。
+- **文档和社区支持：** 由于 maven-assembly-plugin 是 Maven 的一部分，因此有广泛的文档和社区支持。
+
+**1. 项目应用的配置文件排除**
+
+```
+<resources>  <resource>         <directory>src/main/resources</directory>             <!--filerting设置为true,则打包过程中会对这些文件进行过滤处理-->          <filtering>true</filtering>         <includes>             <!--使用通配符-->            <include>**/*.properties</include>            <include>**/*.yml</include>            <include>**/*.xml</include>           <include>mapper/*.xml</include>        <!-- 这里可以根据你实际想要包含的配置文件类型来添加更多的include配置 -->        </includes>   </resource></resources>
+```
+
+**2. 配置spring-boot-maven-plugin**
+
+```
+<plugin>   <groupId>org.springframework.boot</groupId>   <artifactId>spring-boot-maven-plugin</artifactId>   <configuration>    <!--项目的启动类,如果有多个main就必须指定，没有可以缺失         <mainClass>XXXXX.TwinWebApplication</mainClass>-->        <!--解决windows命令行窗口中文乱码-->        <jvmArguments>-Dfile.encoding=UTF-8</jvmArguments>        <layout>ZIP</layout>           <!--配置需要打包进项目的jar-->       <includes>        <!--填写需要打包所需要的依赖 。没有匹配上任何jar包机排除依赖-->          <include>          <groupId>no-exists-jar</groupId>          <artifactId>non-exists-jar</artifactId>          </include>      </includes>   </configuration>   <executions>         <execution>           <goals>                 <!-- 表示当运行mavn package打包时，使用Springboot插件打包 -->              <goal>repackage</goal>          </goals>      </execution>  </executions></plugin>
+```
+
+**3. 引入springboot里约定maven-assembly-plugin**
+
+```
+<plugin>    <artifactId>maven-assembly-plugin</artifactId>    <configuration><!-- 打包文件名字不包含 assembly.xml 中 id -->      <appendAssemblyId>false</appendAssemblyId>      <descriptors>      <!--项目所在目录配置文件的 assembly.xml文件 -->        <descriptor>assembly.xml</descriptor>      </descriptors>  </configuration><executions>   <execution>   <id>make-assembly</id>   <phase>package</phase>   <goals>          <goal>single</goal>    </goals>    </execution>  </executions></plugin>
+```
+
+配置assembly.xml文件
+
+```
+<assembly>   <!-- 打包文件名的标识符，用来做后缀-->    <id>make-assembly</id>    <!-- 打包的类型，如果有N个，将会打N个类型的包 -->   <formats>      <format>tar.gz</format>      <format>zip</format>   </formats>     <!-- 压缩包下是否生成和项目名相同的根目录 -->   <includeBaseDirectory>true</includeBaseDirectory>     <!-- 用来设置一组文件在打包时的属性。-->  <fileSets>   <!-- 0755->即用户具有读/写/执行权限，组用户和其它用户具有读写权限；-->    <!-- 0644->即用户具有读写权限，组用户和其它用户具有只读权限；-->    <!-- 将src/bin目录下的jar启动脚本输出到打包后的目录中 -->    <fileSet>     <!--lineEnding选项可用于控制给定的行结束文件 -->       <lineEnding>unix</lineEnding>       <directory>${basedir}/bin</directory>       <outputDirectory>${file.separator}</outputDirectory>       <fileMode>0755</fileMode>       <includes>         <include>**.sh</include>         <include>**.bat</include>      </includes>   </fileSet><!-- 把项目的配置文件，打包进压缩文件的config目录 -->   <fileSet>      <directory>${basedir}/src/main/resources</directory>      <outputDirectory>config</outputDirectory>      <fileMode>0644</fileMode>      <includes>           <include>*.properties</include>           <include>*.yml</include>          <include>*.xml</include>         <include>mapper/*.xml</include>      </includes>   </fileSet>   <!-- 把项目自己编译出来的jar文件，打包进zip文件的根目录 -->    <fileSet>      <directory>${project.build.directory}</directory>      <outputDirectory>${file.separator}</outputDirectory>      <includes>          <include>*.jar</include>      </includes>   </fileSet> </fileSets><!-- 依赖包的拷贝--><dependencySets>   <dependencySet>     <unpack>false</unpack>    <useProjectArtifact>true</useProjectArtifact>    <outputDirectory>lib</outputDirectory>    <scope>provided</scope>  </dependencySet>  <dependencySet>      <unpack>false</unpack>      <useProjectArtifact>true</useProjectArtifact>      <outputDirectory>lib</outputDirectory>      <scope>system</scope>  </dependencySet>  <dependencySet>     <unpack>false</unpack>     <useProjectArtifact>true</useProjectArtifact>     <outputDirectory>lib</outputDirectory>     <scope>runtime</scope>  </dependencySet></dependencySets></assembly>
+```
+
+打包后目录
+
+![图片](https://mmbiz.qpic.cn/mmbiz_jpg/eQPyBffYbueKg9GMagQj82qMVR9LsoFrePv0cqjhNSWGg7TJECsdSyOmtpgGt4A2IFyd8rx8TiceU5TibicMq9scQ/640?wx_fmt=jpeg&from=appmsg&wxfrom=5&wx_lazy=1&wx_co=1&tp=wxpic)
+
+解压zip目录查看
+
+![图片](https://mmbiz.qpic.cn/mmbiz_jpg/eQPyBffYbueKg9GMagQj82qMVR9LsoFr0AEbNsvXA40TY0FKswAZ4rKWOJgfrOV02qWibnLboQpd1uK7ytG5cSw/640?wx_fmt=jpeg&from=appmsg&wxfrom=5&wx_lazy=1&wx_co=1&tp=wxpic)
+
+使用命令启动项目`java -jar -Dloader.path=./lib -jar xxx.jar`
+
+![图片](https://mmbiz.qpic.cn/mmbiz_jpg/eQPyBffYbueKg9GMagQj82qMVR9LsoFrj3ujRoBOBCHCyXuMDTDUuQQe2ZSNn4TLg4oqIaCD4Zf44H1GYeQRRw/640?wx_fmt=jpeg&from=appmsg&wxfrom=5&wx_lazy=1&wx_co=1&tp=wxpic)
+
+
+
 # 小知识
 
 1. `@RestController`：是`@Controller`加上`@ResponseBody`
