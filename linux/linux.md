@@ -1504,6 +1504,8 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
    yum repolist enabled | grep mysql
    # 使用 yum 安装 mysql
    yum install -y mysql-community-server
+   #禁用 mysql 模块
+   yum module disable mysql
    # GPG密钥验证问题，禁掉GPG验证检查
    yum -y install mysql-community-server --nogpgcheck
    # 再次执行
@@ -1792,7 +1794,7 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
 
    7. 配置环境变量`vim /etc/profile`
    
-      1. 全局目录，搜索目录
+      1. 全局目录，搜索目录，添加在文件的最后面
 
          ```properties
          export JAVA_HOME=/usr/local/jdk/jdk1.8.0_181

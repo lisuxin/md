@@ -3165,14 +3165,55 @@ java -jar target/your-app-name-1.0.0.jar
 
 **2. 使用maven-jar-plugin 打包可执行jar 并排除依赖**
 
-```
-<plugin>   <groupId>org.apache.maven.plugins</groupId>   <artifactId>maven-jar-plugin</artifactId>   <configuration>      <outputDirectory>          <!--输入打包可执行的jar到twin-web\libs\下-->          ${project.build.directory}/twin-web/       </outputDirectory>      <archive>        <addMavenDescriptor>false</addMavenDescriptor>       <manifest>             <addClasspath>true</addClasspath>         <!-- 增加执行启动jar的依赖jar包目录前缀-->           <classpathPrefix>./libs/</classpathPrefix>         <!-- 指定启动类-->            <mainClass>com.keqing.twinweb.TwinWebApplication</mainClass>        </manifest>        <manifestEntries>          <!-- 增加配置文件的classpath-->          <Class-Path>./config/</Class-Path>      </manifestEntries></archive><!-- 排除配置文件-->     <excludes>         <exclude>*.yml</exclude>         <exclude>mapper/**</exclude>         <exclude>*.xml</exclude>     </excludes>  </configuration></plugin>
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-jar-plugin</artifactId>
+    <configuration>
+        <outputDirectory>          <!--输入打包可执行的jar到twin-web\libs\下--> ${project.build.directory}/twin-web/ </outputDirectory>
+        <archive>
+            <addMavenDescriptor>false</addMavenDescriptor>
+            <manifest>
+                <addClasspath>true</addClasspath>         <!-- 增加执行启动jar的依赖jar包目录前缀-->
+                <classpathPrefix>./libs/</classpathPrefix>         <!-- 指定启动类-->
+                <mainClass>com.keqing.twinweb.TwinWebApplication</mainClass>
+            </manifest>
+            <manifestEntries>          <!-- 增加配置文件的classpath-->
+                <Class-Path>./config/</Class-Path>
+            </manifestEntries>
+        </archive><!--
+        排除配置文件-->
+        <excludes>
+            <exclude>*.yml</exclude>
+            <exclude>mapper/**</exclude>
+            <exclude>*.xml</exclude>
+        </excludes>
+    </configuration>
+</plugin>
 ```
 
 **3. 使用maven-dependency-plugin 打包libs目录下**
 
-```
-<plugin>   <groupId>org.apache.maven.plugins</groupId>   <artifactId>maven-dependency-plugin</artifactId>   <executions>   <execution>      <id>copy-dependencies</id>      <phase>package</phase>      <goals>         <goal>copy-dependencies</goal>      </goals>     <configuration>          <outputDirectory>${project.build.directory}/twin-web/libs</outputDirectory>          <excludeTransitive>false</excludeTransitive>          <stripVersion>false</stripVersion>          <includeScope>runtime</includeScope>      </configuration>    </execution>  </executions></plugin>
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+                <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+                <outputDirectory>${project.build.directory}/twin-web/libs</outputDirectory>
+                <excludeTransitive>false</excludeTransitive>
+                <stripVersion>false</stripVersion>
+                <includeScope>runtime</includeScope>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
 ```
 
 使用package打包后的目录
@@ -3203,26 +3244,137 @@ java -jar target/your-app-name-1.0.0.jar
 
 **1. 项目应用的配置文件排除**
 
-```
-<resources>  <resource>         <directory>src/main/resources</directory>             <!--filerting设置为true,则打包过程中会对这些文件进行过滤处理-->          <filtering>true</filtering>         <includes>             <!--使用通配符-->            <include>**/*.properties</include>            <include>**/*.yml</include>            <include>**/*.xml</include>           <include>mapper/*.xml</include>        <!-- 这里可以根据你实际想要包含的配置文件类型来添加更多的include配置 -->        </includes>   </resource></resources>
+```xml
+<resources>
+    <resource>
+        <directory>src/main/resources</directory>             <!--filerting设置为true,则打包过程中会对这些文件进行过滤处理-->
+        <filtering>true</filtering>
+        <includes>             <!--使用通配符-->
+            <include>**/*.properties</include>
+            <include>**/*.yml</include>
+            <include>**/*.xml</include>
+            <include>mapper/*.xml</include>        <!-- 这里可以根据你实际想要包含的配置文件类型来添加更多的include配置 -->
+        </includes>
+    </resource>
+</resources>
 ```
 
 **2. 配置spring-boot-maven-plugin**
 
-```
-<plugin>   <groupId>org.springframework.boot</groupId>   <artifactId>spring-boot-maven-plugin</artifactId>   <configuration>    <!--项目的启动类,如果有多个main就必须指定，没有可以缺失         <mainClass>XXXXX.TwinWebApplication</mainClass>-->        <!--解决windows命令行窗口中文乱码-->        <jvmArguments>-Dfile.encoding=UTF-8</jvmArguments>        <layout>ZIP</layout>           <!--配置需要打包进项目的jar-->       <includes>        <!--填写需要打包所需要的依赖 。没有匹配上任何jar包机排除依赖-->          <include>          <groupId>no-exists-jar</groupId>          <artifactId>non-exists-jar</artifactId>          </include>      </includes>   </configuration>   <executions>         <execution>           <goals>                 <!-- 表示当运行mavn package打包时，使用Springboot插件打包 -->              <goal>repackage</goal>          </goals>      </execution>  </executions></plugin>
+```xml
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <configuration>    <!--项目的启动类,如果有多个main就必须指定，没有可以缺失
+        <mainClass>XXXXX.TwinWebApplication</mainClass>-->        <!--解决windows命令行窗口中文乱码-->
+        <jvmArguments>-Dfile.encoding=UTF-8</jvmArguments>
+        <layout>ZIP</layout>           <!--配置需要打包进项目的jar-->
+        <includes>        <!--填写需要打包所需要的依赖
+            。没有匹配上任何jar包机排除依赖-->
+            <include>
+                <groupId>no-exists-jar</groupId>
+                <artifactId>non-exists-jar</artifactId>
+            </include>
+        </includes>
+    </configuration>
+    <executions>
+        <execution>
+            <goals>                 <!-- 表示当运行mavn package打包时，使用Springboot插件打包 -->
+                <goal>repackage</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
 ```
 
 **3. 引入springboot里约定maven-assembly-plugin**
 
-```
-<plugin>    <artifactId>maven-assembly-plugin</artifactId>    <configuration><!-- 打包文件名字不包含 assembly.xml 中 id -->      <appendAssemblyId>false</appendAssemblyId>      <descriptors>      <!--项目所在目录配置文件的 assembly.xml文件 -->        <descriptor>assembly.xml</descriptor>      </descriptors>  </configuration><executions>   <execution>   <id>make-assembly</id>   <phase>package</phase>   <goals>          <goal>single</goal>    </goals>    </execution>  </executions></plugin>
+```xml
+<plugin>
+    <artifactId>maven-assembly-plugin</artifactId>
+    <configuration><!-- 打包文件名字不包含 assembly.xml 中 id -->
+        <appendAssemblyId>false</appendAssemblyId>
+        <descriptors>      <!--项目所在目录配置文件的
+            assembly.xml文件 -->
+            <descriptor>assembly.xml</descriptor>
+        </descriptors>
+    </configuration>
+    <executions>
+        <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+                <goal>single</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
 ```
 
 配置assembly.xml文件
 
-```
-<assembly>   <!-- 打包文件名的标识符，用来做后缀-->    <id>make-assembly</id>    <!-- 打包的类型，如果有N个，将会打N个类型的包 -->   <formats>      <format>tar.gz</format>      <format>zip</format>   </formats>     <!-- 压缩包下是否生成和项目名相同的根目录 -->   <includeBaseDirectory>true</includeBaseDirectory>     <!-- 用来设置一组文件在打包时的属性。-->  <fileSets>   <!-- 0755->即用户具有读/写/执行权限，组用户和其它用户具有读写权限；-->    <!-- 0644->即用户具有读写权限，组用户和其它用户具有只读权限；-->    <!-- 将src/bin目录下的jar启动脚本输出到打包后的目录中 -->    <fileSet>     <!--lineEnding选项可用于控制给定的行结束文件 -->       <lineEnding>unix</lineEnding>       <directory>${basedir}/bin</directory>       <outputDirectory>${file.separator}</outputDirectory>       <fileMode>0755</fileMode>       <includes>         <include>**.sh</include>         <include>**.bat</include>      </includes>   </fileSet><!-- 把项目的配置文件，打包进压缩文件的config目录 -->   <fileSet>      <directory>${basedir}/src/main/resources</directory>      <outputDirectory>config</outputDirectory>      <fileMode>0644</fileMode>      <includes>           <include>*.properties</include>           <include>*.yml</include>          <include>*.xml</include>         <include>mapper/*.xml</include>      </includes>   </fileSet>   <!-- 把项目自己编译出来的jar文件，打包进zip文件的根目录 -->    <fileSet>      <directory>${project.build.directory}</directory>      <outputDirectory>${file.separator}</outputDirectory>      <includes>          <include>*.jar</include>      </includes>   </fileSet> </fileSets><!-- 依赖包的拷贝--><dependencySets>   <dependencySet>     <unpack>false</unpack>    <useProjectArtifact>true</useProjectArtifact>    <outputDirectory>lib</outputDirectory>    <scope>provided</scope>  </dependencySet>  <dependencySet>      <unpack>false</unpack>      <useProjectArtifact>true</useProjectArtifact>      <outputDirectory>lib</outputDirectory>      <scope>system</scope>  </dependencySet>  <dependencySet>     <unpack>false</unpack>     <useProjectArtifact>true</useProjectArtifact>     <outputDirectory>lib</outputDirectory>     <scope>runtime</scope>  </dependencySet></dependencySets></assembly>
+```xml
+<assembly>   <!-- 打包文件名的标识符，用来做后缀-->
+    <id>make-assembly</id>    <!-- 打包的类型，如果有N个，将会打N个类型的包 -->
+    <formats>
+        <format>tar.gz</format>
+        <format>zip</format>
+    </formats>     <!-- 压缩包下是否生成和项目名相同的根目录 -->
+    <includeBaseDirectory>true</includeBaseDirectory>     <!-- 用来设置一组文件在打包时的属性。-->
+    <fileSets>   <!-- 0755->即用户具有读/写/执行权限，组用户和其它用户具有读写权限；-->    <!-- 0644->即用户具有读写权限，组用户和其它用户具有只读权限；-->    <!-- 将src/bin目录下的jar启动脚本输出到打包后的目录中 -->
+        <fileSet>     <!--lineEnding选项可用于控制给定的行结束文件 -->
+            <lineEnding>unix</lineEnding>
+            <directory>${basedir}/bin</directory>
+            <outputDirectory>${file.separator}</outputDirectory>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>**.sh</include>
+                <include>**.bat</include>
+            </includes>
+        </fileSet><!--
+        把项目的配置文件，打包进压缩文件的config目录 -->
+        <fileSet>
+            <directory>${basedir}/src/main/resources</directory>
+            <outputDirectory>config</outputDirectory>
+            <fileMode>0644</fileMode>
+            <includes>
+                <include>*.properties</include>
+                <include>*.yml</include>
+                <include>*.xml</include>
+                <include>mapper/*.xml</include>
+            </includes>
+        </fileSet>   <!--
+        把项目自己编译出来的jar文件，打包进zip文件的根目录 -->
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>${file.separator}</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+        </fileSet>
+    </fileSets><!--
+    依赖包的拷贝-->
+    <dependencySets>
+        <dependencySet>
+            <unpack>false</unpack>
+            <useProjectArtifact>true</useProjectArtifact>
+            <outputDirectory>lib</outputDirectory>
+            <scope>provided</scope>
+        </dependencySet>
+        <dependencySet>
+            <unpack>false</unpack>
+            <useProjectArtifact>true</useProjectArtifact>
+            <outputDirectory>lib</outputDirectory>
+            <scope>system</scope>
+        </dependencySet>
+        <dependencySet>
+            <unpack>false</unpack>
+            <useProjectArtifact>true</useProjectArtifact>
+            <outputDirectory>lib</outputDirectory>
+            <scope>runtime</scope>
+        </dependencySet>
+    </dependencySets>
+</assembly>
 ```
 
 打包后目录
@@ -3237,7 +3389,22 @@ java -jar target/your-app-name-1.0.0.jar
 
 ![图片](https://mmbiz.qpic.cn/mmbiz_jpg/eQPyBffYbueKg9GMagQj82qMVR9LsoFrj3ujRoBOBCHCyXuMDTDUuQQe2ZSNn4TLg4oqIaCD4Zf44H1GYeQRRw/640?wx_fmt=jpeg&from=appmsg&wxfrom=5&wx_lazy=1&wx_co=1&tp=wxpic)
 
+## 打包报错
 
+=='gu.cmd' tool was not found in your JAVA_HOME.This probably means that the JDK at 'D:\jdk\jdk-17' is not a GraalVM distribution.==
+
+配置
+
+```xml
+<plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <version>0.9.28</version>
+            <configuration>
+                <skipTests>true</skipTests>  <!-- 禁用原生测试 -->
+            </configuration>
+        </plugin>
+```
 
 # 小知识
 
