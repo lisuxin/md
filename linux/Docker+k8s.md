@@ -732,6 +732,7 @@ https://github.com/CentOS/CentOS-Dockerfi1es
   * 语法`COPY 宿主机文件地址/文件名 容器内存放地址/`
   * 支持多文件传输，语法满足通配符和G0lang 的 filepath.Match
   * COPY 指令能够保留源文件的元数据，如权限，访问时间等等，这点很重要
+  * 如果目标路径是一个文件，并且该文件已经存在于容器中，`COPY` 会用新的文件替换它。
 
 * ENV
 
@@ -788,6 +789,126 @@ EXPOSE 8080
 # 启动的时候自动运行tomcat，打印日志
 CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-tomcat-9.0.22/bin/logs/catalina.out
 ```
+
+* 自己的dockerfile
+
+  * 一个`springboot+nginx+jdk17+mysql+vue3`暴露端口80
+
+    ```shell
+    #dockerfile
+    # 使用的系统
+    FROM centos:7.9.2009
+    
+    # 维护者信息
+    MAINTAINER lisuxin<19522116610@189.cn>
+    
+    # 复制本机文件
+    COPY /export/server/shell/mysql80.sh /export/server/shell/
+    COPY /export/server/shell/nginx.sh /export/server/shell/
+    COPY /export/server/shell/login.sh /export/server/shell/
+    
+    # 复制软件压缩包到容器里
+    COPY /export/server/jdk-17.0.13_linux-x64_bin.tar.gz /export/server/
+    COPY /export/server/nginx-1.20.2.tar.gz /export/server/
+    
+    # 解压压缩包
+    RUN tar -zxvf /export/server/jdk-17.0.13_linux-x64_bin.tar.gz -C /export/server/
+    RUN tar -zxvf /export/server/nginx-1.20.2.tar.gz -C /export/server/
+    
+    # 设置jdk环境变量
+    ENV export JAVA_HOME=/usr/local/jdk/jdk1.8.0_181
+    ENV export CLASSPATH=$:CLASSPATH:$JAVA_HOME/lib/
+    ENV export PATH=$PATH:$JAVA_HOME/bin
+    RUN source /etc/profile
+    
+    # 给脚本可执行权限
+    RUN chmod +x /export/server/shell/mysql80.sh
+    RUN chmod +x /export/server/shell/nginx.sh
+    RUN chmod +x /export/server/shell/login.sh
+    
+    # 执行脚本
+    RUN /export/server/shell/mysql80.sh
+    RUN /export/server/shell/nginx.sh
+    
+    # mysql持久化挂载卷，启动容器时执行，可以显示的指定数据挂载目录
+     
+    
+    # 复制我的代码jar包，和vue3的前端文件到指定位置
+    COPY /usr/local/java/rlsb_zxks-0.0.1-SNAPSHOT.jar /usr/local/java/
+    COPY /usr/local/nginx/html/dist /usr/local/nginx/html/
+    
+    # 清理不必要的文件
+    RUN rm -rf /export/server/shell/mysql80.sh
+    RUN rm -rf /export/server/shell/nginx.sh
+    RUN rm -rf /export/server/jdk-17.0.13_linux-x64_bin.tar.gz
+    RUN rm -rf /export/server/nginx-1.20.2.tar.gz
+    
+    # 暴露80端口
+    EXPOSE 80
+    # 启动是执行脚本
+    CMD ["/export/server/shell/login.sh"]
+    ```
+    
+  * 写完dockerfile看使用dockerfile
+  
+  * 说明文档
+  
+    ```shell
+    # 容器内所有脚本存放地址 
+    /export/server/shell/
+    jdk.sh #jdk安装和环境配置脚本
+    mysql80.sh # mysql 8.0的安装和初始密码配置初始数据库
+    nginx.sh # nginx安装的配置的脚本，安装我的压缩包的nginx
+    login.sh # 启动docker容器时执行的脚本,主要是所有服务不设置开机自启，而是在启动docker该容器时启动
+    
+    # 本地存放软件压缩包的地方
+    /export/server/
+    
+    # 启动容器时设置mysql的挂载卷
+    docker run -d \
+      --name my-mysql-container \
+      -v /path/on/host/mysql-data:/var/lib/mysql \
+      -e MYSQL_ROOT_PASSWORD=my-secret-pw \
+      mysql:8.0
+    ```
+  
+  * `docker run`
+  
+    * 作用：`docker run` 是 Docker 的核心命令之一，用于创建并启动一个新的容器。它会基于指定的镜像创建一个容器实例，并根据提供的选项进行配置。
+    * 语法：`docker run [OPTIONS] IMAGE [COMMAND] [ARG...]`
+  
+  *  `-d`
+  
+    * 作用：`-d`（或 `--detach`）选项表示以 分离模式（detached mode）运行容器。这意味着容器将在后台运行，不会占用当前终端窗口。你可以继续在终端中执行其他命令，而不会受到容器的影响。
+    * 场景：适用于长时间运行的服务（如数据库、Web 服务器等），因为你不需要一直保持终端连接来维持容器的运行。
+  
+  *  `--name my-mysql-container`
+  
+    * 作用：`--name` 选项用于为容器指定一个自定义的名称。默认情况下，Docker 会为每个容器生成一个随机名称，但通过 --name 你可以给容器一个有意义的名字，方便后续管理和引用。
+    * 参数：`my-mysql-container` 是你为容器指定的名称。你可以根据需要选择任何名称，但要确保名称在当前 Docker 主机上是唯一的。
+    * 场景：为容器命名有助于你在后续操作中更容易识别和管理容器，例如使用 `docker start`、`docker stop` 或 `docker exec` 等命令时。
+  
+  *  `-v /path/on/host/mysql-data:/var/lib/mysql`
+  
+    * 作用：-v（或 --volume）选项用于将宿主机上的目录或文件挂载到容器内的指定路径。这允许你在宿主机和容器之间共享数据，并确保容器内的数据可以持久化到宿主机上。
+    * 参数：
+      * `/path/on/host/mysql-data`：这是宿主机上的目录路径，表示你希望存储 MySQL 数据的地方。你可以根据需要选择任何路径。
+      * `:/var/lib/mysql`：这是容器内的路径，表示 MySQL 数据库的默认数据目录。MySQL 会将所有数据存储在这个目录中。
+    * 场景：通过绑定挂载，你可以确保 MySQL 的数据不会随着容器的删除而丢失。即使你删除了容器，宿主机上的数据仍然会保留，下次启动容器时可以继续使用这些数据。
+  
+  *  `-e MYSQL_ROOT_PASSWORD=my-secret-pw`
+  
+    * 作用：`-e`（或 `--env`）选项用于设置容器的环境变量。环境变量可以在容器启动时传递给应用程序，通常用于配置服务的行为。
+    * 参数：`MYSQL_ROOT_PASSWORD=my-secret-pw` 设置了 MySQL 的 root 用户密码。`my-secret-pw` 是你为 root 用户设置的密码。你可以根据需要更改这个密码。
+    * 场景：MySQL 镜像会在启动时检查 `MYSQL_ROOT_PASSWORD` 环境变量，并使用该值作为 root 用户的初始密码。如果你不设置这个环境变量，MySQL 将无法正常启动，或者会生成一个随机密码（具体行为取决于 MySQL 版本）。
+  
+  *  `mysql:8.0`
+  
+    * 作用：这是你要使用的 Docker 镜像的名称和标签。`mysql:8.0` 表示你希望使用官方的 MySQL 8.0 版本镜像。
+    * 参数：
+      * `mysql`：镜像的名称，表示你希望使用的是 MySQL 镜像。
+      * `8.0`：镜像的标签，表示你希望使用的是 MySQL 8.0 版本。Docker Hub 上有多个版本的 MySQL 镜像可供选择，例如 5.7、8.0 等。
+    * 场景：Docker 会从 Docker Hub 下载指定的镜像（如果本地没有缓存），然后基于该镜像创建并启动容器。你可以根据需要选择不同的 MySQL 版本，或者使用其他镜像（如 Redis、Nginx 等）。
 
 ## 物理机演进到虚拟化部署时代
 
