@@ -269,6 +269,8 @@
         * cp -r testl test2 , cp 是命令本身 ， -r 是选项 ， test1 和 test2 是参数
 
           ==意思是复制文件夹 test1 成为 test2==
+      
+   5. `命令 --help`：查看命令用法
 
 ### ls命令
 
@@ -323,11 +325,45 @@
 
 主要用于在用户退出终端之后继续运行指定的进程
 
-语法`nohup command [arguments] & `
+语法`nohup command [arguments] & >dev/null`
 
 * `command`: 您想要运行的命令。
 * `[arguments]`: 传递给命令的参数（如果有的话）。
 * `&`: 将命令放到后台执行。
+* `>dev/null`将输出到命令行的打印，全部写进黑洞文件
+
+### expr 计算表达式的命令行工具
+
+* 数学运算
+
+  ```bash
+  # 加法、减法、乘法、除法和取模：
+    expr 5 + 3    # 输出 8
+    expr 10 - 2   # 输出 8
+    expr 4 \* 5   # 注意乘法需要用反斜杠转义，输出 20
+    expr 9 / 2    # 输出 4 (整数除法)
+    expr 9 % 2    # 输出 1 (取模)
+  ```
+
+* 字符串操作
+
+  ```bash
+  # 获取字符串长度：
+    expr length "hello world"    # 输出 11
+  # 查找字符首次出现的位置：
+    expr index "hello world" lo  # 输出 3 (从第一个'l'开始计数)
+  # 提取子串：
+    expr substr "hello world" 3 5    # 输出 'llo w'
+  # 正则表达式匹配
+  # 匹配以特定模式开头的字符串，并返回匹配部分：
+    expr match "hello world" "hell.*"    # 输出 11 (匹配的字符串长度)
+  ```
+
+* 注意，在使用 `expr` 时，操作数与运算符之间必须有空格，否则会导致语法错误。此外，对于一些特殊字符（如乘号 `*`），需要使用反斜杠 `\` 进行转义。
+
+### awk 命令
+
+`awk` 能够对文本文件中的数据进行扫描、过滤、排序以及格式化输出等操作
 
 ### cd-pwd命令
 
@@ -364,9 +400,10 @@
 
 1. touch创建文件
           1. 可以通过 touch 命令创建文件
-             * 语法：`touch Linux路径`
-             * touch 命令无选项，参数必填，表示要创建的文件路径，相对、绝对、特殊路径符均可以使用
-
+      
+      * 语法：`touch Linux路径`
+      * touch 命令无选项，参数必填，表示要创建的文件路径，相对、绝对、特殊路径符均可以使用
+      
 2. cat、more查看文件内容
      1. 准备好文件内容后，可以通过 cat 查看内容 。
                  1. 语法 ： `cat Linux路径`
@@ -558,16 +595,13 @@
 
 ### 时间
 
-**`date` 命令**
+#### **`date` 命令**
 
 这是最常用的方法。`date` 命令会显示当前的日期和时间。
 
 ```bash
 date
-```
-
 输出示例：
-```
 Sun Dec 15 22:50:00 CST 2024
 ```
 
@@ -575,37 +609,34 @@ Sun Dec 15 22:50:00 CST 2024
 
 如果你想要以特定的格式显示日期和时间，可以使用 `date` 命令的格式化选项。例如：
 
-- **显示年-月-日 时:分:秒**：
-  
-  ```bash
+```bash
+# 显示年-月-日 时:分:秒
   date +"%Y-%m-%d %H:%M:%S"
-  ```
-  
-- **只显示日期**：
-  ```bash
+# 只显示日期
   date +"%Y-%m-%d"
-  ```
+# 只显示时间**：
+date +"%H:%M:%S"
+# 显示时区信息**：
+date -R
+```
 
-- **只显示时间**：
-  ```bash
-  date +"%H:%M:%S"
-  ```
+#### **`time`命令**
 
-- **显示时区信息**：
-  ```bash
-  date -R
-  ```
+`time` 是一个在 Unix 和类 Unix 操作系统（如 Linux）中用于测量命令执行时间的内置命令。它能够报告命令消耗的时间，包括实际时间（real time）、用户时间（user time）和系统时间（sys time）。
 
-**`cal` 命令**
+`time` 会输出三项时间信息：
+
+- **real**：指的是从命令开始执行到结束所经历的总时间，即挂钟时间（wall clock time）。这个时间包括了等待 I/O 完成、其他进程占用 CPU 等非活动时间。
+- **user**：指的是在这个过程中花费在用户模式下的 CPU 时间总量。这是你的程序直接使用的 CPU 时间。
+- **sys**：指的是在这个过程中花费在内核模式下的 CPU 时间总量。当程序执行需要操作系统提供服务的操作（如磁盘 I/O、网络请求等）时，就会消耗这部分时间。
+
+#### **`cal` 命令**
 
 `cal` 命令用于显示日历，默认情况下它会显示当前月份的日历。
 
 ```bash
 cal
-```
-
 输出示例：
-```
    December 2024
 Su Mo Tu We Th Fr Sa
           1  2  3  4  5  6  7
@@ -615,7 +646,7 @@ Su Mo Tu We Th Fr Sa
 29 30 31
 ```
 
-**`hwclock` 命令**
+#### **`hwclock` 命令**
 
 `hwclock` 命令用于查看和设置硬件时钟（也称为 RTC，实时时钟）。硬件时钟是系统中的一个独立时钟，即使系统关闭或重启，它也会继续运行。
 
@@ -635,53 +666,37 @@ Su Mo Tu We Th Fr Sa
   sudo hwclock --hctosys
   ```
 
-**`timedatectl` 命令**
+#### **`timedatectl` 命令**
 
 `timedatectl` 是一个更现代的工具，用于管理系统的时间和日期配置。它可以显示当前的系统时间和时区信息，并且还可以用于配置 NTP（网络时间协议）同步。
 
 - **查看当前时间和服务状态**：
   ```bash
   timedatectl
+  输出示例：
+                 Local time: Sun 2024-12-15 22:50:00 CST
+             Universal time: Sun 2024-12-15 14:50:00 UTC
+                   RTC time: n/a
+                  Time zone: Asia/Shanghai (CST, +0800)
+  System clock synchronized: yes
+                NTP service: active
+            RTC in local TZ: no
   ```
+  
+- 时区
 
-输出示例：
-```
-               Local time: Sun 2024-12-15 22:50:00 CST
-           Universal time: Sun 2024-12-15 14:50:00 UTC
-                 RTC time: n/a
-                Time zone: Asia/Shanghai (CST, +0800)
-System clock synchronized: yes
-              NTP service: active
-          RTC in local TZ: no
-```
-
-- **查看时区列表**：
   ```bash
+  # 查看时区列表
   timedatectl list-timezones
-  ```
-
-- **设置时区中国标准时间（CST，即 `Asia/Shanghai`）**：
-  ```bash
+  # 设置时区中国标准时间（CST，即 `Asia/Shanghai`）**：
   sudo timedatectl set-timezone Asia/Shanghai
-  ```
-
-**NTP 同步时间**
-
-NTP（网络时间协议）用于通过网络同步系统时间。你可以安装并配置 NTP 客户端来确保系统时间与互联网时间服务器保持同步。
-
-- **安装 NTP 客户端**（以 Ubuntu 为例）：
-  
-  ```bash
+  # NTP 同步时间
+  # NTP（网络时间协议）用于通过网络同步系统时间。你可以安装并配置 NTP 客户端来确保系统时间与互联网时间服务器保持同步。
+  # 安装 NTP 客户端（以 Ubuntu 为例）：
   sudo apt-get install ntp
-  ```
-  
-- **启动 NTP 服务**：
-  ```bash
+  # 启动 NTP 服务
   sudo systemctl start ntp
-  ```
-
-- **检查 NTP 同步状态**：
-  ```bash
+  # 检查 NTP 同步状态**：
   ntpq -p
   ```
 
