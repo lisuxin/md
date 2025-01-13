@@ -602,6 +602,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 * 容器的端口映射：`-p 宿主机端口:容器内镜像`
   * 直接`-p`会随机分配一个空闲宿主机端口：映射到容器内端口
 * 容器的提交：`docker commit 容器ID 新镜像名字`
+  * 在容器内进行了更改，保存对容器的更改，你需要将当前容器的状态提交为一个新的镜像
 
 ## dockerfile学习
 
@@ -917,6 +918,9 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 ## 图解名称空间三大块
 
 ## Docker使用原理流程
+
+
+
 ## 传统虚拟机部署模式
 ## 容器化部署架构一
 
@@ -935,6 +939,7 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 ## 容器平台的几大特性
 ## K8s核心组件的作用
 ## 面试题pod创建流程
+
 ## 图解pod作用
 ## 图解k8s几大概念作用
 
@@ -943,6 +948,8 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 ## K8s-Node部署
 
 ## K8s-网络插件部署与pod实践
+
+
 
 ### docker常用命名
 

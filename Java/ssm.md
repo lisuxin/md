@@ -2447,6 +2447,10 @@ MyBatis 的简介
 
    2. 添加maven插件的方式：执行`mvn mybatis-generator:generate`
 
+## Mybatis Puls
+
+
+
 ## Spring MVC
 
 ### 快速入门

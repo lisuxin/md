@@ -6,26 +6,63 @@
    * win+r"cmd"
    * `netsh wlan show profiles`:查看wifi接口上的配置文件
    * `netsh wlan show profiles WIFI名称 key=clear`：查看wifi接口上某个wifi的配置文件
+
 2. 浏览器阅读模式：
    * 在地址栏前加==read==:
+
 3. cd
    * cd到上级目录`cd ..`
+
 4. dir
    * 查看当前目录结构
+
 5. claen
    * 清屏
+
 6. 环境变量
    * 如果把以 % 开头的path目录放到第一个，下次编辑 path 时，就无法显示编辑界面了，而是和win7 的环境变量下的 path 一样，只有一行长串。
+
 7. 多余jdk配置文件位置
    * C:\Program Files (x86)\Common Files\Oracle\Java\javapath
+
 8. 打开控制面板：
    * ctrl + i
+
 9. github地址：
    * `https://docs.github.com/en/issues/trying-out-the-new-projects-experience`
+
 10. cmd：
     * calc:打开计算器
+
 11. 企业微信文件所在地址：`C:\Users\17252\Documents\WXWork\1688855539421386\Cache\File`
-12. 查询计算机上的所有数据库
+
+12. 开启远程访问
+
+    1. 进入数据库
+
+    2. 执行
+
+       ```sql
+       use mysql;
+       update user set host = ‘%’ where user =‘root’;
+       flush privileges;
+       ```
+
+    3. windows开放端口
+
+       1. 控制面板（大图标）
+       2. 系统和安全
+       3. Windows Defender 防火墙
+       4. 高级设置
+       5. 入站规则
+       6. 新建规则
+       7. 规则类型——端口（下一步）
+       8. 选择（tcp或者udp）作为传输协议——————选择特定端口或者所有端口（下一步）
+       9. 允许连接（下一步）
+       10. 选择运用规则在那个网络域下（下一步）
+       11. 规则命名，描述
+
+    4. 更改mysql的默认端口
 
 ## 账号密码
 
