@@ -4,6 +4,8 @@
 
 ##  基础
 
+![image-20250114222139782](../typoratuxiang/linux/docker9.png)
+
 * 纯物理服务器部署缺点
 
    * 部署非常慢
@@ -21,7 +23,7 @@
 * 虚拟化与容器的对比
 
    ![image-20241219162121302](../typoratuxiang/linux/dockerks1.png)
-   
+
    
 
 Docker 是一个开源的平台，用于自动化开发、部署和运行应用程序。它利用容器化技术来打包应用程序及其所有依赖项（如库、配置文件、环境变量等），使得应用程序可以在任何支持 Docker 的环境中一致地运行，无论是在开发人员的笔记本电脑上、测试服务器上还是生产环境中。以下是 Docker 的主要作用和优势：
@@ -911,49 +913,51 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
       * `8.0`：镜像的标签，表示你希望使用的是 MySQL 8.0 版本。Docker Hub 上有多个版本的 MySQL 镜像可供选择，例如 5.7、8.0 等。
     * 场景：Docker 会从 Docker Hub 下载指定的镜像（如果本地没有缓存），然后基于该镜像创建并启动容器。你可以根据需要选择不同的 MySQL 版本，或者使用其他镜像（如 Redis、Nginx 等）。
 
-## 物理机演进到虚拟化部署时代
+## docker网络管理
 
 
 
-## 图解名称空间三大块
+## docker使用原理流程
 
-## Docker使用原理流程
+![image-20250114222139782](../typoratuxiang/linux/docker9.png)
 
+### 关于进程空间、网络空间、文件系统空间
 
+![image-20250114222652927](../typoratuxiang/linux/dockers10.png)
 
-## 传统虚拟机部署模式
-## 容器化部署架构一
-
-## 基于docker的交付模式
-
+## k8s的本质需求
 
 
-## 理解学k8s的本质需求
 
-## 该如何学习k8s组件
+### k8s组件学习
 
-## K8s为了解决容器部署难题
+### K8s核心组件的作用
 
-## 解读官网k8s特性
+### K8s为了解决容器部署难题
+
+### k8s特性
+
 ## K8s是容器管理平台
-## 容器平台的几大特性
-## K8s核心组件的作用
-## 面试题pod创建流程
 
-## 图解pod作用
-## 图解k8s几大概念作用
+### 容器平台的几大特性
 
-## K8s-Master部署
+### pod创建流程
 
-## K8s-Node部署
+### 图解pod作用
+
+### 图解k8s几大概念作用
+
+## K8s部署
+
+### K8s-Master部署
+
+### K8s-Node部署
 
 ## K8s-网络插件部署与pod实践
 
+## docker常用命令
 
-
-### docker常用命名
-
-#### 容器管理
+### 容器管理
 
 - **`docker run [OPTIONS] IMAGE [COMMAND] [ARG...]`** 
   创建并启动一个新的容器。可以使用 `-d` 后台运行，`-p` 映射端口，`-v` 挂载卷等选项。
@@ -982,7 +986,7 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 - **`docker inspect [CONTAINER|IMAGE]`** 
   获取容器或镜像的详细信息，包括配置和状态。
 
-#### 镜像管理
+### 镜像管理
 
 - **`docker images [OPTIONS]`** 
   列出本地镜像。使用 `-a` 显示所有镜像（包括中间层），`-q` 只显示镜像ID。
@@ -999,7 +1003,7 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 - **`docker tag [SOURCE_IMAGE] [TARGET_IMAGE]`** 
   给镜像添加新的标签。
 
-#### 网络管理
+### 网络管理
 
 - **`docker network ls`** 
   列出所有 Docker 网络。
@@ -1016,7 +1020,7 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 - **`docker network inspect [NETWORK]`** 
   查看网络的详细信息。
 
-#### 卷管理
+### 卷管理
 
 - **`docker volume ls`** 
   列出所有 Docker 卷。
@@ -1030,7 +1034,7 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 - **`docker volume rm [VOLUME]`** 
   删除一个或多个卷。
 
-#### 其他命令
+### 其他命令
 
 - **`docker system prune [OPTIONS]`** 
   清理未使用的数据，包括停止的容器、未打标签的镜像、未使用的网络和卷。使用 `-a` 选项还可以清理所有未使用的镜像。
