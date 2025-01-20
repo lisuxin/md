@@ -970,11 +970,93 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 10. 为扩展性设计
     * 无需更改上游源码即可扩展你的 Kubernetes 集群
 
-### 容器平台的几大特性
+### 核心架构组件
+
+> **设计容器管理平台(功能)**
+
+* 集群架构，管理节点分发容器到数据节点
+* 如何部署业务容器到各数据节点
+*  N个数据节点，业务容器如何选择部署在最合理的节点
+* 容器如何实现多副本，如何满足每个机器部署一个容器的模型
+* 多副本如何实现集群内负载均衡
+
+分布式系统，两类角色：`管理节点`和`工作节点`
+
+```shell
+系统架构来看，k8s分为两个节点
+
+master 控制节点、工头
+node 工作节点、工人
+```
+
+**运维业务部署场景**
+
+1. 集群架构，至少 2 台机器，master主节点， node 工作节点。master 更具维护者写的yaml，对容器的运行描述、创建具体的容器，到node工作节点。
+2. 该客器管理平台，应该自动识别，目标节点的，状态，选择最合适的节点部署新容器
+3. 客器管理平台，能实现确保，应用的副本数是健康的，正确的，后端的容器数量。
+4. 容器内的负载均衡，反向代理，如何配置（k8s的组件就可以实现）
+
+> **核心组件**
+
+**Kutbernetes 主由以下几个心也成:**
+
+* etcd 保存了整个集群的状态，分布式高性能数据库
+* api-server 提供了资源操作的唯一入口，并提供认证、授权、访问控制、 API 注册和发现等机制；
+* controller manager 负责维护集群的状态，比如故障检测、自动扩展、滚动更新等；
+  * Replication ControIIer
+  * Node controller
+  * ResourceQuota Controller
+  * Namespace Controller
+  * ServiceAccount Controller
+  * Token Controller
+  * Service Controller
+  * Endpoints Controller
+* scheduler 负责资源的调度，按照预定的调度策将 Pod 调度到相应的 Node 机器上；
+* kubelet 负责维护容器的生命周期，同时也负责 Volume (CVI) 和网络 (CNI) 的管理;
+  * 运行在每一个 node 节点上的`代理软件`，脏活累活都是它干；
+  * pod 管理：
+    * kubelet 定期从所监听的数据源获取节点上 pod/container 的期望状态（运行什么容器、运行的副本数量、网络或者存储如何配置等等），并调用对应的容器平台接口达到这个状态。
+  * 容器健康检查
+    * kubelet 创建了容器之后还要查看容器是否正常运行，如果容器运行出错，就要根据 pod 设置的重启策酪进行处理
+  * 容器监控
+    * kubelet 会监控所在节点的资源使用情况，并定时向 master 报告，资源使用数据都是涌过cAdvisor 获取的。知道整个集群所有节点的资源情况，对于 pod 的调度和正常运行至关重要
+* Container runtime 负责镜像管理以及 Pod 和容器的真正运行 (CRI)；
+* kube-proxy 负责为 service 提供 cluster 内部的服务发现和负载均衡，主要提供 iptables 、 ipvs 规则
+* kubectl
+  * 命令行接口，用于对 Kubernetes 集群运行命令`https://kubernetes.io/zh/docs/referencefkubectl/`
+
+**核心组件作用**
+
+* etcd：k8s内部运行组件，存储所有节点信息，都存储在数据库：key-value redis一个用户
+* api-server：处理校验对集群中的所有请求、所有组件的请求都经过api-server组件校验
+* controller manager：具体部署容器，到目标节点、使用的控制器
+* scheduler：决定容器部署到那个节点上的组件
+* kubelet：容器的生命周期、目标节点上的进程
+* Container runtime：主要负责管理和运行容器
+* kube-proxy：确保了服务可以透明地发现和路由到正确的后端 Pod，同时也提供了必要的负载均衡功能，以提高应用的可用性和性能
+* kubectl：在master节点上敲打的命令、客户端命令和api-server交互的
+
+### 组件架构图
+
+==Pod是最小的可部署单元，是Kubernetes对象模型中的一种资源对象，用于封装、运行和管理一个或多个容器。Pod是一个抽象的概念，它将一个或多个容器封装在一起作为一个单元来运行应用程序，并且这些容器共享存储、网络以及如何运行的规范。==
+
+**pod创建流程**
+
+* k8s 集群是被一组称之为 Node 的节点机器组成，这些节点上运行 k8s 管理的容器进程。
+
+* 具体 Node 节点机器上运行的容器被一个叫做 pod 的组件管理；
+
+* 在你安装完毕 k8s 之后，就得到了一个集群环境；
+
+  * 集群是指有一堆 Node 节点机器，并且这些节点运行 pod ，也就是容器了
+
+    ![image-20250121005051228](../typoratuxiang/linux/k8s2.png)
 
 
 
-## 安装K8s
+**pod作用**
+
+## K8s集群安装部署
 
 1. 通过kubeadm安装
 
