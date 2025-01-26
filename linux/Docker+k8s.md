@@ -1048,23 +1048,45 @@ node 工作节点、工人
 
 * 在你安装完毕 k8s 之后，就得到了一个集群环境；
 
-  * 集群是指有一堆 Node 节点机器，并且这些节点运行 pod ，也就是容器了
+  * 集群是指有一堆 Node 节点机器，并且这些节点运行 pod ，也就是容器了(==一下是对pod流程的解释==)
 
+    1. K8s至少需要两台ECS机器。
+    
+    2. K8s本身，也是以容器运行在目标机器上：目标机器在K8s里面被称为（Node节点）。
+    
+    3. K8s不在直接操作容器、而是K8s提供一个叫Pod的组件，封装了一组容器，所有的容器都被Pod进行管理。
+    
+       * 管理容器需要为容器命名之类、但是在Pod中的容器共同使用Pod内的名称空间
+    
+         ![image-20250126165054116](../typoratuxiang/linux/k8s3.png)
+    
+       * Pod实现的的是master节点到node节点的通信
+    
+  * K8s工作流程图：
+  
     ![image-20250121005051228](../typoratuxiang/linux/k8s2.png)
+    
+    > pod是如何被创建到目标机器上的、组件走向
+    
+    1. 在master节点，写yaml描述对容器的运行要求
+    2. 使用kubectl命令去创建，应用这个资源的描述文件，才会涉及到K8s组件间的交互（等于发出请求，创建Pod）
+    3. **api-server**：验证kubectl命令，是否本允许利用本地http证书、直接写入Kubectl配置文件；该请求被允许后才会执行
+    4. **ETCD**：api-server将yaml的创建信息，记录到etcd数据库中（记录的创建信息）
+    5. **scheduler**：api-server会通知调度器组件（准备pod调度）、决定将pod部署到那个机器上、查看远程node节点的资源使用率，根据一个最良好的机器去部署
+    6. scheduler会去 etcd 里面查询，部署的 pod 信息到底是些什么东西， scheduler调度器，判定出一个合适的 node 节点去部署 pod （选择好了具体的机器，还未执行）
+    7. scheduler调度器会告诉 api-server 自己决定将 pod 部署到哪台 node 节点上
+    8. api-server会将这个信息、在写入etcd中，那么在etcd中就会有（yaml本身的信息+绑定关系、部署到哪台服务器）
+    9. 此时api-server会通知具体的远程机器、上的node工作进程，kubelet去读取etcd里面的信息、根据这些信息，创建镜像、创建Pod（容器）
 
-1. K8s至少需要两台ECS机器。
-
-2. K8s本身，也是以容器运行在目标机器上：目标机器在K8s里面被称为（Node节点）。
-
-3. K8s不在直接操作容器、而是K8s提供一个叫Pod的组件，封装了一组容器，所有的容器都被Pod进行管理。
-
-   * 管理容器需要为容器命名之类、但是在Pod中的容器共同使用Pod内的名称空间
-
-      ![image-20250126165054116](../typoratuxiang/linux/k8s3.png)
-
-
+```shell
+nginx.yml
+# 执行yml
+kubectl create -f nginx.yml
+```
 
 **pod作用**
+
+
 
 ## K8s集群安装部署
 
