@@ -369,6 +369,28 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
        systemctl enable docker # 启动docker服务，开机自启动
        systemctl restart docke # 重启
        ```
+       
+     * SHELL
+     
+       ```shell
+       yum install -y bash-completion vim lrzsz wget expect net-tools nc nmap tree dos2unix htop iftop iotop unzip telnet sl psmisc nethogs glances bc openldap-devel yum-utils
+       systemctl disable firewalld
+       systemctl stop firewalld
+       cat <<EOF > /etc/sysctl.d/docker.conf
+       net.bridge.bridge-nf-call-ip6tables = 1
+       net.bridge.bridge-nf-call-iptables = 1
+       net.ipv4.conf.default.rp_filter = 0
+       net.ipv4.conf.all.rp_filter = 0
+       net.ipv4.ip_forward = 1
+       EOF
+       modprobe br_netfilter
+       sysctl -p /etc/sysctl.d/docker.conf
+       wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-vault-8.5.2111.repo
+       yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo -y
+       yum clean all && yum makecache
+       yum -y install docker-ce-26.1.3
+       docker version
+       ```
      
   3. **启动测试docker**
   
@@ -547,14 +569,14 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 
 ### 查看docker镜像
 
-* 查看本地docker镜像：`docker image`
+* 查看本地docker镜像：`docker images`
   * docker查看时看到的镜像大小，如果底层有一样的就会复用，不会有实际看见的大
-* 查看具体的镜像：`docker image 镜像名称/镜像ID:标签TAG`
-* 只列出镜像ID：`docker image -q`或`docker image -quiet`
-* 格式化显示镜像：`docker image --formar "{{.ID}}--{{.Repository}}"`
+* 查看具体的镜像：`docker images 镜像名称/镜像ID:标签TAG`
+* 只列出镜像ID：`docker images -q`或`docker image -quiet`
+* 格式化显示镜像：`docker images --formar "{{.ID}}--{{.Repository}}"`
   * `{{}}`：大括号内为自己需要显示的信息
   * 这是docker的模板语言`--formar`
-* 以表格形式展示：`docker image --formar "table{{}}"`
+* 以表格形式展示：`docker images --formar "table{{}}"`
 * 搜索远程仓库的镜像：`docker search 镜像名`
   * 全部`docker search 仓库地址/镜像名`
 
@@ -1084,41 +1106,812 @@ nginx.yml
 kubectl create -f nginx.yml
 ```
 
-**pod作用**
+### Pod
 
+1. Pod是在K8s集群中运行部署应用或服务的最小单元、他可以支持多容器。
+2. Pod的IP是随机变化的,删除pod，IP变化
+3. Pod内都有一个根容器
+4. 一个Pod内可以有一个、多个容器
+5. 一个Pod内的所有容器，共享根容器的网络名称，文件系统,进程资源
+6. 一个Pod内的容器网络地址，由根容器提供。
 
+**Pod部署多形态**
+
+1. 无状态、没有数据卷
+2. 有持久化容器内数据，以卷的形式存放到宿主机上（这就是K8s-node节点了）
+3. 一个Pod下运行多个容器，且多个容器共享一个卷的数据
+   * 卷的数据以NFS的形式部署
+4. 多个容器读取多个数据卷
 
 ## K8s集群安装部署
 
-1. 通过kubeadm安装
+### 理解名词
 
+1. 运行状态：发出请求
+   * runing：镜像被正确下载、镜像被创建出容器、容器正常运行（运行中）
+   * Waiting：在创建到运行过程中出现错误（等待）
+2. 标签
+   * lable：给对应pod或者服务器、或者相应的资源、加上（key:value）形式的相应标识、以便写yaml的时候、可以注入相应条件进行选择
+3. 名称空间
+   * namespace：K8s在创建资源的时候，可以单独创建一个资源组
+     * 所用到的Pod都放在一个资源组下面
 
+### 部署
 
-## K8s核心概念或资源对象
+准备三台服务器
 
-### Namespace
+* 192.168.31.98：K8s-master 拥有基本组件etcd、kube-apiserver、kube-controller-manager、 kubectl、kubeadm、kubelet、kube-proxy、flannel
+* 192.168.31.97：K8s-node1 拥有的基本组件kubectl、kubelek、 kube-proxy、 flannel、docker
+* 192.168.31.96：K8s-node2 拥有的基本组件kubectl、kubelek、 kube-proxy、 flannel、docker
+* 确保三台机器，的跨节点的容器互相信，装网络插件 flannel
 
-### Pod
+#### 环境初始化
 
-### Deployment
+1. 查看host环境
 
-### Service
+   ```shell
+   cat /etc/hosts
+   ```
 
-### Volume
+2. 将master和node节点的对应关系写入到每一台服务器的hosts文件内：192.168.31.98 K8s-master-98相应的主机名对应相应的IP地址
 
-### ConfigMap
+   ```shell
+   cat >>/etc/hosts <<'EOF'
+   192.168.31.98 K8s-master-98
+   192.168.31.97 K8s-node1-97
+   192.168.31.96 K8s-node2-96
+   EOF
+   ```
 
-### secret
+3. 修改linux主机名
 
-### Ingress
+   1. 查看当前主机名`hostnamectl`
+   2. 修改主机名`hostnamectl set-hostname 新主机名`
+   3. 或者修改`/etc/hosts的127.0.1.1后面的跟随名字`
 
-## K8s 容器部署
+4. 测试网络是否通畅（一定要与当前主机名匹配）
 
-### K8s-Master部署
+   ```
+   ping -c 2 hostnamectl set-hostname K8s-master-98
+   ping -c 2 K8s-node1-97
+   ping -c 2 K8s-node2-96
+   ```
 
-### K8s-Node部署
+5. 设置安全组开放端口
 
-## K8s-网络插件部署与pod实践
+   如果节点间无安全组限制（内网机器间可以任意访问），可以忽諂，否则．至少保证如下端口可通：
+
+   * k8s-master节点： TCP: 6443 ， 2379 ， 2380 ， 60080 ， 60081 UDP 协议端口全部打开
+
+   * k8s-slave 节点： UDP 协议端口全部打开
+
+     ```shell
+     sudo firewall-cmd --permanent --add-port=8080/tcp # 开放端口
+     sudo firewall-cmd --reload # 重新加载防火墙
+     ```
+
+6. 设置iptables(初始化防火墙对每一台服务器)
+
+   ```shell
+   systemctl stop firewalld NetworkManager
+   systemctl disable firewalld NetworkManager
+   sed -ri 's#(SELINUX=).*#\1disabled#' /etc/selinux/config
+   setenforce 0
+   systemctl disable firewalld && systemctl stop firewalld
+   getenforce
+   iptables -F
+   iptables -X
+   iptables -Z
+   iptables -P FORWARD ACCEPT
+   
+   # 注释
+   # 停止 firewalld 和 NetworkManager 服务
+   systemctl stop firewalld NetworkManager
+   
+   # 禁用 firewalld 和 NetworkManager 服务，防止它们在系统启动时自动运行
+   systemctl disable firewalld NetworkManager
+   # 使用 sed 命令编辑 SELinux 的配置文件，将 SELINUX 设置为 disabled
+   sed -ri 's#(SELINUX=).*#\1disabled#' /etc/selinux/config
+   
+   # 立即设置 SELinux 为宽容模式（不强制执行安全策略）
+   setenforce 0
+   
+   # 再次确保 firewalld 已被禁用并停止（可能是重复以确保更改生效）
+   systemctl disable firewalld && systemctl stop firewalld
+   
+   # 检查 SELinux 的当前模式
+   getenforce
+   
+   # 清空所有规则
+   iptables -F
+   
+   # 删除所有自定义链
+   iptables -X
+   
+   # 将计数器清零
+   iptables -Z
+   
+   # 设置转发策略为接受
+   iptables -P FORWARD ACCEPT
+   ```
+   
+7. 关闭swap、k8s默认禁用该规则
+
+   ```shell
+   swapoff -a
+   # 防止开机自动挂载 swap 分区
+   # 备份
+   cp /etc/fstab /etc/fstab-1
+   sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+   ```
+
+8. 设置yum源（阿里云）
+
+   ```shell
+   # 备份
+   mv /etc/yum.repos.d/ /etc/yum.repos.d_bak1 && mkdir /etc/yum.repos.d/
+   # 阿里云源
+   wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-vault-8.5.2111.repo
+   # 安装 epel 配置包
+   yum install -y https://mirrors.aliyun.com/epel/epel-release-latest-8.noarch.rpm
+   # 将 repo 配置中的地址替换为阿里云镜像站地址
+   sed -i 's|^#baseurl=https://download.example/pub|baseurl=https://mirrors.aliyun.com|' /etc/yum.repos.d/epel*
+   sed -i 's|^metalink|#metalink|' /etc/yum.repos.d/epel*
+   
+   # 清理缓存
+   yum clean all
+   # 从新加载yum缓存
+   yum makecache
+   ```
+
+9. 确保ntp、网络正确
+
+   ```shell
+   yum intall chrony -y
+   systemctl start chrony
+   systemctl enable chrony
+   date
+   hwclock -w
+   yum install ntp -y
+   ntpdate -u ntp.aliyun.com
+   ping -c 2 baidu.com
+   
+   #注释
+   # 安装 chrony 时间同步服务，并自动确认安装过程中的所有提示（-y）
+   yum install chrony -y
+   # 启动 chrony 服务
+   systemctl start chrony
+   # 设置 chrony 服务开机自启动
+   systemctl enable chrony
+   # 注意：这里似乎是输入错误。如果你是想显示当前日期和时间，应该使用 'date' 命令而不是 'data'
+   date
+   # 将系统时间写入硬件时钟，确保在重启后系统还能保持正确的时间
+   hwclock -w
+   # 安装ntp
+   yum install ntp -y
+   # 修改配置文件，加入 ntp.aliyun.com 上游地址即可（同步时间）
+   ntpdate -u ntp.aliyun.com
+   # 测试与百度服务器的连通性，执行2次ping操作。这可以用来检查网络连接是否正常。
+   # 如果能收到回复，说明网络配置正确且能够访问外部网站。
+   ping -c 2 baidu.com
+   ```
+
+10. 修改内核参数（容器夸主机通通信，底层是走的 iptables, 内核级别的数据包转发）
+
+    ```shell
+    cat <<EOF > /etc/sysctl.d/k8s.conf
+    net.bridge.bridge-nf-call-ip6tables = 1
+    net.bridge.bridge-nf-call-iptables = 1
+    net.ipv4.ip_forward = 1
+    EOF
+    
+    modprobe br_netfilter
+    # 加载读取内核配置文件
+    sysctl -p /etc/sysctl.d/k8s.conf
+    ```
+
+#### 安装docker基础环境
+
+==（docker都是开机自启）==
+
+```shell
+yum install -y bash-completion vim lrzsz wget expect net-tools nc nmap tree dos2unix htop iftop iotop unzip telnet sl psmisc nethogs glances bc openldap-devel yum-utils
+systemctl disable firewalld
+systemctl stop firewalld
+cat <<EOF > /etc/sysctl.d/docker.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.conf.default.rp_filter = 0
+net.ipv4.conf.all.rp_filter = 0
+net.ipv4.ip_forward = 1
+EOF
+modprobe br_netfilter
+sysctl -p /etc/sysctl.d/docker.conf
+wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-vault-8.5.2111.repo
+yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo -y
+yum clean all && yum makecache
+yum -y install docker-ce-26.1.3
+docker version
+
+# 设置开机自启
+systemctl enable docker
+```
+
+**修改docker的驱动为systemd**
+
+1. 查看当前docker使用的驱动cgroup`docker info | grep -i cgroup`
+
+2. 修改 Docker 使用 `systemd` 作为 cgroup 驱动程序
+
+3. 编辑或创建 Docker 的配置文件 `/etc/docker/daemon.json`（如果文件不存在，则创建它），添加或修改以下内容
+
+   ```shell
+   {
+     "exec-opts": ["native.cgroupdriver=systemd"]
+   }
+   ```
+
+4. 然后重启 Docker 服务以应用更改`systemctl restart docker`
+
+#### master
+
+1. **安装k8s的初始化工具kubeadm**（所有机器执行）
+
+   ```shell
+   cat << EOF > /etc/yum.repos.d/kubernetes.repo
+   [kubernetes] 
+   name=Kubernetes
+   baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64 
+   enabled=1 
+   gpgcheck=0 
+   repo_gpgcheck=0 
+   gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg 
+   EOF
+   
+   yum clean all && yum makecache
+   # yum list kubeadm --showduplicates、查看阿里云有哪些看k8s版本
+   
+   # 安装指定版本的 kubeadm-26.1.3 就是决定拉取什么版本的k8s集群版本的镜像
+   yum install -y kubelet-1.23.17 kubeadm-1.23.17 kubectl-1.23.17
+   
+   # 卸载k8s
+   dnf remove -y kubelet kubeadm kubectl
+   dnf autoremove -y
+   dnf clean all
+   dnf list installed | grep -E 'kubelet|kubeadm|kubectl'
+   # 重启配置
+   systemctl daemon-reload
+   # 删除残留文件
+   sudo rm -f /usr/lib/systemd/system/kubelet.service
+   sudo rm -rf /etc/systemd/system/kubelet.service.d/
+   # 清理残留的配置文件和目录
+   sudo rm -rf /etc/kubernetes/
+   sudo rm -rf /var/lib/kubelet/
+   sudo rm -rf /var/lib/etcd/
+   sudo rm -rf /var/lib/cni/
+   sudo rm -rf /etc/cni/
+   ```
+
+2. 设置所有节点的kubelet开机自启（为什么要开机自启）
+
+   * master：开机后所有组件运行、etcd存储的所有的pod信息通过api-server，通知给具体的目标节点，告知运行pod
+
+   * node：kubelet和master通信后确认当前机器pod状态维护更新、pod运行
+
+   * kubelet工具作用，master和node之间联系通信的
+
+     ```shell
+     # kubeadm version
+     
+     # GitVersion版本信息
+     [root@localhost ~]# kubeadm version
+     kubeadm version: &version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.1", GitCommit:"8f94681cd294aa8cfd3407b8191f6c70214973a4", GitTreeState:"clean", BuildDate:"2023-01-18T15:56:50Z", GoVersion:"go1.19.5", Compiler:"gc", Platform:"linux/amd64"}
+     
+     # 设置卡机自启
+     systemctl enable kubelet
+     ```
+
+3. 初始化master
+
+   * 保存没有进行master初始化节点的端口信息、查看初始化之后端口信息情况
+
+     ```shell
+     # netstat -tunlp
+     Active Internet connections (only servers)
+     Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+     tcp        0      0 0.0.0.0:111             0.0.0.0:*               LISTEN      1/systemd           
+     tcp        0      0 192.168.122.1:53        0.0.0.0:*               LISTEN      1714/dnsmasq        
+     tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1023/sshd           
+     tcp        0      0 127.0.0.1:631           0.0.0.0:*               LISTEN      1120/cupsd          
+     tcp6       0      0 :::111                  :::*                    LISTEN      1/systemd           
+     tcp6       0      0 :::22                   :::*                    LISTEN      1023/sshd           
+     tcp6       0      0 ::1:631                 :::*                    LISTEN      1120/cupsd          
+     udp        0      0 192.168.122.1:53        0.0.0.0:*                           1714/dnsmasq        
+     udp        0      0 0.0.0.0:67              0.0.0.0:*                           1714/dnsmasq        
+     udp        0      0 0.0.0.0:111             0.0.0.0:*                           1/systemd           
+     udp        0      0 127.0.0.1:323           0.0.0.0:*                           993/chronyd         
+     udp        0      0 0.0.0.0:35772           0.0.0.0:*                           949/avahi-daemon: r 
+     udp        0      0 0.0.0.0:5353            0.0.0.0:*                           949/avahi-daemon: r 
+     udp6       0      0 :::48765                :::*                                949/avahi-daemon: r 
+     udp6       0      0 :::111                  :::*                                1/systemd           
+     udp6       0      0 ::1:323                 :::*                                993/chronyd         
+     udp6       0      0 :::5353                 :::*                                949/avahi-daemon: r 
+     ```
+
+   * 初始化主节点（只在master节点执行）
+
+     ```shell
+     # kubeadm init 初始化加入一些参数
+     kubeadm init \
+     --apiserver-advertise-address=192.168.31.98 \  # 指定API服务器广播的IP地址，这里使用的是主节点的内部IP地址。
+     --image-repository registry.aliyuncs.com/google_containers \  # 设置从阿里云镜像仓库拉取Kubernetes所需容器镜像，而不是默认的Google仓库，适用于国内用户以加快下载速度。
+     --kubernetes-version v1.23.17 \  # 指定要安装的Kubernetes版本，确保集群中的组件与此版本匹配。
+     --service-cidr=10.1.0.0/16 \  # 定义Kubernetes服务的IP地址范围，默认是10.96.0.0/12，可以根据需要调整。server网段
+     --pod-network-cidr=10.2.0.0/16 \  # 定义Pod网络的IP地址范围，需要与您计划使用的CNI（容器网络接口）插件兼容。pod拿到的地址应该是10.244.0.0/16之间的一个地址
+     --service-dns-domain=cluster \  # 自定义服务的DNS域，默认是"cluster.local"，这里设置为"cluster"。k8s服务发现网段设置、server资源的域名后缀
+     --ignore-preflight-errors=Swap \  # 忽略交换内存检查错误，允许在启用了swap的机器上运行Kubernetes。忽略swap报错
+     --ignore-preflight-errors=NumCPU  # 忽略CPU数量检查错误，即使不满足官方推荐的最低CPU核心数要求也继续进行安装。忽略cpu数量报错
+     
+     kubeadm init \
+     --apiserver-advertise-address=主节点IP地址
+     --image-repository registry.aliyuncs.com/google_containers \  # 设置从阿里云镜像仓库拉取Kubernetes所需容器镜像，而不是默认的Google仓库，适用于国内用户以加快下载速度。
+     --kubernetes-version 与kubeadm版本一致、版本号
+     --service-cidr=10.96.0.0/12 \  # 定义Kubernetes服务的IP地址范围，默认是10.96.0.0/12，可以根据需要调整。
+     --pod-network-cidr=pod创建后的运行网段
+     --service-dns-domain=cluster \  # 自定义服务的DNS域，默认是"cluster.local"，这里设置为"cluster"。
+     --ignore-preflight-errors=Swap \  # 忽略交换内存检查错误，允许在启用了swap的机器上运行Kubernetes。
+     --ignore-preflight-errors=NumCPU  # 忽略CPU数量检查错误，即使不满足官方推荐的最低CPU核心数要求也继续进行安装。
+     
+     # k8s版本1.24以后不在默认支持docker、需要支持docker需要安装cri-dockerd
+     # docker和Kubelet使用的驱动程序必须一致
+     kubeadm init \
+     --apiserver-advertise-address=192.168.31.98 \
+     --image-repository registry.aliyuncs.com/google_containers \
+     --kubernetes-version v1.23.17 \
+     --service-cidr=10.1.0.0/16 \
+     --pod-network-cidr=10.2.0.0/16 \
+     --service-dns-domain=cluster \
+     --ignore-preflight-errors=Swap,NumCPU
+     
+     # 清理之前的 Kubernetes 集群
+     kubeadm reset
+     # 手动删除相关目录和文件
+     rm -rf /etc/kubernetes/
+     rm -rf /var/lib/kubelet/
+     rm -rf /var/lib/etcd
+     ```
+
+   * k8s以将组件以镜像的形式下载下来、最终只需要以容器的形式进行运行起来(看到以下这段话表示初始化完成)
+
+     ```shell
+     # 中间为组件创建过程，以及ssl证书创过程
+     
+     Your Kubernetes control-plane has initialized successfully!
+     
+     To start using your cluster, you need to run the following as a regular user:
+     
+     # 创建k8s集群配置文件
+     # 制定了，默认的ssl 证书在那里， api-server 的地址，等
+     # 就是执行下面三段命令
+       mkdir -p $HOME/.kube
+       sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+       sudo chown $(id -u):$(id -g) $HOME/.kube/config
+     ========================================================================================
+     Alternatively, if you are the root user, you can run:
+     # 如果您是以 root 用户操作，可以直接导出环境变量来访问集群
+       export KUBECONFIG=/etc/kubernetes/admin.conf
+     ========================================================================================
+     # pod分布再多个机器上，pod互相之间链接，部署，集群网络，选用 flannel 网络插件
+     # 安装，使用运行“kubectl apply -f [podnetwork].yaml”这个命令安装网络插件
+     You should now deploy a pod network to the cluster.
+     =========================================================================================
+     Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+       https://kubernetes.io/docs/concepts/cluster-administration/addons/
+     
+     # 使用如下命令、将k8s-node加入节点即可
+     Then you can join any number of worker nodes by running the following on each as root:
+     =========================================================================================
+     kubeadm join 192.168.31.98:6443 --token xrm89c.zr177t414q60mky3 \
+             --discovery-token-ca-cert-hash sha256:e666659ce327b5619a6d65a7d426eb50fcc3c006a8eb251316210987913a5b6a 
+     ```
+
+     ```shell
+     #让非 root 用户能够管理 Kubernetes 集群，您需要将管理员 kubeconfig 文件复制到用户的主目录，并设置正确的权限
+     # 创建 .kube 目录
+     mkdir -p $HOME/.kube
+     # 将管理员 kubeconfig 文件复制到用户主目录下的 .kube 目录中
+     sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+     # 修改文件的所有者为当前用户
+     sudo chown $(id -u):$(id -g) $HOME/.kube/config
+     ```
+
+     - `mkdir -p $HOME/.kube`：创建 `.kube` 目录，如果目录已存在则不会报错。
+     - `sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config`：将 `/etc/kubernetes/admin.conf` 复制到用户的 `$HOME/.kube/config`，以便通过 `kubectl` 命令行工具访问集群。
+     - `sudo chown $(id -u):$(id -g) $HOME/.kube/config`：修改 `$HOME/.kube/config` 的所有者为当前用户，确保用户有权限读取和写入该文件。
+
+     ```shell
+     # 如果您是以 root 用户操作，可以直接导出环境变量来访问集群
+     export KUBECONFIG=/etc/kubernetes/admin.conf
+     ```
+
+     * `export KUBECONFIG=/etc/kubernetes/admin.conf`：直接设置环境变量 `KUBECONFIG` 指向管理员的 kubeconfig 文件路径，使得在当前 shell 会话中可以使用 `kubectl` 管理集群
+
+     ```shell
+     # 为了使 Pods 能够跨节点通信，您需要部署一个 Pod 网络插件（CNI）。您可以选择多种网络插件，例如 Calico、Flannel、Canal 等等。运行以下命令安装网络插件：
+     kubectl apply -f [podnetwork].yaml
+     # 您可以通过运行以下命令将工作节点加入集群。请确保在每个工作节点上以 root 用户身份执行此命令
+     kubeadm join 192.168.31.98:6443 --token xrm89c.zr177t414q60mky3 \
+             --discovery-token-ca-cert-hash sha256:e666659ce327b5619a6d65a7d426eb50fcc3c006a8eb251316210987913a5b6a
+     ```
+
+     - `kubeadm join`：用于将节点加入现有的 Kubernetes 集群。
+     - `192.168.31.98:6443`：API Server 的地址和端口。
+     - `--token xrm89c.zr177t414q60mky3`：加入集群时使用的令牌。这个令牌是在 `kubeadm init` 输出中提供的。
+     - `--discovery-token-ca-cert-hash sha256:e666659ce327b5619a6d65a7d426eb50fcc3c006a8eb251316210987913a5b6a`：用于验证 API Server 的 CA 证书哈希值，确保安全连接。
+
+4. master运行组件查看、平面控制查看
+
+   ```shell
+   [root@localhost ~]# netstat -tunlp
+   Active Internet connections (only servers)
+   Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name             
+   tcp        0      0 0.0.0.0:111             0.0.0.0:*               LISTEN      1/systemd            
+   tcp        0      0 192.168.122.1:53        0.0.0.0:*               LISTEN      1894/dnsmasq        
+   tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1104/sshd           
+   tcp        0      0 127.0.0.1:631           0.0.0.0:*               LISTEN      1236/cupsd
+   ==========================================================================================================
+   # 调度pod的
+   tcp        0      0 127.0.0.1:10248         0.0.0.0:*               LISTEN      818033/kubelet
+   tcp        0      0 127.0.0.1:45417         0.0.0.0:*               LISTEN      818033/kubelet
+   tcp6       0      0 :::10250                :::*                    LISTEN      818033/kubelet  
+   ==========================================================================================================
+   # 自动更具应用部署逻辑生成iptables的
+   tcp        0      0 127.0.0.1:10249         0.0.0.0:*               LISTEN      819012/kube-proxy         
+   ==========================================================================================================
+   # 存储k8s所有资源信息
+   tcp        0      0 127.0.0.1:2381          0.0.0.0:*               LISTEN      817691/etcd
+   tcp        0      0 192.168.31.98:2379      0.0.0.0:*               LISTEN      817691/etcd         
+   tcp        0      0 127.0.0.1:2379          0.0.0.0:*               LISTEN      817691/etcd         
+   tcp        0      0 192.168.31.98:2380      0.0.0.0:*               LISTEN      817691/etcd
+   ===========================================================================================================
+   # 控制器管理器、管理pod部署类型
+   tcp        0      0 127.0.0.1:10257         0.0.0.0:*               LISTEN      817682/kube-control
+   ============================================================================================================
+   # 决定pod部署到那个机器上的
+   tcp        0      0 127.0.0.1:10259         0.0.0.0:*               LISTEN      817689/kube-schedul
+   ============================================================================================================
+   # 集群的访问入口
+   tcp6       0      0 :::6443                 :::*                    LISTEN      817702/kube-apiserv
+   =============================================================================================================
+   tcp6       0      0 :::111                  :::*                    LISTEN      1/systemd           
+   tcp6       0      0 :::10256                :::*                    LISTEN      819012/kube-proxy   
+   tcp6       0      0 :::22                   :::*                    LISTEN      1104/sshd           
+   tcp6       0      0 ::1:631                 :::*                    LISTEN      1236/cupsd          
+   tcp6       0      0 :::33060                :::*                    LISTEN      2202/mysqld             
+   tcp6       0      0 :::3306                 :::*                    LISTEN      2202/mysqld         
+    
+   udp        0      0 192.168.122.1:53        0.0.0.0:*                           1894/dnsmasq        
+   udp        0      0 0.0.0.0:67              0.0.0.0:*                           1894/dnsmasq        
+   udp        0      0 0.0.0.0:111             0.0.0.0:*                           1/systemd           
+   udp        0      0 0.0.0.0:32952           0.0.0.0:*                           1045/avahi-daemon:  
+   udp        0      0 0.0.0.0:5353            0.0.0.0:*                           1045/avahi-daemon:  
+   udp        0      0 127.0.0.1:323           0.0.0.0:*                           1062/chronyd        
+   udp6       0      0 :::111                  :::*                                1/systemd           
+   udp6       0      0 :::5353                 :::*                                1045/avahi-daemon:  
+   udp6       0      0 ::1:323                 :::*                                1062/chronyd        
+   udp6       0      0 :::37415                :::*                                1045/avahi-daemon:  
+   ```
+
+5. 此时k8s主节点已经可以使用
+
+   ```shell
+   # 客户端命令
+   # 直接和api-server交互、查询 你要的信息
+   # 命令会默认加载ssl证书，确保安全
+   # 在主节点直接使用
+   kubectl get nodes# 查询节点信息
+   # 显示详细信息
+   kubectl get nodes -owide
+   ```
+
+#### node节点加入k8s集群
+
+1. 如果防火墙没有关闭那么需要打开相应端口
+
+   * master节点上的`6443、2379、2380、10250、10251、10252`；node节点上的`10250、30000-3276之间`
+
+     ```shell
+     # 6443端口主要是在master节点上api-server使用
+     firewall-cmd --zone=public --add-port=6443/tcp --permanent
+     ```
+
+2. 在node节点执行(加入集群)
+
+   ```shell
+   kubeadm join 192.168.31.98:6443 --token dhkil0.jheqvgeyou5gp2pl \
+           --discovery-token-ca-cert-hash sha256:0fc55b18c2dd70eb7e8de52c769392b164336bf5c6b1fc71ab22996bb86e4de8
+   ```
+
+   * 如果丢失了初始的加入命令，您可以创建一个新的令牌并获取相应的加入命令；这条命令会生成一个新的令牌，并打印出完整的 `kubeadm join` 命令，您可以直接复制并在新的节点上运行此命令来将其加入集群。
+
+     ```shell
+     kubeadm token create --print-join-command
+     ```
+
+   * 查看现有的令牌
+
+     ```shell
+     kubeadm token list
+     ```
+
+   * 然后，需要结合 CA 证书哈希值构建 `kubeadm join` 命令
+
+     ```shell
+     openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+     ```
+
+   * 使用列表中的某个令牌和上述命令得到的 CA 证书哈希值，您可以构造如下格式的 `kubeadm join` 命令
+
+     ```sshell
+     kubeadm join <control-plane-host>:<control-plane-port> --token <token> --discovery-token-ca-cert-hash sha256:<hash>
+     ```
+
+3. 加入k8s集群报错清理之前的kubeadm join信息、清理之后在尝试加入集群
+
+   ```shell
+   rm -f /etc/kubernetes/kubelet.conf
+   rm -f /etc/kubernetes/bootstrap-kubelet.conf
+   rm -f /etc/kubernetes/pki/ca.crt
+   
+   kubeadm reset
+   ```
+
+4. 查看node节点kubelet运行情况
+
+   ```shell
+   systemctl status kubelet
+   # 启动的kubetlet
+   systemctl start kubelet
+   # 重启kubelet
+   systemctl restart kubelet
+   # 设置开机自启
+   systemctl enable kubelet
+   ```
+
+5. 此时node节点的端口信息(此时 node 机器就可以和 master 机器通信了，走的kubelet进程)
+
+   * 宿主机之间以 1 号进程， systemd 去启动的 kubelet 进程
+
+   ```shell
+   [root@K8s-master-97 ~]# netstat -tunlp
+   Active Internet connections (only servers)
+   Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+   tcp        0      0 127.0.0.1:10248         0.0.0.0:*               LISTEN      3428/kubelet        
+   tcp        0      0 127.0.0.1:10249         0.0.0.0:*               LISTEN      4391/kube-proxy     
+   tcp        0      0 0.0.0.0:111             0.0.0.0:*               LISTEN      1/systemd           
+   tcp        0      0 192.168.122.1:53        0.0.0.0:*               LISTEN      1855/dnsmasq        
+   tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1019/sshd           
+   tcp        0      0 127.0.0.1:631           0.0.0.0:*               LISTEN      1159/cupsd          
+   tcp        0      0 127.0.0.1:46459         0.0.0.0:*               LISTEN      3428/kubelet        
+   tcp6       0      0 :::10250                :::*                    LISTEN      3428/kubelet        
+   tcp6       0      0 :::111                  :::*                    LISTEN      1/systemd           
+   tcp6       0      0 :::10256                :::*                    LISTEN      4391/kube-proxy     
+   tcp6       0      0 :::22                   :::*                    LISTEN      1019/sshd           
+   tcp6       0      0 ::1:631                 :::*                    LISTEN      1159/cupsd          
+   udp        0      0 0.0.0.0:53872           0.0.0.0:*                           978/avahi-daemon: r 
+   udp        0      0 0.0.0.0:5353            0.0.0.0:*                           978/avahi-daemon: r 
+   udp        0      0 192.168.122.1:53        0.0.0.0:*                           1855/dnsmasq        
+   udp        0      0 0.0.0.0:67              0.0.0.0:*                           1855/dnsmasq        
+   udp        0      0 0.0.0.0:111             0.0.0.0:*                           1/systemd           
+   udp        0      0 127.0.0.1:323           0.0.0.0:*                           993/chronyd         
+   udp6       0      0 :::41461                :::*                                978/avahi-daemon: r 
+   udp6       0      0 :::5353                 :::*                                978/avahi-daemon: r 
+   udp6       0      0 :::111                  :::*                                1/systemd           
+   udp6       0      0 ::1:323                 :::*                                993/chronyd 
+   ```
+
+6. 此时就可以在组节点查看所有工作节点信息、也就是集群有哪些机器(此时的集群状态还是未就绪`NotReady`)
+
+   ```shell
+   [root@K8s-master-98 ~]# kubectl get nodes -owide
+   NAME                    STATUS     ROLES                  AGE     VERSION    INTERNAL-IP      EXTERNAL-IP   OS-IMAGE         KERNEL-VERSION          CONTAINER-RUNTIME
+   k8s-node1-96           NotReady   <none>                 30s     v1.23.17   192.168.31.144   <none>        CentOS Linux 8   4.18.0-348.el8.x86_64   docker://26.1.3
+   k8s-node2-97           NotReady   <none>                 2m27s   v1.23.17   192.168.31.40    <none>        CentOS Linux 8   4.18.0-348.el8.x86_64   docker://26.1.3
+   localhost.localdomain   NotReady   control-plane,master   20h     v1.23.17   192.168.31.98    <none>        CentOS Linux 8   4.18.0-348.el8.x86_64   docker://20.10.6
+   ```
+
+7. 删除节点，重新加入节点
+
+   ```shell
+   # 1. 从集群中移除节点
+   # 首先，您需要将节点安全地从集群中移除。这包括驱逐该节点上的所有 Pods 并更新 Kubernetes 的内部记录以反映这一变化。
+   # 使用 kubectl drain 命令可以优雅地将节点从服务中移除，它会驱逐所有的 Pods（除了那些被标记为禁止驱逐的）。
+   kubectl drain <node-name> --ignore-daemonsets --delete-local-data
+   <node-name>: 您想要移除的节点名称。
+   --ignore-daemonsets: 忽略 DaemonSet 管理的 Pods。
+   --delete-local-data: 允许删除本地存储的数据。
+   # 删除节点
+   # 在成功排空节点后，您可以使用以下命令将其从集群中删除：
+   kubectl delete node <node-name>
+   # 2. 在node节点上
+   # 停止 kubelet 服务：
+   systemctl stop kubelet
+   # 移除旧的 Kubernetes 安装目录：这些目录包含了与 Kubernetes 相关的配置文件和证书。
+   rm -rf /etc/kubernetes/
+   rm -rf $HOME/.kube/config # 如果存在的话
+   # 清理 CNI 插件配置：删除 /etc/cni/net.d/ 目录下的所有内容，这是为了确保没有残留的网络插件配置干扰新安装。
+   rm -rf /etc/cni/net.d/*
+   # 清理 Docker 或其他容器运行时的数据（可选，根据实际情况决定是否需要）：如果您的容器运行时是 Docker，可以考虑清理 Docker 的缓存或重置状态。注意：此操作会删除所有容器和镜像。
+   docker system prune -af
+   # 对于其他容器运行时，请参考相应的文档进行清理。使用 kubeadm reset 命令;kubeadm reset 命令可以帮助自动完成大部分清理工作，它会停止 kubelet 服务，删除相关的配置文件，并重置 iptables 规则等。
+   kubeadm reset -f
+   -f 参数用于强制执行，无需用户确认。
+   ```
+
+8. 配置k8s命令补全
+
+   ```shell
+   yum install bash-completion -y
+   source /usr/share/bash-completion/bash_completion
+   source <(kubectl completion bash)
+   echo 'source <(kubectl completion bash)' >> ~/.bashrc
+   ```
+
+#### K8s-网络插件部署与pod实践
+
+==(让集群就绪)==
+
+1. 下载网络插件，配置文件（flannel）；yaml以及配置文件（在master节点上）
+
+   * 在k8s主节点上应用yaml，基于yaml，创建具体的pod过程
+
+   ```shell
+   # 在github上下载后上传到服务器
+   git clone --depth 1 https://github.com/coreos/flannel.git
+   # 上传后解压
+   unzip 压缩包
+   # 进入解压缩后的文件夹
+   cd /root/flannel-master/Documentation
+   ```
+
+2. 修改网络插件信息(修改pod网络运行环境)
+
+   ```shell
+   # 修改的文件kube-flannel.yml
+   # 修改 pod 网络的网段地址， 根据kubeadm init 初始化时，设置的地址来
+   # 创建k8s资源都是写yml文件
+   vim kube-flannel.yml
+   # 打开行数显示
+   :set nu
+   # 找到net-conf.json,修改Network
+   /Network
+      net-conf.json: |
+        {
+          "Network": "10.244.0.0/16",
+          "EnableNFTables": false,
+          "Backend": {
+            "Type": "vxlan"
+          }
+        }
+   # 修改Network与初始化命令中--pod-network-cidr=10.2.0.0/16相同
+   net-conf.json: |
+        {
+          "Network": "10.2.0.0/16",
+          "EnableNFTables": false,
+          "Backend": {
+            "Type": "vxlan"
+          }
+        }
+    # 修改物理网卡
+    # 这个网络插件以容器形式，运行在master节点上，以及设置运行参数
+    containers:
+          - name: kube-flannel
+            image: ghcr.io/flannel-io/flannel:v0.26.3 # flannel镜像源
+            command:
+            - /opt/bin/flanneld
+            args:
+            - --ip-masq
+            - --kube-subnet-mgr
+    # 使用ifconfig查看对外提供网络访问的
+    containers:
+          - name: kube-flannel
+            image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/ghcr.io/siderolabs/flannel:v0.26.1
+            command:
+            - /opt/bin/flanneld
+            args:
+            - --ip-masq
+            - --kube-subnet-mgr
+            - --iface=ens160 # 加入的物理网卡  
+   # 查看当前宿主机情况是否有flannel容器
+   docker ps
+   # 基于kubectl命令，应用这个yml文件,读取,以及创建pod资源
+   kubectl create # 显示所有可以创建的资源
+   kubectl create -- # 显示了所有可以使用的资源
+   kubectl create -f ./kube-flannel.yml
+   # 得到的结果
+   [root@K8s-master-98 Documentation]# kubectl create -f ./kube-flannel.yml
+   namespace/kube-flannel created
+   clusterrole.rbac.authorization.k8s.io/flannel created
+   clusterrolebinding.rbac.authorization.k8s.io/flannel created
+   serviceaccount/flannel created
+   configmap/kube-flannel-cfg created
+   daemonset.apps/kube-flannel-ds created
+   # 再次查询关于flannel的容器
+   docker ps |grep flannel
+   ```
+   
+   * 也可以先拉取镜像在执行`kubectl create -f ./kube-flannel.yml`确保在 `kube-flannel.yml` 文件中指定的镜像地址与您手动拉取的镜像地址完全相同。需要在集群中的每一个节点（包括主节点如果它们也被配置为工作节点）上拉取所需的 Flannel 镜像
+   
+   * 当创建资源错误时
+   
+     ```shell
+     # 检查flannel状态
+     kubectl get pods -n kube-flannel
+     # 检查日志
+      kubectl describe pod kube-flannel-ds-5q92p -n kube-flannel
+     # 删除所有已创建的资源
+     kubectl delete -f ./kube-flannel.yml
+     # 强制删除： Terminating 状态的 Pod
+     kubectl delete pod kube-flannel-ds-bb2r5 -n kube-flannel --grace-period=0 --force
+     # 当删除时删除不完善、可以清理命名空间
+     #启动 kubectl proxy：首先，在终端中运行以下命令启动代理服务器，它将 Kubernetes API 暴露到本地的 8001 端口。
+     kubectl proxy &
+     # 获取并修改命名空间的 JSON 描述：获取 kube-flannel 命名空间的详细信息，并将 finalizers 字段清空。可以使用 jq 工具来处理 JSON 数据。如果您的系统上没有安装 jq，可以通过包管理器安装（例如：yum install jq 或 apt-get install jq）。
+     kubectl get namespace kube-flannel -o json | jq '.spec.finalizers = null' > tmp.json
+     # 发送修改后的 JSON 数据以更新命名空间：使用 curl 发送 PUT 请求，以更新命名空间对象并移除 Finalizers。
+     curl -k -H "Content-Type: application/json" -X PUT --data-binary @tmp.json http://localhost:8001/api/v1/namespaces/kube-flannel/finalize
+     # 检查命名空间是否已被删除：最后，检查命名空间列表，确认 kube-flannel 是否已经被成功删除。
+     kubectl get namespaces
+     # 创建错误，或是镜像没有下载那么更改镜像的地址、更新资源
+     kubectl create -f ./kube-flannel.yml  或者  kubectl apply -f ./kube-flannel.yml
+     ```
+   
+   * flannel容器运行原理(所有节点都运行lflannel)
+   
+     ![image-20250205012944890](../typoratuxiang/linux/k8s4.png)
+   
+   * 集群通信成功、可以pod部署
+   
+     ```
+     [root@K8s-master-98 Documentation]# kubectl get nodes -owide
+     NAME            STATUS   ROLES                  AGE     VERSION    INTERNAL-IP     EXTERNAL-IP   OS-IMAGE         KERNEL-VERSION          CONTAINER-RUNTIME
+     k8s-master-98   Ready    control-plane,master   20m     v1.23.17   192.168.31.98   <none>        CentOS Linux 8   4.18.0-348.el8.x86_64   docker://20.10.6
+     k8s-node1-97    Ready    <none>                 8m47s   v1.23.17   192.168.31.97   <none>        CentOS Linux 8   4.18.0-348.el8.x86_64   docker://26.1.3
+     k8s-node2-96    Ready    <none>                 8m59s   v1.23.17   192.168.31.96   <none>        CentOS Linux 8   4.18.0-348.el8.x86_64   docker://26.1.3
+     ```
+   
+3. 运行一个pod
+
+   ```shell
+   # 查看帮助命令
+   kubectl run --help
+   # 基于特定镜像创建一个 Pod
+   kubectl run pod名称 --image=镜像名称
+   # 后台运行一个nginx
+   kubectl run pod-nginx --image=nginx镜像名称
+   # 在 Docker 中，给镜像打标签（tagging）实际上是指为该镜像指定一个可读的名称和版本号
+   # 查看pod详细信息
+   kubectl get pods -owide
+   # pod 的 ip 是 k8s 集群，才能访问通的一个 ip ，无法再外部访问，外部访可得设置更多网络规则
+   # 在 Kubernetes 中，你不能直接“停止”一个容器，因为容器是作为 Pod 的一部分来管理的。不过，你可以通过操作 Pod 来间接地停止容器。
+   kubectl delete pod pod-nginx-1-22
+   ```
+
+4. 只有镜像id创建pod
+
+   ````shell
+   # 创建一个新的 YAML 文件（例如 pod-definition.yaml），并在其中定义你的 Pod 和容器，使用镜像 ID 替代镜像名称
+   apiVersion: v1
+   kind: Pod
+   metadata:
+     name: my-pod
+   spec:
+     containers:
+     - name: my-container
+       image: <your-image-id> # 替换为你的镜像 ID
+   #然后应用该 YAML 文件来创建 Pod
+   kubectl apply -f pod-definition.yaml
+   ````
 
 ## docker常用命令
 
@@ -1214,3 +2007,111 @@ kubectl create -f nginx.yml
   显示 Docker 客户端和服务器的版本信息。
 
 - `docker [command] --help` 来查看详细的帮助文档。
+
+## K8s常用命令
+
+### 基本操作
+
+1. **获取集群信息**`kubectl cluster-info`
+2. **查看节点列表**`kubectl get nodes`
+3. **查看命名空间列表**`kubectl get namespaces`
+4. **切换当前上下文的命名空间**`kubectl config set-context --current --namespace=<NAMESPACE_NAME>`
+
+### 资源管理
+
+1. **创建资源**`kubectl create -f <RESOURCE_YAML_FILE>`
+   
+2. **应用配置更改**`kubectl apply -f <RESOURCE_YAML_FILE>`
+   
+3. **删除资源**
+   
+   ```bash
+   kubectl delete -f <RESOURCE_YAML_FILE>
+   # 或者通过类型和名称删除
+   kubectl delete pod <POD_NAME>
+   ```
+   
+4. **获取资源列表**
+   
+   ```bash
+   kubectl get pods
+   kubectl get deployments
+   kubectl get services
+   ```
+   
+5. **查看特定资源的详细信息**
+   ```bash
+   kubectl describe pod <POD_NAME>
+   kubectl describe deployment <DEPLOYMENT_NAME>
+   kubectl describe service <SERVICE_NAME>
+   ```
+
+### 日志和故障排查
+
+1. **查看容器日志**
+   ```bash
+   kubectl logs <POD_NAME>
+   # 查看特定容器的日志（适用于多容器Pod）
+   kubectl logs <POD_NAME> -c <CONTAINER_NAME>
+   ```
+
+2. **实时跟踪日志**
+   ```bash
+   kubectl logs -f <POD_NAME>
+   ```
+
+3. **执行进入容器的shell**
+   ```bash
+   kubectl exec -it <POD_NAME> -- /bin/sh
+   # 或者对于使用bash的容器
+   kubectl exec -it <POD_NAME> -- /bin/bash
+   ```
+
+### 高级功能
+
+1. **端口转发**
+   ```bash
+   kubectl port-forward <POD_NAME> <LOCAL_PORT>:<POD_PORT>
+   ```
+
+2. **标签管理**
+   ```bash
+   kubectl label pods <POD_NAME> <LABEL_KEY>=<LABEL_VALUE>
+   ```
+
+3. **注解管理**
+   ```bash
+   kubectl annotate pods <POD_NAME> <ANNOTATION_KEY>=<ANNOTATION_VALUE>
+   ```
+
+4. **滚动更新**
+   ```bash
+   kubectl set image deployment/<DEPLOYMENT_NAME> <CONTAINER_NAME>=<NEW_IMAGE_NAME>:<TAG>
+   ```
+
+5. **回滚更新**
+   ```bash
+   kubectl rollout undo deployment/<DEPLOYMENT_NAME>
+   ```
+
+6. **查看更新状态**
+   ```bash
+   kubectl rollout status deployment/<DEPLOYMENT_NAME>
+   ```
+
+### 上下文和配置
+
+1. **查看当前上下文**
+   ```bash
+   kubectl config current-context
+   ```
+
+2. **列出所有上下文**
+   ```bash
+   kubectl config get-contexts
+   ```
+
+3. **切换上下文**
+   ```bash
+   kubectl config use-context <CONTEXT_NAME>
+   ```

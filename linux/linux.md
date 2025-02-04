@@ -159,6 +159,9 @@
       ```
       ip addr add 192.168.31.98/24 dev ens160
       ip route add default via 192.168.31.1
+      
+      删除指定IP
+      sudo ip addr del 192.168.31.98/24 dev ens160
       ```
 
    7. 重启网络服务
@@ -170,8 +173,8 @@
    8. 遇到问题`Failed to start LSB: Bring up/down networking.`解决办法
 
       ```
-      systemctl stop NetworkManager
-      systemctl disable NetworkManager
+      systemctl stop NetworkManager # 关闭网络管理
+      systemctl disable NetworkManager # 禁用网络管理
       ```
 
    9. 重新启用 `NetworkManager`：
@@ -697,6 +700,7 @@ Su Mo Tu We Th Fr Sa
 `timedatectl` 是一个更现代的工具，用于管理系统的时间和日期配置。它可以显示当前的系统时间和时区信息，并且还可以用于配置 NTP（网络时间协议）同步。
 
 - **查看当前时间和服务状态**：
+  
   ```bash
   timedatectl
   输出示例：
@@ -724,6 +728,17 @@ Su Mo Tu We Th Fr Sa
   sudo systemctl start ntp
   # 检查 NTP 同步状态**：
   ntpq -p
+  ```
+  
+- **ntp**时间同步、centos8默认不在支持ntp软件包
+
+  ```shell
+  # 添加wlnmp源
+  rpm -ivh http://mirrors.wlnmp.com/centos/wlnmp-release-centos.noarch.rpm
+  # 安装ntp服务
+  yum install wntp -y
+  # 时间同步
+  ntpdate ntp1.aliyun.com
   ```
 
 ### **info**
