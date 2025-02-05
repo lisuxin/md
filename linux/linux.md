@@ -1054,19 +1054,16 @@ info [选项] [主题]
    ```
 
 5. **`journalctl`**：对于使用 systemd 的系统，`journalctl` 是一个强大的工具，可以用来查看系统日志和服务日志。
-   - 查看所有日志：
-     ```bash
-     journalctl
-     ```
-   - 查看特定服务的日志：
-     ```bash
-     journalctl -u servicename
-     ```
-   - 实时查看日志：
-     ```bash
-     journalctl -f
-     ```
-
+   
+   ```bash
+   # 查看所有日志：
+   journalctl
+   # 查看特定服务的日志：
+   journalctl -u servicename
+   # 实时查看日志：
+   journalctl -f
+   ```
+   
 6. **`dmesg`**：显示或控制内核环缓冲区的消息。
    ```bash
    dmesg
@@ -1085,6 +1082,12 @@ info [选项] [主题]
 ## 网络管理
 
 
+
+## 磁盘管理
+
+
+
+## 进程管理
 
 ## KVM
 
