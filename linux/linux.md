@@ -852,6 +852,13 @@ info [选项] [主题]
    echo `docker image -ag`
    ```
 
+8. `dmesg`查看所有硬件信息
+
+   * `dmesg |grep -i eth(网卡)`:查看网卡信息
+   * `ethtool -i eth网卡`:查看网卡信息
+   * `modprobe -r 驱动名称`:卸载驱动
+   * `modprobe  驱动名称`:加载驱动
+
 ### linux版本相关
 
 * 查看centos发行版版本`cat /etc/redhat-release`
@@ -1133,17 +1140,98 @@ info [选项] [主题]
 
 **三、跨网通信**
 
+* 跨网通信：路由`route -n`查看和管理网络路由表
+* 路由分类：
+  * 主机路由
+  * 网络路由
+  * 默认路由
+* 优先级：精度越高，优先级越高
+* 路由表的构成
+  * 目标（Destination）：数据包发送的目标路径
+  * 子网掩码（Genmask ）:
+  * 路由接口（Iface）:本路由器的出口
+  * 网关（Gateway）:
+    1. 直连：不需要配置
+    2. 非直连：下一个路由器邻近本路由器的接口地址
+* 加网关是为了加默认路由
 
+### 网卡配置
 
-**四、网卡配置**
+配置IP地址有两种方式：1.自动获取；2.自己设置固定地址
+
+* 将 Linux 主机接入到网络，需要配置网络相关设置。
+  * 主机各
+  * IP/netmask
+  * 路由：默认网关
+  * DNS 服务器
+    * 主DNS服务器、次DNS服务、第三DNS服务器
+
+* 查看主机名：`hostname`
+
+* 配置了网络服务需要重新加载网络服务`systemctl restart NetworkManager`
+
+* 接口命名方式：就是更改eth，ifconfig查询出来的名字
+
+* 查看网卡
+
+  * `dmesg | grep —i eth`
+  * `ethtool -i eth0`
+
+* 卸载网卡驱动
+
+  * `modprobe  -r e1000`
+  * `rmmod e1000`
+
+* 装载网卡驱动
+
+  * `modprobe e1000`
+
+* 静态指定
+
+  * `ifconfig、route, netstat、ip:object{link,addr,route}、ss、tc、system-config-network-tui、setup、配置文件`
+
+* 动态分配
+
+  * `DHCP: Dynamic Host Configuration Protocol`
+
+* `ifconfig`
+
+  * up	启用网络接口`ifconfig eth0 up`
+  * down	禁用网络接口`ifconfig eth0 down`
+  * inet	设置 IPv4 地址`ifconfig eth0 192.168.1.100 netmask 255.255.255.0`
+  * netmask	设置子网掩码`ifconfig eth0:1 192.168.1.101 netmask 255.255.255.0`
+  * broadcast	设置广播地址`ifconfig eth0 broadcast 192.168.1.255`
+  * mtu	设置最大传输单元`ifconfig eth0 mtu 1400`
+  * promisc	进入混杂模式`ifconfig eth0 promisc`、退出`ifconfig eth0 -promisc`
+
+* `route` 命令
+
+  * 路由管理命令
+
+  * 查看：`route -n`
+
+  * 添加：`route add`
+
+    ```shell
+    # 语法：route add [-net|-host] target [netmask Nm] [gw Gw] [[dev] If]
+    # 目标： 192.168.1.3 网关：172.16.0.1
+    route add -host 192.168.1.3 gw 172.16.0.1 dev eth0
+    ```
+
+  * 删除`route del default gw 172.20.0.1`
+
+* 配置动态路由
+
+  * 通过守护进程获取动态路由
+  * 安装 quagga 包
+  * 支持多种路由协议：RIP、OSPF 和 BGP
+  * 命令 vtysh 配置
 
 ## 磁盘管理
 
 
 
 ## 进程管理
-
-## KVM（虚拟机）
 
 
 
