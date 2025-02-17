@@ -1223,9 +1223,71 @@ info [选项] [主题]
 * 配置动态路由
 
   * 通过守护进程获取动态路由
+  
   * 安装 quagga 包
+  
   * 支持多种路由协议：RIP、OSPF 和 BGP
+  
   * 命令 vtysh 配置
+  
+     ```shell
+     # 安装
+     yum install quagga
+     # 输出 quagga 包安装的所有文件及其完整路径
+     rpm -ql quagga
+     # 启动
+     systemctl start ospfd
+     # 查看对应端口是否启动
+     ss -ntl
+     ss -ntlp
+     # 将配置文件放到配置文件目录
+     cp /usr/share/doc/quagga-0.99.22.4/ospfd.conf.sample /etc/quagga/ospfd.conf
+     # 查看文件
+     cat /etc/quagga/ospfd.conf
+     # 启动
+     systemctl start ospfd
+     # 登录
+     vtysh
+     # 使用思科命令操作
+     ```
+
+###  **IP 转发** 功能来启用路由功能
+
+* 检查当前的 IP 转发状态`cat /proc/sys/net/ipv4/ip_forward`
+
+   * 如果输出为 `1`：表示 IP 转发已启用。
+   * 如果输出为 `0`：表示 IP 转发未启用。
+
+* 临时启用 IP 转发；可以通过修改 `/proc` 文件系统中的参数来临时启用 IP 转发。此更改会在系统重启后失效。
+
+   * 运行以下命令启用 IP 转发：`echo 1 > /proc/sys/net/ipv4/ip_forward`
+   * 如果需要禁用 IP 转发，可以运行：`echo 0 > /proc/sys/net/ipv4/ip_forward`
+
+* 永久启用 IP 转发
+
+   * 编辑 sysctl 配置文件 `/etc/sysctl.conf` 文件：`nano /etc/sysctl.conf`
+   * 找到以下行（如果没有则添加）：`net.ipv4.ip_forward = 1`
+   *  应用配置`sysctl -p`
+
+* 配置防火墙规则（可选）：如果启用了防火墙（如 `iptables` 或 `firewalld`），需要添加规则以允许数据包转发。
+
+   * 使用 iptables
+
+      * 运行以下命令允许所有流量转发：`sudo iptables -A FORWARD -j ACCEPT`
+      * 如果需要启用 NAT（网络地址转换），可以添加以下规则：`sudo iptables -t nat -A POSTROUTING -o <外网接口> -j MASQUERADE`
+      * 保存 iptables 规则（具体命令可能因发行版而异）。例如，在 CentOS 上可以使用：`sudo service iptables save`
+
+   * 使用 firewalld
+
+      ```bash
+      sudo firewall-cmd --add-masquerade --permanent
+      sudo firewall-cmd --direct --add-rule ipv4 filter FORWARD 0 -j ACCEPT
+      sudo firewall-cmd --reload
+      ```
+
+* 验证路由转发功能
+
+   * 查看 IP 转发的统计信息`cat /proc/net/netstat | grep IpForward`
 
 ## 磁盘管理
 
