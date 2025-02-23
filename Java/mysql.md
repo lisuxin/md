@@ -6,7 +6,7 @@
 
 * 本机MySQL用户名：root  密码：219798
 * mysql --version,`select version()`：查看Mysql的版本号
-* 查看数据库创建位置 show variables like '%datadir%';
+* 查看数据库创建位置 `show variables like '%datadir%';`
 
 ## 基本操作
 

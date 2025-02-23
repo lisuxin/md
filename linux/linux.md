@@ -859,6 +859,8 @@ info [选项] [主题]
    * `modprobe -r 驱动名称`:卸载驱动
    * `modprobe  驱动名称`:加载驱动
 
+9. 查看文件信息`stat 文件`
+
 ### linux版本相关
 
 * 查看centos发行版版本`cat /etc/redhat-release`
@@ -1447,7 +1449,7 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
    * 并会为每一个进程都分配一个独有的：进程旧（进程号）
    
 2. 如何查看进程、关闭进程
-   * 可以通过 ps 命令查看 Linu ×系统中的进程信息
+   * 可以通过 ps 命令查看 Linux 系统中的进程信息
    
    * 语法： `PS [-e -f]`
    
@@ -1558,7 +1560,15 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
 * 使用 df 命令可以查看硬盘的使用情况
 
    * 语法： `df [-h]`
-   * 选顶： -h, 以更加人性化的单位显示
+   * 选顶： 
+     * `-h` 或 `--human-readable`：以人类可读的格式（如 KB、MB、GB）显示磁盘空间。
+     * `-H` 或 `--si`：类似于 `-h`，但使用 1000 而不是 1024 作为单位的基础。
+     * `-T`：显示文件系统类型。
+     * `-i`：显示 inode 使用情况。
+     * `-t <type>`：仅显示指定类型的文件系统。
+     * `-x <type>`：排除指定类型的文件系统。
+     * `-a` 或 `--all`：包括伪文件系统、重复文件系统等所有文件系统。
+     * `-l` 或 `--local`：仅显示本地文件系统。
 
 * 使用 iostat 查看 CPU 、磁盘的相关信息
 
