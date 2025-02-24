@@ -1827,7 +1827,10 @@ systemctl enable docker
    # 基于kubectl命令，应用这个yml文件,读取,以及创建pod资源
    kubectl create # 显示所有可以创建的资源
    kubectl create -- # 显示了所有可以使用的资源
-   kubectl create -f ./kube-flannel.yml
+   kubectl create -f ./kube-flannel.yml # 创建网络插件 Flannel 的命令
+   # kubectl: Kubernetes 的命令行工具，用于与集群交互。
+   # create: 创建资源的操作。
+   # -f ./kube-flannel.yml: 指定要应用的 YAML 文件路径
    # 得到的结果
    [root@K8s-master-98 Documentation]# kubectl create -f ./kube-flannel.yml
    namespace/kube-flannel created
@@ -1912,6 +1915,10 @@ systemctl enable docker
    #然后应用该 YAML 文件来创建 Pod
    kubectl apply -f pod-definition.yaml
    ````
+
+### 固定pod的IP
+
+
 
 ## docker常用命令
 

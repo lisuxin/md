@@ -662,3 +662,155 @@
    * 全文索引
 
 ### InnoDB和MyISAM的区别
+
+# 主从部署
+
+**环境准备**
+
+- **Master（主库）**: IP 地址为 `192.168.1.10`
+- **Slave（从库）**: IP 地址为 `192.168.1.11`
+
+确保两台服务器上已经安装了 MySQL，并且版本一致。
+
+**配置 Master（主库）**
+
+* 修改 MySQL 配置文件
+
+* 编辑 MySQL 的配置文件（通常是 `/etc/my.cnf` 或 `/etc/mysql/my.cnf`），添加或修改以下内容：
+
+   ```sql
+   [mysqld]
+   server-id=1                  # 设置唯一的 server-id
+   log-bin=mysql-bin            # 开启二进制日志
+   binlog-do-db=test_db         # 指定需要同步的数据库（可选）、如果需要同步所有数据库，可以省略 `binlog-do-db`。
+   binlog-format=row            # 使用基于行的日志格式
+   ```
+
+* 保存后重启 MySQL 服务：
+
+   ```bash
+   systemctl restart mysql
+   ```
+
+* 创建用于复制的用户
+
+* 在 Master 上创建一个专门用于主从复制的用户：
+
+   ```sql
+   CREATE USER 'repl'@'%' IDENTIFIED BY 'password';
+   GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
+   FLUSH PRIVILEGES;
+   ```
+
+* 获取二进制日志位置
+
+* 在 Master 上执行以下命令，获取当前的二进制日志文件名和位置：
+
+   ```bash
+   SHOW MASTER STATUS;
+   # 输出示例：
+   +------------------+----------+--------------+------------------+
+   | File             | Position | Binlog_Do_DB | Binlog_Ignore_DB |
+   +------------------+----------+--------------+------------------+
+   | mysql-bin.000003 | 12345    | test_db      |                  |
+   +------------------+----------+--------------+------------------+
+   # 记录下 `File` 和 `Position` 的值，稍后在 Slave 上会用到。
+   ```
+
+ **配置 Slave（从库）**
+
+* 修改 MySQL 配置文件
+
+* 编辑 MySQL 的配置文件，添加或修改以下内容：
+
+   ```sql
+   [mysqld]
+   server-id=2                  # 设置唯一的 server-id
+   relay-log=mysql-relay-bin    # 开启中继日志
+   log-slave-updates=1          # 允许从库写入二进制日志（可选）
+   read-only=1                  # 设置从库为只读（可选）
+   ```
+
+* 保存后重启 MySQL 服务：
+
+   ```bash
+   systemctl restart mysql
+   ```
+
+*  配置主从关系
+
+* 在 Slave 上执行以下 SQL 命令，配置主从关系：
+
+   ```sql
+   CHANGE MASTER TO
+   MASTER_HOST='192.168.1.10',       -- Master 的 IP 地址
+   MASTER_USER='repl',               -- 复制用户的用户名
+   MASTER_PASSWORD='password',       -- 复制用户的密码
+   MASTER_LOG_FILE='mysql-bin.000003', -- Master 的二进制日志文件名
+   MASTER_LOG_POS=12345;             -- Master 的二进制日志位置
+   ```
+
+*  启动从库同步
+
+* 启动从库的同步功能：
+
+   ```sql
+   START SLAVE;
+   ```
+
+* 检查同步状态：
+
+   ```sql
+   SHOW SLAVE STATUS\G
+   # 重点关注以下字段：
+   #  `Slave_IO_Running`: 应为 `Yes`。
+   #  `Slave_SQL_Running`: 应为 `Yes`。
+   #  `Last_Error`: 如果为空，则表示没有错误。
+   ```
+
+**测试主从同步**
+
+* 在 Master 上插入一些数据，检查 Slave 是否能实时同步。
+
+   ```sql
+   # 在 Master 上：
+   USE test_db;
+   CREATE TABLE test_table (id INT, name VARCHAR(50));
+   INSERT INTO test_table VALUES (1, 'Test');
+   # 在 Slave 上：
+   USE test_db;
+   SELECT * FROM test_table;
+   # 如果能够看到插入的数据，则说明主从同步成功。
+   ```
+
+**常见问题及解决方法**
+
+1. 问题 1: `Slave_IO_Running` 或 `Slave_SQL_Running` 为 `No`
+
+   * 检查 Master 和 Slave 的网络连接是否正常。
+   * 检查 `SHOW SLAVE STATUS\G` 中的 `Last_Error` 字段，根据错误信息进行排查。
+
+2. 问题 2: 数据不一致
+
+   * 确保 Master 和 Slave 的初始数据一致。可以通过备份 Master 的数据并导入到 Slave 来实现：
+
+      ```sql
+      mysqldump -u root -p --all-databases > backup.sql
+      ```
+
+   * 将 `backup.sql` 文件传输到 Slave 并导入：
+
+      ```sql
+      mysql -u root -p < backup.sql
+      ```
+
+   * 问题 3: 主从延迟：如果发现主从同步有延迟，可以优化网络、增加硬件资源，或者调整 MySQL 配置。
+
+**扩展：读写分离**
+
+为了进一步提高性能，可以结合读写分离技术，将写操作发送到 Master，读操作发送到 Slave。可以通过以下方式实现：
+- 手动分配读写请求。
+- 使用代理工具（如 ProxySQL 或 MaxScale）自动分发请求。
+
+
+
