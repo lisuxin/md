@@ -364,6 +364,182 @@
   * `-r` 或 `--remove`：从 RAID 中移除某个设备。
   * `-a` 或 `--add`：向 RAID 中添加新设备。
 
+### pv物理卷
+
+* 在Linux系统中，`pvcreate`、`pvscan`、`pvdisplay` 和 `pvremove` 是与 LVM（逻辑卷管理，Logical Volume Manager）相关的命令。这些命令用于管理物理卷（Physical Volume），它是LVM的基础组件。
+
+#### pvcreate初始化物理卷
+
+*  将一个或多个块设备（如硬盘分区）初始化为物理卷，以便它们可以被LVM使用。
+* 基本语法：`pvcreate [选项] 设备名`
+* 常用选项:
+  * `-f`: 强制执行操作，无需确认。
+  * `-y`: 自动回答“yes”以避免交互式提示。
+  * `-v`: 显示详细信息。
+
+#### pvscan扫描并列出所有物理卷
+
+* 扫描系统中的所有物理卷，并显示相关信息。
+* 基本语法：`pvscan [选项]`
+* 常用选项：
+  * `-v`: 显示详细信息。
+  * `-a`: 显示所有物理卷，包括未分配的卷。
+
+#### pvdisplay显示物理卷的详细信息
+
+* 显示物理卷的详细信息，例如大小、UUID、状态等。
+* 基本语法：`pvdisplay [选项] [设备名]`
+* 常用选项:
+  * `-c`: 以紧凑格式显示输出。
+  * `-m`: 显示映射信息。
+
+#### pvremove移除物理卷的LVM元数据
+
+* 从物理卷中移除LVM元数据，使该设备不再作为物理卷使用。
+* 基本语法：`pvremove [选项] 设备名`
+* 常用选项:
+  * `-f`: 强制执行操作，无需确认。
+  * `-y`: 自动回答“yes”以避免交互式提示。
+
+### vg卷组
+
+在Linux系统中，`vgcreate`、`vgscan`、`vgdisplay`、`vgreduce`、`vgextend` 和 `vgremove` 是与 LVM（逻辑卷管理，Logical Volume Manager）相关的命令。这些命令用于管理卷组（Volume Group），它是LVM的核心组件之一。
+
+以下是这些命令的详细介绍：
+
+---
+
+#### vgcreate创建卷组
+
+*  创建一个新的卷组（Volume Group），并将一个或多个物理卷（Physical Volume）添加到该卷组中。
+
+* 基本语法：`vgcreate [选项] 卷组名 物理卷设备...` 
+
+* 常用选项：
+  * `-s <大小>`: 设置逻辑区内块（PE，Physical Extent）的大小。
+  * `-l <数量>`: 设置逻辑区内块的最大数量。
+  * `-p <数量>`: 设置物理卷的最大数量。
+
+#### vgscan扫描并列出所有卷组
+
+* 扫描系统中的所有卷组，并检测可用的卷组。
+
+* 基本语法：`vgscan [选项]` 
+
+* 常用选项：
+  * `-v`: 显示详细信息。
+  * `-a y`: 激活找到的所有卷组。
+
+#### vgdisplay显示卷组的详细信息
+
+* 显示卷组的详细信息，例如大小、状态、物理卷和逻辑卷的数量等。
+
+* 基本语法：`vgdisplay [选项] [卷组名]`
+
+* 常用选项：
+  * `-c`: 以紧凑格式显示输出。
+  * `-v`: 显示更详细的输出。
+
+#### vgreduce从卷组中移除物理卷
+
+* 从卷组中移除一个或多个物理卷。
+
+* 基本语法：`vgreduce [选项] 卷组名 物理卷设备...` 
+
+* 常用选项：
+  * `-f`: 强制执行操作。
+  * `--removemissing`: 移除丢失的物理卷。
+
+#### vgextend向卷组中添加物理卷
+
+* 将新的物理卷添加到现有的卷组中。
+
+* 基本语法：`vgextend [选项] 卷组名 物理卷设备...` 
+
+#### vgremove删除卷组
+
+* 删除一个卷组及其所有相关联的逻辑卷和物理卷的元数据。
+
+* 基本语法：`vgremove [选项] 卷组名` 
+
+* 常用选项：
+  * `-f`: 强制执行操作。
+
+### lv逻辑卷
+
+在Linux系统中，`lvcreate`、`lvscan`、`lvs`、`lvdisplay`、`lvextend`、`lvreduce` 和 `lvremove` 是与 LVM（逻辑卷管理，Logical Volume Manager）相关的命令。这些命令用于管理逻辑卷（Logical Volume），它是LVM的最终存储单元。
+
+#### lvcreate创建逻辑卷
+
+* 创建一个新的逻辑卷（Logical Volume）。
+
+* 基本语法：`lvcreate [选项] 卷组名` 
+
+* 常用选项：
+  * `-L <大小>`: 指定逻辑卷的大小（例如 `10G` 表示 10GB）。
+  * `-l <数量>`: 指定逻辑卷使用的物理区内块（PE）数量。
+  * `-n <名称>`: 指定逻辑卷的名称。
+  * `-W y`: 忽略警告信息。
+
+#### lvscan扫描并列出所有逻辑卷
+
+* 扫描系统中的所有逻辑卷，并列出它们。
+
+* 基本语法：`lvscan [选项]` 
+
+* 常用选项：
+  * `-a`: 显示所有活动的逻辑卷。
+  * `-v`: 显示详细信息。
+
+#### lvs简洁显示逻辑卷的概要信息
+
+* 以简洁的方式显示逻辑卷的概要信息。
+
+* 基本语法：`lvs [选项]` 
+
+* 常用选项：
+  * `-o`: 指定输出的列（如 `lv_name,vg_name,size`）。
+  * `-a`: 显示所有逻辑卷，包括隐藏的逻辑卷。
+
+#### lvdisplay显示逻辑卷的详细信息
+
+* 显示逻辑卷的详细信息，例如路径、大小、状态等。
+
+* 基本语法：`lvdisplay [选项] [逻辑卷路径]` 
+
+* 常用选项：
+  * `-c`: 以紧凑格式显示输出。
+  * `-v`: 显示更详细的输出。
+
+#### lvextend扩展逻辑卷的大小
+
+* 扩展逻辑卷的大小。
+
+* 基本语法：`lvextend [选项] 逻辑卷路径` 
+
+* 常用选项：
+  * `-L +<大小>`: 增加逻辑卷的大小（例如 `+5G` 表示增加 5GB）。
+  * `-l +<数量>`: 增加逻辑卷使用的物理区内块（PE）数量。
+
+#### lvreduce缩小逻辑卷的大小
+
+* 缩小逻辑卷的大小。
+
+* 基本语法：`lvreduce [选项] 逻辑卷路径` 
+
+* 常用选项：
+  * `-L <大小>`: 设置逻辑卷的新大小。
+  * `-r`: 自动调整文件系统大小。
+
+#### lvremove删除逻辑卷
+
+* 删除逻辑卷及其元数据。
+
+* 基本语法：`lvremove [选项] 逻辑卷路径` 
+
+* 常用选项：
+  * `-f`: 强制执行操作。
+
 ## 磁盘管理
 
 ==磁盘使用过程：磁盘分区——>磁盘格式化、创建文件系统——>挂载目录——>读写数据==
@@ -721,11 +897,89 @@
 
 **热备份**
 
+1. 创建raid5：`mdadm -Cv /dev/md0 -a yes -n 3 -l 5  -x 1 /dev/sdb /dev/sdc /dev/sdd /dev/sde`
+   * `-x 1`：有一块作为备份盘
+2. 检查磁盘阵列状态信息`mdadm -D /dev/md0`
+3. 格式化：`mkfs.xfs -f /dev/md0`
+4. 挂载`mount /dev/md0 /guazai/`
+5. 检查挂载空间的使用情况`df -hT|grep md0`
 
+### lvm逻辑卷管理技术
 
-### lvm
+==lvm 技术它是讲一个或者多个硬盘在逻辑上进行了合并，相当于一个大的硬盘去使用，当你的硬盘空间不够了话，可以直接去其他硬盘中拿来容量去使用，这就是一个动态的盘容量管理技术==
 
+**lvm 的使用方式**
 
+* 基于分区形式创建lvm
+  * 硬盘的多个分区，由 lvm 统一进行管理为卷组，可以弹性的调整卷组大小，加入新硬盘，可以充分的利用嵫盘容量
+  * 文件系统是创建在逻辑卷上，逻辑卷可以根据需求改变大小（总容量控制在卷组中）
+* 基于硬盘创建 lvm
+  * 多块硬盘做成逻辑卷，将整个逻辑卷统一管理，对分区进行动态的扩容
+
+**lvm 的常见名词**
+
+* PP：物理分区， lvm 直接创建在物理分区之上
+* PV：物理卷，处于 lvm 的最底层，一般一个 PV 对应一个 PP
+* PE：物理区域， PV 中可以用于分配的最小存储单位，同一个 VG 所有的 PV 中的 PE 大小相同
+* VG ：卷组，卷组创建在 PV 之上，可以划分为多个 PV
+* LE：逻辑扩展单元， LE 是组成 LV 的基本单元，一个 LE 对应了一个 PE
+* LV ：逻辑卷，创建在 VG 之上，是一个可以动态扩容的分区概念
+
+**LVM 原理**
+
+* lvm动态扩容大小，其实就是通过互相交换 PE 的过程，达到能够弹性扩容分区大小
+* 想要减少空间容量 ，就是剔除 PE 的大小
+* 想要扩大容量，就是把其他的 PE 添加到自己的 LV 当中
+* PE 默认大小一般都是4M， LVM 最是可以创建出 65534 个 PE ，因此 LVM 最大的 VG 卷组单位是 256G
+* PE 其实是 LVM 最小的存储单位，类似于操作系统的 block (4k)
+* LV 逻辑卷的概念（理解为普通的分区概念， /dev/sda /dev/sdb)
+
+**创建 lvm 的过程**
+
+* 创建流程
+  * 1物理分区阶段，针对物理磁盘或者分区，进行 fdisk 格式化，修改系统的 id ，默认是 83 ，改为 8e 类型，是 lvm 类型
+  * PV 阶段，通过 pvcreate, pvdisplay 将 linux 分区改为物理卷PV
+  * 创建 VG 的阶段，通过 vgcreate, vgdisplay, 将创建好的物理卷 PV 改为物理卷组 VG
+  * 创建 LV ，通过 lvcreate ，将卷组，分为若干个逻辑卷
+* 转化为命令操作
+  * fdisk 修改磁盘的系统 id
+  * pvcreate ，创建 PV ，以及显示 PV 信息 pvdisplay 也可以直接输入 pvs 查看简单的信息
+  * 创建 VG 卷组， vgcreate vgs 显示卷组信息
+  * 创建 lv 逻辑卷 tvcreate lvs 显示逻辑卷信息
+  * 开始格式化文件系统，使用 lv 分区了
+* 操作
+  1. 创建pv：`pvcreate /dev/sdb /dev/sdc`
+  2. 创建卷组VG：`vgcreate juanzhu /dev/sdb /dev/sdc`：创建卷组，添加物理卷
+  3. 查看pv和vg信息：`pvs、vgs或pvscan、pvdisplay、vgscan、vgdisplay`
+  4. 扩容或缩小：
+     1. 创建物理卷：`pvcreate /dev/sdd`
+     2. 加入物理卷到卷组：`vgextend juanzhu /sev/sdd`
+     3. 查看pv和vg信息：`pvs、vgs或pvscan、pvdisplay、vgscan、vgdisplay`
+     4. 移除卷组：`vgreduce juanzhu /dev/sdd`
+     5. 删除物理卷：`pvremove /dev/sdd`
+     6. 查看pv和vg信息：`pvs、vgs或pvscan、pvdisplay、vgscan、vgdisplay`
+  5. 使用此时的卷组，创建逻辑卷：`lvcreate -n lv1 -L +500M luojijuan`
+  6. 检查lv信息：`lvdisplay`
+  7. 对luojijuan逻辑卷进行格式化：`mkfs.xfs -f /dev/juanzhu/luojijuan`
+  8. 查看：`lsblk -f`
+  9. 挂载
+     1. 新建文件夹：`mkdir guazai`
+     2. 挂载：`mount /dev/juanzhu/luojijuan guazai`
+     3. 挂载到文件，开机挂载`/dev/juanzhu/luojijuan guazai xfs defaults 0 0`
+     4. 读取挂载文件：`mount -a`
+  10. 扩容
+      1. 卸载：`umount /guazai/`
+      2. 扩容现磁盘还有的空间，不是新加入磁盘：`lvextend -L +10G /dev/juanzhu/luojijuan`
+      3. 挂载：`mount /dev/juanzhu/luojijuan guazai`
+      4. 加载xfs大小：`xfs_groefs /dev/juanzhu/luojijuan`
+      5. 检查：`df -hT`
+  11. 删除逻辑卷
+      1. 备份
+      2. 取消挂载：`umount /guazai/`
+      3. 删除逻辑卷：`lvremove /dev/juanzhu/luojijuan`
+      4. 删除卷组：`vgremove /dev/juanzhu/luojijuan`
+      5. 删除物理卷：`pv remove /dev/sdb /dev/sdc`
+  12. 检查所有`lv、vg、pv`信息：`pvs、vgs、lvs`
 
 ## 进程管理
 
