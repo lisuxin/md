@@ -628,7 +628,8 @@ ${变量//pattern/string}           用string代替所有的pattern
 
 
 
-## 数学计算命令完结
+
+
 ## Shell条件测试开篇
 ## Shell测试语法参数解释
 ## Test命令与-E测试用法
@@ -659,10 +660,22 @@ ${变量//pattern/string}           用string代替所有的pattern
 
 ### 快速安装MySQL
 
+* 快速安装mysql，并修改密码，新建数据库
+
+```shell
+
+```
+
 ### 快速安装nginx
 
-### 快速安装redis
+
+
+### 快速安装redi
+
+
 
 ### nginx存活检测
+
+
 
 ### 数值计算脚本

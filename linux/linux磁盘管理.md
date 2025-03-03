@@ -1,6 +1,6 @@
 [toc]
 
-# 磁盘管理，进程管理
+# 磁盘管理
 
 ## 命令
 
@@ -980,6 +980,4 @@
       4. 删除卷组：`vgremove /dev/juanzhu/luojijuan`
       5. 删除物理卷：`pv remove /dev/sdb /dev/sdc`
   12. 检查所有`lv、vg、pv`信息：`pvs、vgs、lvs`
-
-## 进程管理
 
