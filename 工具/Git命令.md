@@ -540,6 +540,21 @@ git add .
 8. `git checkout main`切换已经存在的远程分支
 9. `git branch --set-upstream-to=origin/main main`:设置上游分支
 
+# Linux安装
+
+* 使用自带的源安装
+
+  ```shell
+  yum install git
+  ```
+
+* 生成密钥文件：使用`ssh-keygen`生成密钥文件**.ssh/id_rsa.pub**。
+
+  ```shell
+  ssh-keygen
+  cat .ssh/id_rsa.pub
+  ```
+
 # 报错
 
 当你在Git中执行 `git branch` 命令后看到输出中有 `* (no branch, rebasing main)`，这表示你当前处于一个特殊的状态，即你正在进行或已经中断了对 `main` 分支的变基操作（rebase）。

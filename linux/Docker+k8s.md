@@ -947,6 +947,68 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 
 ![image-20250114222652927](../typoratuxiang/linux/dockers10.png)
 
+## docker-compose
+
+#### 1. 核心语法与示例
+
+```yaml
+version: '3.8'  # 指定 Compose 版本（必须）
+
+services:
+  web:           # 服务名称（自定义）
+    image: nginx:latest  # 使用的镜像
+    container_name: my-nginx  # 容器名称（可选）
+    ports:
+      - "80:80"           # 端口映射（宿主机:容器）
+    volumes:
+      - ./html:/usr/share/nginx/html  # 挂载本地目录到容器
+    environment:
+      - TZ=Asia/Shanghai  # 环境变量
+    networks:
+      - app-network      # 加入自定义网络
+    depends_on:           # 依赖其他服务
+      - redis
+
+  redis:
+    image: redis:alpine
+    networks:
+      - app-network
+
+networks:                # 定义网络
+  app-network:
+    driver: bridge
+
+volumes:                 # 定义卷（可选）
+  db-data:
+    driver: local
+```
+
+#### 2. 关键字段说明
+
+| 字段          | 说明                                                     |
+| :------------ | :------------------------------------------------------- |
+| `version`     | 指定 Compose 文件版本（不同版本支持的功能不同）。        |
+| `services`    | 定义所有需要运行的容器服务。                             |
+| `image`       | 指定容器使用的镜像（本地或远程仓库）。                   |
+| `ports`       | 端口映射，格式为 `宿主机端口:容器端口`。                 |
+| `volumes`     | 数据卷挂载，支持宿主机目录或命名卷。                     |
+| `networks`    | 自定义网络，实现容器间通信。                             |
+| `environment` | 设置容器内的环境变量。                                   |
+| `depends_on`  | 定义服务启动顺序（仅控制启动顺序，不等待依赖服务就绪）。 |
+
+#### 3. 常用命令
+
+```bash
+# 启动服务（后台运行）
+docker-compose up -d
+
+# 停止并删除容器
+docker-compose down
+
+# 查看服务状态
+docker-compose ps
+```
+
 ## k8s容器编排系统
 
 >K8s是谷歌几十年来研发的一套系统，更新了运维领域的玩法，维护容器的
@@ -1916,9 +1978,86 @@ systemctl enable docker
    kubectl apply -f pod-definition.yaml
    ````
 
-### 固定pod的IP
+### Kubernetes 的 YAML 文件
 
+#### 1. 核心语法与示例
 
+```yaml
+# 定义 Deployment（管理 Pod 副本）
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment  # Deployment 名称
+spec:
+  replicas: 3             # Pod 副本数
+  selector:
+    matchLabels:
+      app: nginx          # 匹配 Pod 标签
+  template:
+    metadata:
+      labels:
+        app: nginx        # Pod 标签
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:latest
+        ports:
+        - containerPort: 80  # 容器暴露的端口
+        env:
+        - name: ENV_VAR
+          value: "production"
+        volumeMounts:
+        - name: html-volume
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: html-volume
+        configMap:          # 使用 ConfigMap 挂载配置
+          name: nginx-config
+
+---
+# 定义 Service（暴露服务）
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx              # 关联 Deployment 的 Pod 标签
+  ports:
+    - protocol: TCP
+      port: 80              # Service 端口
+      targetPort: 80        # 容器端口
+  type: NodePort            # 外部访问类型（可选 ClusterIP、LoadBalancer）
+```
+
+#### **2. 关键字段说明**
+
+| 字段                   | 说明                                                        |
+| :--------------------- | :---------------------------------------------------------- |
+| `apiVersion`           | 指定 Kubernetes API 版本（如 `apps/v1`）。                  |
+| `kind`                 | 资源类型（如 `Deployment`、`Service`、`ConfigMap`）。       |
+| `replicas`             | Pod 副本数量，用于实现高可用。                              |
+| `selector.matchLabels` | 匹配 Pod 标签以管理对应的副本。                             |
+| `containers`           | 定义容器镜像、端口、环境变量等。                            |
+| `volumeMounts`         | 挂载存储卷到容器内部路径。                                  |
+| `volumes`              | 定义存储卷来源（如 `configMap`、`persistentVolumeClaim`）。 |
+| `Service.type`         | 服务类型：`ClusterIP`（默认）、`NodePort`、`LoadBalancer`。 |
+
+#### 3. 常用命令
+
+```shell
+# 部署资源
+kubectl apply -f deployment.yaml
+
+# 删除资源
+kubectl delete -f deployment.yaml
+
+# 查看 Deployment 状态
+kubectl get deployments
+
+# 查看 Pod 状态
+kubectl get pods
+```
 
 ## docker常用命令
 
