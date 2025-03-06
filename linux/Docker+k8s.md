@@ -949,7 +949,7 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 
 ## docker-compose
 
-### 1. 核心语法与示例
+### 核心语法与示例
 
 ```yaml
 version: '3.8'  # 指定 Compose 版本（必须）
@@ -983,7 +983,7 @@ volumes:                 # 定义卷（可选）
     driver: local
 ```
 
-### 2. 关键字段说明
+### 关键字段说明
 
 | 字段          | 说明                                                     |
 | :------------ | :------------------------------------------------------- |
@@ -996,7 +996,7 @@ volumes:                 # 定义卷（可选）
 | `environment` | 设置容器内的环境变量。                                   |
 | `depends_on`  | 定义服务启动顺序（仅控制启动顺序，不等待依赖服务就绪）。 |
 
-### 3. 常用命令
+### 常用命令
 
 ```bash
 # 启动服务（后台运行）
@@ -1009,7 +1009,7 @@ docker-compose down
 docker-compose ps
 ```
 
-### 4.`docker-compose.yml`语法指南
+### `docker-compose.yml`语法指南
 
 Docker Compose 是一个用于定义和运行多容器 Docker 应用的工具，其核心配置文件为 `docker-compose.yml`。
 
@@ -1202,7 +1202,7 @@ volumes:
     driver: local  # 使用本地卷驱动，保存数据库数据
 ```
 
-### **5. 常用命令**
+### **常用命令**
 
 ```bash
 # 启动服务（后台运行）
@@ -2190,7 +2190,7 @@ systemctl enable docker
    kubectl apply -f pod-definition.yaml
    ````
 
-### Kubernetes 的 YAML 文件
+###  `pod-definition.yml` 语法指南
 
 Kubernetes 使用 YAML 文件定义资源（如 Pod、Deployment、Service 等），以下是启动镜像的核心语法及其详细说明：
 
