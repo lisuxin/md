@@ -949,7 +949,7 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
 
 ## docker-compose
 
-#### 1. 核心语法与示例
+### 1. 核心语法与示例
 
 ```yaml
 version: '3.8'  # 指定 Compose 版本（必须）
@@ -983,7 +983,7 @@ volumes:                 # 定义卷（可选）
     driver: local
 ```
 
-#### 2. 关键字段说明
+### 2. 关键字段说明
 
 | 字段          | 说明                                                     |
 | :------------ | :------------------------------------------------------- |
@@ -996,7 +996,7 @@ volumes:                 # 定义卷（可选）
 | `environment` | 设置容器内的环境变量。                                   |
 | `depends_on`  | 定义服务启动顺序（仅控制启动顺序，不等待依赖服务就绪）。 |
 
-#### 3. 常用命令
+### 3. 常用命令
 
 ```bash
 # 启动服务（后台运行）
@@ -1007,6 +1007,218 @@ docker-compose down
 
 # 查看服务状态
 docker-compose ps
+```
+
+### 4.`docker-compose.yml`语法指南
+
+Docker Compose 是一个用于定义和运行多容器 Docker 应用的工具，其核心配置文件为 `docker-compose.yml`。
+
+#### 文件结构
+
+```yaml
+version: '3.8'  # 使用docker-compose文件格式版本3.8，确保兼容性
+services:       # 定义服务（容器）集合
+  service1:     # 第一个服务名称
+    image: nginx  # 使用nginx镜像
+    ports:
+      - "80:80"  # 将主机的80端口映射到容器的80端口
+    networks:
+      my-network:
+        ipv4_address: 172.28.1.2 # ip地址
+  service2:
+    build: ./dir  # 使用指定目录下的Dockerfile构建镜像
+    environment:
+      - ENV_VAR=value  # 设置环境变量
+
+networks:       # 定义网络以便服务间通信
+  my-network:
+    driver: bridge  # 使用桥接网络驱动
+
+volumes:        # 定义数据卷，便于持久化存储或共享数据
+  my-volume:
+    driver: local  # 使用本地驱动管理卷
+```
+
+### 核心字段详解
+
+- **`version`**：指定 Compose 文件格式版本。
+  ```yaml
+  version: '3.8'
+  ```
+
+- **`services`**：定义所有需要运行的容器服务。
+  ```yaml
+  services:
+    web:
+      image: nginx  # nginx容器服务
+    db:
+      image: postgres # 数据库容器服务
+  ```
+
+- **`image`**：指定容器使用的镜像。
+  ```yaml
+  image: nginx:latest # 使用的镜像
+  ```
+
+- **`build`**：使用 Dockerfile 构建镜像。
+  ```yaml
+  build: ./app  # 指定 Dockerfile 所在目录
+  build:
+    context: ./app
+    dockerfile: Dockerfile.dev
+  ```
+
+- **`ports`**：映射宿主机端口到容器端口。
+  ```yaml
+  ports:
+    - "8080:80"  # 宿主机:容器
+  ```
+
+- **`volumes`**：挂载宿主机目录或命名卷到容器内。
+  ```yaml
+  volumes:
+    - ./data:/app/data  # 宿主机目录:容器目录
+    - my-volume:/app/data  # 命名卷
+  ```
+
+- **`environment`**：设置容器内的环境变量。
+  ```yaml
+  environment:
+    - ENV_VAR=value
+  ```
+
+- **`networks`**：定义容器连接的网络。
+  ```yaml
+  networks:
+    - my-network
+          ipv4_address: 172.28.1.2 # ip地址
+  ```
+  
+- **`depends_on`**：定义服务启动顺序。
+  ```yaml
+  depends_on:
+    - db
+  ```
+
+- **`restart`**：设置容器重启策略。
+  ```yaml
+  restart: always
+  ```
+
+  * **`no`**：这是默认的重启策略，意味着 Docker 不会自动重启容器。
+  * **`always`**：无论容器因何原因停止（包括正常退出和异常情况），Docker 都会重启它。如果 Docker 守护进程重启了，也会尝试重启所有标记为 `always` 的容器。
+  * **`on-failure`**：仅当容器以非零退出代码（即发生错误）退出时，Docker 才会重启该容器。你可以指定一个可选的最大重试次数，如 `on-failure: 5` 表示最多尝试重启5次。
+  * **`unless-stopped`**：与 `always` 类似，但有一个例外：如果容器被手动停止（使用 `docker stop` 命令或其他方式），则不会自动重启它，即使 Docker 守护进程重启了也不会重启这个已经被手动停止的容器。
+  
+- **`command`**：覆盖容器启动时的默认命令。
+  ```yaml
+  command: ["python", "app.py"]
+  ```
+
+- **`entrypoint`**：覆盖容器的默认入口点。
+  ```yaml
+  entrypoint: /app/start.sh
+  ```
+
+- **`healthcheck`**：定义容器健康检查。
+  ```yaml
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+  ```
+
+- **`logging`**：配置容器日志。
+  ```yaml
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+  ```
+
+### 高级配置
+
+- **`configs`**：将配置文件挂载到容器内。
+  ```yaml
+  configs:
+    - my-config
+  ```
+
+- **`secrets`**：将敏感数据挂载到容器内。
+  ```yaml
+  secrets:
+    - my-secret
+  ```
+
+- **`extends`**：复用其他服务的配置。
+  ```yaml
+  extends:
+    file: common.yml
+    service: base-service
+  ```
+
+- **`labels`**：为容器添加元数据。
+  ```yaml
+  labels:
+    com.example.description: "My Web App"
+  ```
+
+### 完整示例
+```yaml
+# 定义版本，这里使用的是3.8，确保兼容性
+version: '3.8'
+
+services:
+  # 定义web服务
+  web:
+    image: nginx:latest  # 使用nginx的最新镜像
+    ports:  # 映射端口，使得可以通过主机访问web服务
+      - "80:80"  # 将主机的80端口映射到容器的80端口
+    volumes:  # 挂载html目录到nginx的默认html目录，便于静态网页展示
+      - ./html:/usr/share/nginx/html  # 将当前目录下的html文件夹挂载到容器内的指定路径
+    networks:  # 连接到自定义网络，方便与db服务通讯
+      - app-network  # 应用将使用名为app-network的网络
+    depends_on:  # 确保db服务先于web服务启动
+      - db  # 表示web服务依赖于db服务
+
+  # 定义数据库服务
+  db:
+    image: postgres:13  # 使用PostgreSQL 13的镜像
+    environment:  # 设置数据库密码，保护数据库安全
+      POSTGRES_PASSWORD: example  # 设置环境变量POSTGRES_PASSWORD为example
+    volumes:  # 数据库数据持久化
+      - db-data:/var/lib/postgresql/data  # 将名为db-data的数据卷挂载到容器内的指定路径
+    networks:  # 连接到自定义网络，与web服务通讯
+      - app-network  # 应用将使用名为app-network的网络
+
+networks:
+  app-network:  # 定义一个名为app-network的网络
+    driver: bridge  # 使用桥接网络驱动，适合单机部署
+
+volumes:
+  db-data:  # 定义一个名为db-data的数据卷
+    driver: local  # 使用本地卷驱动，保存数据库数据
+```
+
+### **5. 常用命令**
+
+```bash
+# 启动服务（后台运行）
+docker-compose up -d
+
+# 停止并删除容器
+docker-compose down
+
+# 查看服务状态
+docker-compose ps
+
+# 查看日志
+docker-compose logs -f
+
+# 重新构建镜像并启动服务
+docker-compose up --build
 ```
 
 ## k8s容器编排系统
@@ -1980,84 +2192,265 @@ systemctl enable docker
 
 ### Kubernetes 的 YAML 文件
 
-#### 1. 核心语法与示例
+Kubernetes 使用 YAML 文件定义资源（如 Pod、Deployment、Service 等），以下是启动镜像的核心语法及其详细说明：
+
+#### 核心资源类型
+
+Kubernetes 中常用的资源类型包括：
+- **Pod**：最小的部署单元，包含一个或多个容器。
+- **Deployment**：管理 Pod 的副本和更新策略。
+- **Service**：暴露 Pod 的网络服务。
+- **ConfigMap**：存储配置数据。
+- **Secret**：存储敏感数据。
+
+#### 完整 YAML 语法
 
 ```yaml
-# 定义 Deployment（管理 Pod 副本）
+# Pod
+# 定义 API 版本
+apiVersion: v1
+# 资源类型是 Pod
+kind: Pod
+metadata:
+  name: my-pod  # Pod 名称
+spec:
+  containers:
+  - name: my-container  # 容器名称
+    image: nginx:latest  # 镜像名称
+    ports:
+    - containerPort: 80  # 容器暴露的端口
+    env:
+    - name: ENV_VAR     # 环境变量名称
+      value: "value"    # 环境变量值
+    volumeMounts:
+    - name: config-volume  # 挂载卷名称
+      mountPath: /etc/config  # 在容器内的挂载路径
+  volumes:
+  - name: config-volume   # 定义卷名称
+    configMap:
+      name: my-config     # 使用 ConfigMap 名称
+```
+
+```yaml
+# Deployment
+# 定义 API 版本
 apiVersion: apps/v1
+# 资源类型是 Deployment
 kind: Deployment
 metadata:
-  name: nginx-deployment  # Deployment 名称
+  name: my-deployment  # Deployment 名称
 spec:
-  replicas: 3             # Pod 副本数
+  replicas: 3          # Pod 副本数
   selector:
     matchLabels:
-      app: nginx          # 匹配 Pod 标签
+      app: my-app      # 匹配 Pod 标签
   template:
     metadata:
       labels:
-        app: nginx        # Pod 标签
+        app: my-app    # Pod 标签
     spec:
       containers:
-      - name: nginx-container
+      - name: my-container
         image: nginx:latest
         ports:
-        - containerPort: 80  # 容器暴露的端口
+        - containerPort: 80
         env:
         - name: ENV_VAR
-          value: "production"
+          value: "value"
         volumeMounts:
-        - name: html-volume
-          mountPath: /usr/share/nginx/html
+        - name: config-volume
+          mountPath: /etc/config
       volumes:
-      - name: html-volume
-        configMap:          # 使用 ConfigMap 挂载配置
-          name: nginx-config
+      - name: config-volume
+        configMap:
+          name: my-config
+```
 
----
-# 定义 Service（暴露服务）
+```yaml
+# Service
+# 定义 API 版本
 apiVersion: v1
+# 资源类型是 Service
 kind: Service
 metadata:
-  name: nginx-service
+  name: my-service  # Service 名称
 spec:
   selector:
-    app: nginx              # 关联 Deployment 的 Pod 标签
+    app: my-app     # 关联 Pod 标签
   ports:
     - protocol: TCP
-      port: 80              # Service 端口
-      targetPort: 80        # 容器端口
-  type: NodePort            # 外部访问类型（可选 ClusterIP、LoadBalancer）
+      port: 80      # Service 端口
+      targetPort: 80  # 容器端口
+  type: ClusterIP   # 服务类型（ClusterIP、NodePort、LoadBalancer）
 ```
 
-#### **2. 关键字段说明**
+```yaml
+# ConfigMap
+# 定义 API 版本
+apiVersion: v1
+# 资源类型是 ConfigMap
+kind: ConfigMap
+metadata:
+  name: my-config  # ConfigMap 名称
+data:
+  config.key: value  # 配置数据键值对
+```
 
-| 字段                   | 说明                                                        |
-| :--------------------- | :---------------------------------------------------------- |
-| `apiVersion`           | 指定 Kubernetes API 版本（如 `apps/v1`）。                  |
-| `kind`                 | 资源类型（如 `Deployment`、`Service`、`ConfigMap`）。       |
-| `replicas`             | Pod 副本数量，用于实现高可用。                              |
-| `selector.matchLabels` | 匹配 Pod 标签以管理对应的副本。                             |
-| `containers`           | 定义容器镜像、端口、环境变量等。                            |
-| `volumeMounts`         | 挂载存储卷到容器内部路径。                                  |
-| `volumes`              | 定义存储卷来源（如 `configMap`、`persistentVolumeClaim`）。 |
-| `Service.type`         | 服务类型：`ClusterIP`（默认）、`NodePort`、`LoadBalancer`。 |
+```yaml
+# Secret
+# 定义 API 版本
+apiVersion: v1
+# 资源类型是 Secret
+kind: Secret
+metadata:
+  name: my-secret  # Secret 名称
+type: Opaque
+data:
+  username: dXNlcm5hbWU=  # Base64 编码的数据
+  password: cGFzc3dvcmQ=
+```
 
-#### 3. 常用命令
+#### 核心字段详解
 
-```shell
+- **`apiVersion`**：指定 Kubernetes API 版本。常用值包括 `v1`（用于 Pod、Service、ConfigMap、Secret）和 `apps/v1`（用于 Deployment、StatefulSet）。
+
+- **`kind`**：定义资源类型。常用值包括 `Pod`、`Deployment`、`Service`、`ConfigMap` 和 `Secret`。
+
+- **`metadata`**：定义资源的元数据（如名称、标签）。例如：
+  ```yaml
+  metadata:
+    name: my-pod
+    labels:
+      app: my-app
+  ```
+
+- **`spec`**：定义资源的期望状态。例如：
+  ```yaml
+  spec:
+    containers:
+    - name: my-container
+      image: nginx
+  ```
+
+- **`containers`**：定义容器配置。关键字段包括 `image`（容器镜像）、`ports`（容器暴露的端口）、`env`（环境变量）和 `volumeMounts`（挂载卷到容器内）。
+
+- **`volumes`**：定义存储卷。常用类型包括 `configMap`（挂载 ConfigMap）、`secret`（挂载 Secret）、`emptyDir`（临时存储卷）和 `persistentVolumeClaim`（挂载持久化存储）。
+
+- **`replicas`**：定义 Pod 副本数（仅适用于 Deployment 和 StatefulSet）。例如：
+  ```yaml
+  replicas: 3
+  ```
+
+- **`selector`**：定义资源的选择器（用于匹配 Pod）。例如：
+  ```yaml
+  selector:
+    matchLabels:
+      app: my-app
+  ```
+
+- **`type`（Service）**：定义 Service 类型。常用值包括 `ClusterIP`（集群内部访问，默认）、`NodePort`（通过节点端口暴露服务）和 `LoadBalancer`（通过云服务商的负载均衡器暴露服务）。
+
+#### 完整示例
+以下是一个完整的 YAML 文件示例，包含 Deployment 和 Service：
+
+```yaml
+# 定义 API 版本，使用 apps/v1 表示适用于 Deployment 资源
+apiVersion: apps/v1
+# 资源类型是 Deployment，用于管理应用的部署和更新
+kind: Deployment
+metadata:
+  # 给这个 Deployment 资源指定一个名称
+  name: my-app
+spec:
+  # 声明希望运行的 Pod 实例数量（副本数）
+  replicas: 3
+  selector:
+    # 定义如何选择要管理的 Pods，通过标签匹配
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      # 模板中定义的每个 Pod 都会带有这个标签
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - # 容器的名字
+        name: my-container
+        # 使用的 Docker 镜像
+        image: nginx:latest
+        ports:
+        - # 容器内部暴露的端口号
+          containerPort: 80
+        env:
+        - # 设置环境变量名
+          name: ENV_VAR
+          # 环境变量值
+          value: "production"
+        volumeMounts:
+        - # 卷的名称，需与 volumes 下定义的卷名称对应
+          name: config-volume
+          # 在容器内的挂载路径
+          mountPath: /etc/config
+      volumes:
+      - # 卷的名称
+        name: config-volume
+        # 使用 ConfigMap 类型的卷，将配置数据挂载到容器内
+        configMap:
+          # 关联的 ConfigMap 名称
+          name: my-config
+---
+# 定义 API 版本，v1 适用于 Service 和其他一些核心资源
+apiVersion: v1
+# 资源类型是 Service，用于定义网络访问规则
+kind: Service
+metadata:
+  # 给这个 Service 资源指定一个名称
+  name: my-service
+spec:
+  selector:
+    # 标签选择器，决定哪些 Pod 将被此服务路由流量
+    app: my-app
+  ports:
+    - # 使用的协议，默认为 TCP
+      protocol: TCP
+      # 服务暴露的端口
+      port: 80
+      # 目标端口，即转发到后端 Pod 的端口
+      targetPort: 80
+  # 服务类型，ClusterIP 表示仅在集群内部可访问
+  type: ClusterIP
+```
+
+#### 常用命令
+```bash
 # 部署资源
-kubectl apply -f deployment.yaml
+kubectl apply -f my-app.yaml
+
+# 查看资源状态
+kubectl get pods
+kubectl get deployments
+kubectl get services
 
 # 删除资源
-kubectl delete -f deployment.yaml
-
-# 查看 Deployment 状态
-kubectl get deployments
-
-# 查看 Pod 状态
-kubectl get pods
+kubectl delete -f my-app.yaml
 ```
+
+#### 注意事项
+1. **YAML 格式**：使用空格缩进（不能使用 Tab）。确保字段名称和值正确。
+
+2. **资源命名**：名称需唯一，且符合 DNS 命名规则（小写字母、数字、`-`）。
+
+3. **镜像拉取策略**：默认使用 `IfNotPresent`，若需强制拉取最新镜像，可设置 `imagePullPolicy: Always`。
+
+4. **调试工具**：使用 `kubectl describe pod <pod-name>` 查看 Pod 事件日志。使用 `kubectl logs <pod-name>` 查看容器日志。
+
+#### 总结
+- **核心资源**：Pod、Deployment、Service、ConfigMap、Secret。
+- **核心字段**：`apiVersion`、`kind`、`metadata`、`spec`、`containers`、`volumes`。
+- **适用场景**：定义容器化应用的部署、网络、配置和存储。
+
+通过灵活组合这些语法，可以轻松定义复杂的 Kubernetes 应用环境。
 
 ## docker常用命令
 
