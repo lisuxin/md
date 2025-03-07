@@ -145,18 +145,27 @@
 
 1. 服务器准备（内存最少4G）
 
-   * 在每一个服务器内都安装`docker`，创建k8s集群（master:192.168.31.98；node:31.96、31.97、31.99）
+   * 本地自己电脑安装`git`
+   * 在每一个服务器内都安装`docker`，创建k8s集群（master:192.168.31.98；node:31.96、31.97）
    * 31.96
-     * 拉取`gitLab`（镜像）和`git`（镜像）到当前节点
+     * 拉取`gitLab`（镜像）到当前节点
      * 使用K8s集群`pod-definition.yml`在当前节点上，使用当前宿主机暴露端口进行运行
      * 做`gitLab`初始化配置、在浏览器进行访问
    * 31.98
      * 下载安装`jdk、maven`
-     * 拉取`Jenkins`镜像到当前节点
+     * 拉取`Jenkins`镜像到当前节点运行容器（使用K8s集群`pod-definition.yml`）
+     * 浏览器访问`Jenkins`
+     * 创建k8s集群、master节点
+   * 31.97
+     * 作为应用服务、器跑服务作用
+2. Jenkins安装（pod-definition.yml）运行
+   * 拉取镜像`docker pull`
+   * 新建文件夹`use/local/k8s/docker/jenkins/`
 
 ### CI
 
-
+1. 进入Jenkins网页
+2. 
 
 ### CD
 

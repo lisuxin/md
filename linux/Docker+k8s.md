@@ -2423,6 +2423,7 @@ spec:
 ```
 
 #### 常用命令
+
 ```bash
 # 部署资源
 kubectl apply -f my-app.yaml
