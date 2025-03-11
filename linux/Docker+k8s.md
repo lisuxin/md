@@ -1794,9 +1794,9 @@ systemctl enable docker
      # 创建 .kube 目录
      mkdir -p $HOME/.kube
      # 将管理员 kubeconfig 文件复制到用户主目录下的 .kube 目录中
-     sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+     cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
      # 修改文件的所有者为当前用户
-     sudo chown $(id -u):$(id -g) $HOME/.kube/config
+     chown $(id -u):$(id -g) $HOME/.kube/config
      ```
 
      - `mkdir -p $HOME/.kube`：创建 `.kube` 目录，如果目录已存在则不会报错。
