@@ -720,13 +720,13 @@ Su Mo Tu We Th Fr Sa
   # 查看时区列表
   timedatectl list-timezones
   # 设置时区中国标准时间（CST，即 `Asia/Shanghai`）**：
-  sudo timedatectl set-timezone Asia/Shanghai
+  timedatectl set-timezone Asia/Shanghai
   # NTP 同步时间
   # NTP（网络时间协议）用于通过网络同步系统时间。你可以安装并配置 NTP 客户端来确保系统时间与互联网时间服务器保持同步。
   # 安装 NTP 客户端（以 Ubuntu 为例）：
-  sudo apt-get install ntp
+  apt-get install ntp
   # 启动 NTP 服务
-  sudo systemctl start ntp
+  systemctl start ntp
   # 检查 NTP 同步状态**：
   ntpq -p
   ```

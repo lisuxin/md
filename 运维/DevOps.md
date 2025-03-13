@@ -12,6 +12,10 @@
 
 1. docker镜像部署直接拉取镜像
 
+   1. 拉取镜像`docker pull swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/twang2218/gitlab-ce-zh:latest`
+   2. 编写yml
+   3. 运行yml`kubectl apply -f gitlab-deployment.yaml`
+
 2. 手动部署
 
    1. 配置yum源

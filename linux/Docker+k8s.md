@@ -1397,6 +1397,27 @@ kubectl create -f nginx.yml
    * 卷的数据以NFS的形式部署
 4. 多个容器读取多个数据卷
 
+**管理pod命令**
+
+1. 通过yaml运行pod``
+2. 检查Pod状态`kubectl get pods -o wide`
+3. 检查服务状态： 确认GitLab服务是否正确创建并分配了端口。`kubectl get svc`
+4. 查看Pod事件和详细信息：获取特定GitLab Pod的详细信息，包括最近的事件和状态`kubectl describe pod <gitlab-pod-name>`
+5. 查看容器日志`kubectl logs <gitlab-pod-name>`如果容器曾经崩溃过，你可能还需要查看之前实例的日志：`kubectl logs <gitlab-pod-name> --previous`
+6. 检查网络配置和服务端点：
+   * 确保Kubernetes服务正确地指向了Pod，并且端口转发设置无误：
+     - 验证Service是否正确选择了你的Pod：`kubectl get endpoints gitlab-service`
+     - 在节点上使用`curl`测试从本地访问GitLab服务：`curl http://localhost:30081/`
+7. 查看集群中运行的所有容器：`kubectl get pods -A`
+
+**删除pod并停止k8s自动创建**
+
+1. 检查所有Deployments`kubectl get deployments --all-namespaces`
+2. 删除Deployment`kubectl delete deployment gitlab`
+3. 查看 Service 端口映射`kubectl get svc gitlab-service`
+4. 删除Service`kubectl delete service gitlab-service`
+5. 确认资源已被删除`kubectl get deployments、 kubectl get services`
+
 ## K8s集群安装部署
 
 ### 理解名词
@@ -1432,9 +1453,9 @@ kubectl create -f nginx.yml
    ```shell
    cat >>/etc/hosts <<'EOF'
    192.168.31.98 K8s-master-98
-   192.168.31.97 K8s-node1-97
-   192.168.31.96 K8s-node2-96
+   192.168.31.96 K8s-node-96
    EOF
+   192.168.31.97 K8s-node1-97
    ```
 
 3. 修改linux主机名
@@ -1446,7 +1467,7 @@ kubectl create -f nginx.yml
 4. 测试网络是否通畅（一定要与当前主机名匹配）
 
    ```
-   ping -c 2 hostnamectl set-hostname K8s-master-98
+   ping -c 2 K8s-master-98
    ping -c 2 K8s-node1-97
    ping -c 2 K8s-node2-96
    ```
@@ -1460,8 +1481,8 @@ kubectl create -f nginx.yml
    * k8s-slave 节点： UDP 协议端口全部打开
 
      ```shell
-     sudo firewall-cmd --permanent --add-port=8080/tcp # 开放端口
-     sudo firewall-cmd --reload # 重新加载防火墙
+     firewall-cmd --permanent --add-port=8080/tcp # 开放端口
+     firewall-cmd --reload # 重新加载防火墙
      ```
 
 6. 设置iptables(初始化防火墙对每一台服务器)
@@ -1538,10 +1559,10 @@ kubectl create -f nginx.yml
    yum makecache
    ```
 
-9. 确保ntp、网络正确
+9. 确保ntp、网络正确(确认时间)
 
    ```shell
-   yum intall chrony -y
+   yum install chrony -y
    systemctl start chrony
    systemctl enable chrony
    date
@@ -1557,7 +1578,7 @@ kubectl create -f nginx.yml
    systemctl start chrony
    # 设置 chrony 服务开机自启动
    systemctl enable chrony
-   # 注意：这里似乎是输入错误。如果你是想显示当前日期和时间，应该使用 'date' 命令而不是 'data'
+   # 显示时间
    date
    # 将系统时间写入硬件时钟，确保在重启后系统还能保持正确的时间
    hwclock -w
@@ -2089,13 +2110,13 @@ systemctl enable docker
     # 使用ifconfig查看对外提供网络访问的
     containers:
           - name: kube-flannel
-            image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/ghcr.io/siderolabs/flannel:v0.26.1
+            image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/ghcr.io/siderolabs/flannel:v0.26.1# 修改镜像源
             command:
             - /opt/bin/flanneld
             args:
             - --ip-masq
             - --kube-subnet-mgr
-            - --iface=ens160 # 加入的物理网卡  
+            - --flags=ens160 # 加入的物理网卡  
    # 查看当前宿主机情况是否有flannel容器
    docker ps
    # 基于kubectl命令，应用这个yml文件,读取,以及创建pod资源
