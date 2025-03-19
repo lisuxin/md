@@ -13,9 +13,8 @@
 1. docker镜像部署直接拉取镜像
 
    1. 拉取镜像`docker pull swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/twang2218/gitlab-ce-zh:latest`
-   2. 编写yml
-   3. 运行yml`kubectl apply -f gitlab-deployment.yaml`
-
+   2. 编写yml、运行yml`kubectl apply -f gitlab-deployment.yaml`
+   
 2. 手动部署
 
    1. 配置yum源
@@ -150,18 +149,131 @@
 1. 服务器准备（内存最少4G）
 
    * 本地自己电脑安装`git`
-   * 在每一个服务器内都安装`docker`，创建k8s集群（master:192.168.31.98；node:31.96、31.97）
+   
+   * 在每一个服务器内都安装`docker`，创建k8s集群（master:192.168.31.98；node:31.96）
+   
    * 31.96
+     
      * 拉取`gitLab`（镜像）到当前节点
+     
      * 使用K8s集群`pod-definition.yml`在当前节点上，使用当前宿主机暴露端口进行运行
-     * 做`gitLab`初始化配置、在浏览器进行访问
+     
+       ```yaml
+       apiVersion: apps/v1  # Kubernetes API版本定义
+       kind: Deployment     # 资源类型：部署
+       metadata:            # 元数据配置
+         name: gitlab-ce-zh # 部署名称
+         labels:           # 标签列表
+           app: gitlab-ce-zh # 应用标签
+       spec:               # 规格描述
+         replicas: 1       # 副本数设置为1
+         selector:         # 标签选择器配置
+           matchLabels:    # 匹配带有以下标签的Pod
+             app: gitlab-ce-zh
+         template:         # Pod模板
+           metadata:       # 模板元数据
+             labels:       # Pod标签
+               app: gitlab-ce-zh
+           spec:           # 容器规格
+             nodeSelector: # 节点选择器，指定运行该Pod的节点
+               kubernetes.io/hostname: k8s-node-96  # 确保节点有此标签
+             containers:   # 容器列表
+             - name: gitlab  # 容器名
+               image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/twang2218/gitlab-ce-zh:latest  # 使用的镜像
+               ports:       # 容器端口配置
+               - containerPort: 80  # HTTP服务端口
+                 name: http
+               - containerPort: 443 # HTTPS服务端口
+                 name: https
+               - containerPort: 22  # SSH服务端口
+                 name: ssh
+               volumeMounts: # 卷挂载配置
+               - mountPath: /etc/gitlab  # GitLab配置目录
+                 name: gitlab-config
+               - mountPath: /var/opt/gitlab  # GitLab数据目录
+                 name: gitlab-data
+               - mountPath: /var/log/gitlab  # GitLab日志目录
+                 name: gitlab-logs
+               resources:    # 资源限制和请求
+                 limits:     # 最大资源限制
+                   cpu: "2"  # CPU限制
+                   memory: 4Gi  # 内存限制
+                 requests:   # 请求的资源量
+                   cpu: "1"  # CPU请求
+                   memory: 2Gi  # 内存请求
+             volumes:       # 卷列表
+             - name: gitlab-config  # 配置卷名
+               hostPath:    # 主机路径配置
+                 path: /opt/gitlab/config  # 在主机上的路径
+                 type: DirectoryOrCreate  # 如果不存在则创建目录
+             - name: gitlab-data
+               hostPath:
+                 path: /opt/gitlab/data
+                 type: DirectoryOrCreate
+             - name: gitlab-logs
+               hostPath:
+                 path: /opt/gitlab/logs
+                 type: DirectoryOrCreate
+       
+       ---
+       apiVersion: v1      # Kubernetes API版本定义
+       kind: Service       # 资源类型：服务
+       metadata:           # 元数据配置
+         name: gitlab-service  # 服务名称
+       spec:               # 规格描述
+         type: NodePort    # 服务类型：节点端口
+         selector:         # 标签选择器配置
+           app: gitlab-ce-zh  # 与部署匹配的标签
+         ports:            # 服务端口配置
+           - name: http    # HTTP服务
+             port: 80      # 服务暴露端口
+             targetPort: 80 # 目标端口（容器端口）
+             nodePort: 30080  # 节点端口，范围30000-32767
+           - name: https   # HTTPS服务
+             port: 443     # 服务暴露端口
+             targetPort: 443
+           - name: ssh     # SSH服务
+             port: 22      # 服务暴露端口
+             targetPort: 22
+       ```
+     
+     * 做`gitLab`初始化配置
+     
+       1. 第一次登录查看密码，进入容器在`/etc/exec/initial_root_password`用户名是`root`
+     
+          1. 无法找到密码，通过GitLab Rails控制台设置一个新的root密码
+     
+             * 进入容器`kubectl exec -it gitlab-ce-zh-756d69b6-bzvqc -- /bin/bash`
+     
+             * 运行`gitlab-rails console -e production`
+     
+             * 在打开的控制台中输入如下Ruby代码来更改密码：
+     
+               ```shell
+               user = User.where(id: 1).first # 获取ID为1的用户，通常是root用户
+               user.password = 'new_password' # 设置新密码
+               user.password_confirmation = 'new_password' # 确认新密码
+               user.save! # 保存更改
+               exit # 退出控制台
+               ```
+     
+       2. 浏览器访问修改密码
+     
    * 31.98
+     
      * 下载安装`jdk、maven`
-     * 拉取`Jenkins`镜像到当前节点运行容器（使用K8s集群`pod-definition.yml`）
+     
+       1. 下载上传解压`tar -zxvf 要解压的文件 -C`
+       2. 修复maven中的配置文件
+     
+     * 拉取`Jenkins`镜像到当前节点运行容器（使用K8s集群`jenkins-deployment.yml`）
+     
+       ```
+       
+       ```
+     
      * 浏览器访问`Jenkins`
-     * 创建k8s集群、master节点
-   * 31.97
-     * 作为应用服务、器跑服务作用
+   
 2. Jenkins安装（pod-definition.yml）运行
    * 拉取镜像`docker pull`
    * 新建文件夹`use/local/k8s/docker/jenkins/`

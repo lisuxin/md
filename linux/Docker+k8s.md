@@ -1399,7 +1399,7 @@ kubectl create -f nginx.yml
 
 **管理pod命令**
 
-1. 通过yaml运行pod``
+1. 通过yaml运行pod`kubectl create -f ./kube-flannel.yml  或者  kubectl apply -f ./kube-flannel.yml`
 2. 检查Pod状态`kubectl get pods -o wide`
 3. 检查服务状态： 确认GitLab服务是否正确创建并分配了端口。`kubectl get svc`
 4. 查看Pod事件和详细信息：获取特定GitLab Pod的详细信息，包括最近的事件和状态`kubectl describe pod <gitlab-pod-name>`
@@ -1417,6 +1417,10 @@ kubectl create -f nginx.yml
 3. 查看 Service 端口映射`kubectl get svc gitlab-service`
 4. 删除Service`kubectl delete service gitlab-service`
 5. 确认资源已被删除`kubectl get deployments、 kubectl get services`
+
+**容器**
+
+1. 进入容器`kubectl exec -it 容器名 -- /bin/bash`
 
 ## K8s集群安装部署
 

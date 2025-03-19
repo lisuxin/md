@@ -180,8 +180,10 @@
 
    9. 重新启用 `NetworkManager`：
 
-      ```
+      ```bash
+      # 启用服务
       systemctl enable NetworkManager
+      # 启动服务
       systemctl start NetworkManager
       ```
 
