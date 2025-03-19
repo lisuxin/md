@@ -268,15 +268,120 @@
      
      * 拉取`Jenkins`镜像到当前节点运行容器（使用K8s集群`jenkins-deployment.yml`）
      
-       ```
-       
+       ```yaml
+       apiVersion: apps/v1
+       kind: Deployment
+       metadata:
+         name: jenkins-deployment
+         labels:
+           app: jenkins
+       spec:
+         replicas: 1
+         selector:
+           matchLabels:
+             app: jenkins
+         template:
+           metadata:
+             labels:
+               app: jenkins
+           spec:
+             # 强制调度到指定节点（需确认节点标签）
+             nodeSelector:
+               kubernetes.io/hostname: k8s-node-96
+             # 配置 DNS 解析（核心修复点）
+             dnsConfig:
+               nameservers:
+                 - 114.114.114.114  # 国内公共 DNS
+                 - 8.8.8.8          # Google DNS
+               options:
+                 - name: ndots
+                   value: "1"
+             containers:
+             - name: jenkins
+               image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/kubesphere/ks-jenkins:v3.4.1-2.319.3
+               ports:
+               - containerPort: 8080
+                 name: http
+               - containerPort: 50000
+                 name: agent
+               volumeMounts:
+               - mountPath: /var/jenkins_home
+                 name: jenkins-data
+               resources:
+                 limits:
+                   cpu: "2"
+                   memory: 2Gi
+                 requests:
+                   cpu: "0.5"
+                   memory: 1Gi
+             volumes:
+             - name: jenkins-data
+               hostPath:
+                 path: /opt/jenkins
+                 type: DirectoryOrCreate
+       ---
+       apiVersion: v1
+       kind: Service
+       metadata:
+         name: jenkins-service
+       spec:
+         type: NodePort
+         selector:
+           app: jenkins
+         ports:
+           - name: http
+             port: 8080
+             targetPort: 8080
+             nodePort: 30081
+           - name: agent
+             port: 50000
+             targetPort: 50000
+       ---
+       # 允许所有出站流量的网络策略（按需使用）
+       apiVersion: networking.k8s.io/v1
+       kind: NetworkPolicy
+       metadata:
+         name: allow-egress
+       spec:
+         podSelector:
+           matchLabels:
+             app: jenkins
+         policyTypes:
+         - Egress
+         egress:
+         - {}
        ```
      
      * 浏览器访问`Jenkins`
+     
+     * 第一次访问需要输入密码、密码在日志中`kubectl logs`
+     
+       * 查看密码`cat /opt/jenkins/secrets/initialAdminPassword`
+     
+     * 配置jenkins使用国内镜像地址修改数据卷中`hudson.model.UpdateCenter.xml`文件（阿里云）
+     
+       ```xml
+       <?xml version='1.1' encoding='UTF-8'?>
+       <jenkins>
+         <updateCenter>
+           <sites>
+             <site>
+               <id>default</id>
+               <url>https://mirrors.aliyun.com/jenkins/updates/current/update-center.json</url>
+             </site>
+           </sites>
+         </updateCenter>
+       </jenkins>
+       ```
+     
+     * 选择插件安装（安装）新建用户名，配置实例直接保存
+     
+       * manage(选择安装插件)，选择Available；搜索安装==Git Parameter、pub==勾选然后install安装
+     
+   * 配置jentins
    
-2. Jenkins安装（pod-definition.yml）运行
-   * 拉取镜像`docker pull`
-   * 新建文件夹`use/local/k8s/docker/jenkins/`
+     1. 将jdk和maven放在Jenkins数据持久化目录
+     2. 
 
 ### CI
 

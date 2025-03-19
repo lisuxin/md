@@ -935,10 +935,6 @@ CMD /usr/local/apache-tomcat-9.0.22/bin/startup.sh && tail -F /usr/local/apache-
       * `8.0`：镜像的标签，表示你希望使用的是 MySQL 8.0 版本。Docker Hub 上有多个版本的 MySQL 镜像可供选择，例如 5.7、8.0 等。
     * 场景：Docker 会从 Docker Hub 下载指定的镜像（如果本地没有缓存），然后基于该镜像创建并启动容器。你可以根据需要选择不同的 MySQL 版本，或者使用其他镜像（如 Redis、Nginx 等）。
 
-## docker网络管理
-
-
-
 ## docker使用原理流程
 
 ![image-20250114222139782](../typoratuxiang/linux/docker9.png)
@@ -1413,6 +1409,7 @@ kubectl create -f nginx.yml
 **删除pod并停止k8s自动创建**
 
 1. 检查所有Deployments`kubectl get deployments --all-namespaces`
+   * 查询Deployments的名称`kubectl get deployments`
 2. 删除Deployment`kubectl delete deployment gitlab`
 3. 查看 Service 端口映射`kubectl get svc gitlab-service`
 4. 删除Service`kubectl delete service gitlab-service`
@@ -1421,6 +1418,7 @@ kubectl create -f nginx.yml
 **容器**
 
 1. 进入容器`kubectl exec -it 容器名 -- /bin/bash`
+1. 检查Kubernetes 集群的 DNS 服务`kubectl get pods -n kube-system | grep coredns`
 
 ## K8s集群安装部署
 
@@ -2174,7 +2172,7 @@ systemctl enable docker
    
    * 集群通信成功、可以pod部署
    
-     ```
+     ```bash
      [root@K8s-master-98 Documentation]# kubectl get nodes -owide
      NAME            STATUS   ROLES                  AGE     VERSION    INTERNAL-IP     EXTERNAL-IP   OS-IMAGE         KERNEL-VERSION          CONTAINER-RUNTIME
      k8s-master-98   Ready    control-plane,master   20m     v1.23.17   192.168.31.98   <none>        CentOS Linux 8   4.18.0-348.el8.x86_64   docker://20.10.6
