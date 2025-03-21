@@ -376,17 +376,52 @@
      
      * 选择插件安装（安装）新建用户名，配置实例直接保存
      
-       * manage(选择安装插件)，选择Available；搜索安装==Git Parameter、pub==勾选然后install安装
+       * manage(选择安装插件)，选择Available；搜索安装==Git Parameter、publish Over SSH==勾选然后install安装
      
    * 配置jentins
    
      1. 将jdk和maven放在Jenkins数据持久化目录
-     2. 
+     2. 配置jenkins
+        1. maven—–jdk：manag jenkins———–tools配置
+        2. ssh sever：manag jenkins—-System
 
 ### CI
 
-1. 进入Jenkins网页
-2. 
+1. 在gitlab上创建厂库、将代码提交到仓库
+
+2. 在jenkins上新item——freestyle project
+
+   1. 源码管理配置（source code management）配置git输入git仓库地址，添加用户名密码
+
+   2. 配置maven打包（Buid Steps）选择maven版本，输入命令`clean package -DskipTest`打包跳过测试
+
+      ![image-20250321061158490](../typoratuxiang/yunwei/jenkins2.png)
+
+   3. 在当前项目目录下新建dockerfile目录编写dockerflie、和k8syml
+
+      ```yml
+      FROM docker.io/mdsol/java17-jdk:2025.2.10022732
+      COPY jenkinssandqm.jar/user/local/
+      WORKDIR /user/local
+      CMD java -jar jenkinssandqm.jar
+      # k8s
+      version: '0.1'
+      services:
+        jenkinssandqm:
+          build:
+            context: ./
+            dockerfile: dockerfile
+          image: jenkinssandqm:v0.1
+          container_name: jenkinssandqm
+          ports:
+            - 8080:8080
+      ```
+
+   4. 在jinkins中配置构建后操作，将dockerfile目录也复制到当前宿主机并且编写Exec  command
+
+      * 第一次构建镜像要在绝对路径上构建
+
+   5. 
 
 ### CD
 
