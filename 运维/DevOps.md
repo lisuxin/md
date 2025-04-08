@@ -454,6 +454,7 @@
 
 ### Sonar Qube
 
+<<<<<<< Updated upstream
 ==代码质量检查==
 
 1. 安装
@@ -469,6 +470,9 @@
       
    
 2. 
+=======
+
+>>>>>>> Stashed changes
 
 ### Harbor
 
