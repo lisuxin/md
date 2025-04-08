@@ -595,6 +595,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
   * 删除所有镜像docker rmi `docker image -aq`
 * 前面加：echo `docker image -ag`：打印所有镜像ID
 * 删除所有容器：docker rm `docker ps -aq`
+* 清理 Docker 环境中未被使用的悬空镜像：`docker image prune -f`
 * 提交该镜像、导出镜像
   * 导出的镜像其他人可以直接使用
   * `docker image save 镜像ID或者镜像名加标签 > 导出地址/镜像名称标签.tgz`
@@ -1408,12 +1409,13 @@ kubectl create -f nginx.yml
 
 **删除pod并停止k8s自动创建**
 
-1. 检查所有Deployments`kubectl get deployments --all-namespaces`
+1. k8s默认主节点为污点无法将
+2. 检查所有Deployments`kubectl get deployments --all-namespaces`
    * 查询Deployments的名称`kubectl get deployments`
-2. 删除Deployment`kubectl delete deployment gitlab`
-3. 查看 Service 端口映射`kubectl get svc gitlab-service`
-4. 删除Service`kubectl delete service gitlab-service`
-5. 确认资源已被删除`kubectl get deployments、 kubectl get services`
+3. 删除Deployment`kubectl delete deployment gitlab`
+4. 查看 Service 端口映射`kubectl get svc gitlab-service`
+5. 删除Service`kubectl delete service gitlab-service`
+6. 确认资源已被删除`kubectl get deployments、 kubectl get services`
 
 **容器**
 

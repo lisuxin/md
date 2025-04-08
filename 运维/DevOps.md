@@ -2,7 +2,7 @@
 
 ==devops:开发运维一体化，解决开发与运维之间沟通问题==
 
-![image-20250307052442630](../typoratuxiang/yunwei/code.gif)
+![image-20250326132937699](../typoratuxiang/yunwei/cicd.png)
 
 ## GitLab
 
@@ -400,10 +400,11 @@
    3. 在当前项目目录下新建dockerfile目录编写dockerflie、和k8syml
 
       ```yml
-      FROM docker.io/mdsol/java17-jdk:2025.2.10022732
-      COPY jenkinssandqm.jar/user/local/
+      FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/openjdk:17-jdk-slim
+      COPY jenkinssandqm.jar /user/local/
       WORKDIR /user/local
-      CMD java -jar jenkinssandqm.jar
+      EXPOSE 8080
+      ENTRYPOINT ["java", "-jar", "jenkinssandqm.jar"]
       # k8s
       version: '0.1'
       services:
@@ -416,21 +417,67 @@
           ports:
             - 8080:8080
       ```
-
+   
    4. 在jinkins中配置构建后操作，将dockerfile目录也复制到当前宿主机并且编写Exec  command
-
+   
+      * name选择配置的gitlab过来的文件存放路径
+   
+      * suorce files选择gitlab到本地需要的文件
+   
       * 第一次构建镜像要在绝对路径上构建
-
-   5. 
+   
+        ```shell
+        cd /export/gitlabssh/Dockerfile
+        mv ../target/*.jar ./
+        kubectl delete deployment jenkinssandqm-deployment
+        kubectl delete service jenkinssandqm-service
+        docker build -t jenkinssandqm:v1.0 . 
+        kubectl apply -f ./jenkinssandqm-deployment.yml
+        docker image prune -f
+        ```
+   
+        ![image-20250326005152022](../typoratuxiang/yunwei/jenkins1.png)
+   
+   5. 清理悬空镜像`docker image prune -f`
 
 ### CD
 
+1. 配置参数化构建过程
 
+   ![image-20250326010814641](../typoratuxiang/yunwei/cd1.png)
+
+2. 在Build Steps上加入增加构建步骤，放到maven前面
+
+   ![image-20250326011853091](../typoratuxiang/yunwei/cd2.png)
+
+3. 在gitlab上给代码打标签
 
 ### Sonar Qube
 
+==代码质量检查==
+
+1. 安装
+   1. 拉取镜像因为Sonar Qube需要PostgreSQL数据库支持所有需要拉取postgres镜像
+   
+   2. 拉取Sonar Qube镜像
+   
+   3. 创建k8s运行yml文件、需要先运行PostgreSQL在运行Sonar Qube镜像，因为Sonar Qube依赖与PostgreSQL
+   
+      ```yml
+      
+      ```
+      
+   
+2. 
+
 ### Harbor
+
+==镜像仓库==
 
 ### pipeline
 
+==流水线构建模式==
+
 ### Kuoard
+
+==图形化Kubernetes==
