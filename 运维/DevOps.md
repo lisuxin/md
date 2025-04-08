@@ -454,7 +454,6 @@
 
 ### Sonar Qube
 
-<<<<<<< Updated upstream
 ==代码质量检查==
 
 1. 安装
@@ -465,14 +464,117 @@
    3. 创建k8s运行yml文件、需要先运行PostgreSQL在运行Sonar Qube镜像，因为Sonar Qube依赖与PostgreSQL
    
       ```yml
-      
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: Qualityinspection_deployment
+      spec:
+        selector:
+          matchLabels:
+            app: Qualityinspection
+        template:
+          metadata:
+            labels:
+              app: Qualityinspection
+          spec:
+            containers:
+            - name: Qualityinspection
+              image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/bitnami/postgresql:latest
+              resources:
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"
+              ports:
+              - containerPort: 5432
+                name: postgresq
+              volumeMounts:
+              - mountPath: /bitnami/postgresql
+                name: postgresql-sql
+              - mountPath: /docker-entrypoint-initdb.d
+                name: postgresql-initdb
+              - mountPath:  /docker-entrypoint-preinitdb.d
+                name: postgresql-preinitdb
+            volumes:
+            - name: postgresql-sql
+              hostPath:
+                path: /opt/postgresql/sql
+                type: DirectoryOrCreate
+            - name: postgresql-initdb
+              hostPath:
+                path: /opt/postgresql/initdb
+                type: DirectoryOrCreate
+            - name: postgresql-preinitdb
+              hostPath:
+                path: /opt/postgresql/preinitdb
+                type: DirectoryOrCreate
+      ---
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: Qualityinspection-service
+      spec:
+        type: NodePort
+        selector:
+          app: Qualityinspection
+        ports:
+        - name: postgresq
+          port: 5432
+          targetPort: 5432
+          nodePort: 30082
+      https://docker.aityp.com/image/docker.io/bitnami/postgresql:latest
       ```
       
+      ```yml
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: sonarqube_deployment
+      spec:
+        selector:
+          matchLabels:
+            app: sonarqube
+        template:
+          metadata:
+            labels:
+              app: sonarqube
+          spec:
+            containers:
+            - name: sonarqube
+              image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/sonarqube:8.9-community
+              resources:
+                limits:
+                  memory: "1Gi"
+                  cpu: "500m"
+              ports:
+              - containerPort: 9000
+                name: sonarqube-port
+              volumeMounts:
+              - mountPath: /opt/sonarqube
+                name: sonarqube-data
+            volumes:
+            - name: sonarqube-data
+              hostPath:
+                path: /opt/sonarqube
+                type: DirectoryOrCreate
+      ---
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: sonarqube-service
+      spec:
+        type: NodePort
+        selector:
+          app: sonarqubeport
+        ports:
+        - name: sonarqube-port
+          port: 9000
+          targetPort: 9000
+          nodePort: 30083
+      # https://docker.aityp.com/image/docker.io/sonarqube:8.9-community
+      ```
    
 2. 
-=======
 
->>>>>>> Stashed changes
 
 ### Harbor
 
