@@ -522,11 +522,13 @@ git add .
 ## 拉取流程
 
 1. `git stash`：将代码提交到暂存区
-2. `git pull`：拉取远程仓库的代码
-3. `git stash pop`：将自己的代码合并到远程拉取的代码
-4. `git add .` ：提交代码到本地仓库
-5. `git commit -m ''`：为提交代码加注释
-6. `git push`：提交到远程仓库
+2. `git reset --hard`丢弃所有更改
+3. `git checkout -- <file>`丢弃特定更改
+4. `git pull`：拉取远程仓库的代码
+5. `git stash pop`：将自己的代码合并到远程拉取的代码
+6. `git add .` ：提交代码到本地仓库
+7. `git commit -m ''`：为提交代码加注释
+8. `git push`：提交到远程仓库
 
 ## 新项目提交步骤
 
