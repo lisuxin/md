@@ -478,7 +478,7 @@
               app: qualityinspection
           spec:
             nodeSelector:
-              kubernetes.io/hostname: k8s-master-98
+              kubernetes.io/hostname: k8s-node-96
             containers:
             - name: qualityinspection
               image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/bitnami/postgresql:latest
