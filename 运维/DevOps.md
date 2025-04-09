@@ -553,8 +553,8 @@
               image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/sonarqube:8.9-community
               resources:
                 limits:
-                  memory: "1Gi"
-                  cpu: "500m"
+                  memory: "2Gi"
+                  cpu: "1"
               ports:
               - containerPort: 9000
                 name: sonarqube-port
@@ -564,7 +564,7 @@
               - name: SONARQUBE_JDBC_PASSWORD
                 value: "sonarpassword"
               - name: SONARQUBE_JDBC_URL
-                value: "jdbc:postgresql://Qualityinspection-service.default.svc.cluster.local:5432/sonarqub"
+                value: "jdbc:postgresql://Qualityinspection-service.default.svc.cluster.local:5432/sonarqube"
               volumeMounts:
               - mountPath: /opt/sonarqube
                 name: sonarqube-data
