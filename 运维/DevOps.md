@@ -526,7 +526,7 @@
         - name: postgresq_port
           port: 5432
           targetPort: 5432
-          nodePort: 30082
+          nodePort: 30083
       ```
       
       ```yml
@@ -581,7 +581,7 @@
         - name: sonarqube-port
           port: 9000
           targetPort: 9000
-          nodePort: 30083
+          nodePort: 30084
       ```
    
 2. 
