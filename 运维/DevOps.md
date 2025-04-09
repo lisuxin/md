@@ -467,18 +467,18 @@
       apiVersion: apps/v1
       kind: Deployment
       metadata:
-        name: Qualityinspection_deployment
+        name: qualityinspection-deployment
       spec:
         selector:
           matchLabels:
-            app: Qualityinspection
+            app: qualityinspection
         template:
           metadata:
             labels:
-              app: Qualityinspection
+              app: qualityinspection
           spec:
             containers:
-            - name: Qualityinspection
+            - name: qualityinspection
               image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/bitnami/postgresql:latest
               resources:
                 limits:
@@ -486,7 +486,7 @@
                   cpu: "500m"
               ports:
               - containerPort: 5432
-                name: postgresq_port
+                name: postgresq-port
               env:
               - name: POSTGRES_USER
                 value: "sonaruser"
@@ -518,12 +518,13 @@
       apiVersion: v1
       kind: Service
       metadata:
-        name: Qualityinspection-service
+        name: qualityinspection-service
       spec:
+        type: NodePort
         selector:
-          app: Qualityinspection
+          app: qualityinspection
         ports:
-        - name: postgresq_port
+        - name: postgresq-port
           port: 5432
           targetPort: 5432
           nodePort: 30083
@@ -533,7 +534,7 @@
       apiVersion: apps/v1
       kind: Deployment
       metadata:
-        name: sonarqube_deployment
+        name: sonarqube-deployment
       spec:
         selector:
           matchLabels:
