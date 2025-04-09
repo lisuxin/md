@@ -564,7 +564,7 @@
               - name: SONARQUBE_JDBC_PASSWORD
                 value: "sonarpassword"
               - name: SONARQUBE_JDBC_URL
-                value: "jdbc:postgresql://Qualityinspection-service.default.svc.cluster.local:5432/sonarqube"
+                value: "jdbc:postgresql://qualityinspection-service.default.svc.cluster.local:5432/sonarqube"
               volumeMounts:
               - mountPath: /opt/sonarqube
                 name: sonarqube-data
