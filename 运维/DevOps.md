@@ -458,11 +458,11 @@
 
 1. 安装
    1. 拉取镜像因为Sonar Qube需要PostgreSQL数据库支持所有需要拉取postgres镜像
-   
+
    2. 拉取Sonar Qube镜像
-   
+
    3. 创建k8s运行yml文件、需要先运行PostgreSQL在运行Sonar Qube镜像，因为Sonar Qube依赖与PostgreSQL
-   
+
       ```yml
       apiVersion: apps/v1
       kind: Deployment
@@ -531,7 +531,7 @@
           targetPort: 5432
           nodePort: 30083
       ```
-      
+
       ```yml
       apiVersion: apps/v1
       kind: Deployment
@@ -588,9 +588,84 @@
           targetPort: 9000
           nodePort: 30084
       ```
-   
-2. 
 
+2. Sonar Qube需要linux虚拟内存为262144、在`/etc/sysctl.conf`文件里添加`vm.max_map_count = 262144`、使用`sysctl -p`应用
+
+3. Sonar Qube默认用户名密码admin
+
+4. 使用maven检测
+
+   1. 在maven的settings.xml里面添加
+
+      ```xml
+      <profiles>
+        <profile>
+          <id>sonar</id>
+          <activation>
+            <activeByDefault>true</activeByDefault>
+          </activation>
+          <properties>
+            <sonar.login>admin</sonar.login>
+            <sonar.password>Your Project Name</sonar.password>
+            <sonar.host.url>http://192.168.31.96:30084</sonar.host.url>
+          </properties>
+        </profile>
+      </profiles>
+      <activeProfiles>
+        <activeProfile>sonar</activeProfile>
+      </activeProfiles>
+      ```
+
+   2. idea的命令行中输入`mvn sonar:sonar`
+
+5. 使用soanr-scanner检测（与Jenkins结合）
+
+   1. 下载soanr-scanner在linux里解压放到持久化的Jenkins数据卷中
+
+   2. 进入soanr-scanner的conf文件夹修改配置文件，将`sonar-scanner.properties`配置文件中的地址，修改为自己的地址`sonar.host.url=http://localhost:9000`
+
+   3. 进入代码存放目录`workspace`里面(一定是代码目录，而不是jenkins的名称)、使用`sonar-scanner`命令的绝对路径、也就是sonar-scanner的bin目录下
+
+   4. 点击自己头像选择我的账号（my account）选择安全（Security），随便输入点什么就可以生成一个令牌（key)
+
+   5. 检测代码
+
+      ```bash
+      /opt/jenkins/sonar-scanner/bin/sonar-scanner -Dsonar.sources=./ -Dsonar.projectname=jenkinssandqm -Dsonar.login=65458c9c525ac232732f364656b894297aa54fd6 -Dsonar.projectKey=jenkinssandqm-key -Dsonar.java.binaries=./target/
+      # /opt/jenkins/sonar-scanner/bin/sonar-scanner  sonar-scanner的绝对路径
+      # -Ssoanr.sources=./ 指定为当前目录
+      # -Dsonar.projectname=jenkinssandqm 给当前项目指定名称
+      # -Dsonar.login=65458c9c525ac232732f364656b894297aa54fd6 指定连接Sonar Qube的key
+      # -Dsonar.projectKer=jenkinssandqm-key 给key命名
+      # -Dsonar.java.binaries=./target/ 指定编译后代码存放位置
+      ```
+
+6. 在jenkins中配置Sonar Qube一体化
+
+   1. 下载插件Sonar Qube
+
+   2. 在jenkins的系统配置里面配置`SonarQube servers`添加一个
+
+      ![image-20250410025910861](../typoratuxiang/yunwei/sqb1.png)
+
+   3. 点击添加添加凭据
+
+      ![image-20250410030312501](../typoratuxiang/yunwei/sqb2.png)
+
+   4. 在jenkins中添加全局配置，找到`SonarQube Scanner 安装`(不要勾选自动安装)
+
+      ![image-20250410031357447](../typoratuxiang/yunwei/sqb3.png)
+
+   5. 在任务中配置（构建后操作）
+
+      ```bash
+      sonar.projectname=${JOB_NAME}
+      sonar.projectKey=${JOB_NAME}
+      sonar.sources=./
+      sonar.java.binaries=./target/
+      ```
+
+      ![image-20250410032615569](../typoratuxiang/yunwei/sqb4.png)
 
 ### Harbor
 
@@ -599,7 +674,3 @@
 ### pipeline
 
 ==流水线构建模式==
-
-### Kuoard
-
-==图形化Kubernetes==
