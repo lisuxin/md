@@ -486,7 +486,14 @@
                   cpu: "500m"
               ports:
               - containerPort: 5432
-                name: postgresq
+                name: postgresq_port
+              env:
+              - name: POSTGRES_USER
+                value: "sonaruser"
+              - name: POSTGRES_PASSWORD
+                value: "sonarpassword"
+              - name: POSTGRES_DB
+                value: "sonarqube"
               volumeMounts:
               - mountPath: /bitnami/postgresql
                 name: postgresql-sql
@@ -513,15 +520,13 @@
       metadata:
         name: Qualityinspection-service
       spec:
-        type: NodePort
         selector:
           app: Qualityinspection
         ports:
-        - name: postgresq
+        - name: postgresq_port
           port: 5432
           targetPort: 5432
           nodePort: 30082
-      https://docker.aityp.com/image/docker.io/bitnami/postgresql:latest
       ```
       
       ```yml
@@ -548,6 +553,13 @@
               ports:
               - containerPort: 9000
                 name: sonarqube-port
+              env:
+              - name: SONARQUBE_JDBC_USERNAME
+                value: "sonaruser"
+              - name: SONARQUBE_JDBC_PASSWORD
+                value: "sonarpassword"
+              - name: SONARQUBE_JDBC_URL
+                value: "jdbc:postgresql://Qualityinspection-service.default.svc.cluster.local:5432/sonarqub"
               volumeMounts:
               - mountPath: /opt/sonarqube
                 name: sonarqube-data
@@ -570,7 +582,6 @@
           port: 9000
           targetPort: 9000
           nodePort: 30083
-      # https://docker.aityp.com/image/docker.io/sonarqube:8.9-community
       ```
    
 2. 
