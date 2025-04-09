@@ -477,6 +477,8 @@
             labels:
               app: qualityinspection
           spec:
+            nodeSelector:
+              kubernetes.io/hostname: k8s-master-98
             containers:
             - name: qualityinspection
               image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/bitnami/postgresql:latest
@@ -544,6 +546,8 @@
             labels:
               app: sonarqube
           spec:
+            nodeSelector:
+              kubernetes.io/hostname: k8s-node-96
             containers:
             - name: sonarqube
               image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/sonarqube:8.9-community
