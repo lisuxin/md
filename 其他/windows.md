@@ -127,6 +127,9 @@
 20. Sonar Qube
     * 用户名：admin
     * 密码：219798
+21. harbor
+    * 用户名：admin
+    * 密码：Harbor12345
 
 ## 利用阿里云镜像仓库存储下载镜像
 

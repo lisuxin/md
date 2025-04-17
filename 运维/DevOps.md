@@ -671,6 +671,95 @@
 
 ==镜像仓库==
 
+1. 拉取镜像，使用yml运行
+
+2. github上，下载压缩包解压安装，下载`harbor-offline-installer-v2.12.1-rc1`
+
+   1. 进入解压目录harbor、修改文件 `harbor.yml.tmpl`名为`harbor.yml`
+
+   2. 修改文件内容`harbor.yml`
+
+      ```bash
+      hostname: 192.168.31.96
+      http:
+        # port for http, default is 80. If https enabled, this port will redirect to https port
+        port: 80
+      # 注释掉https
+      # 查看harbor的密码
+      harbor_admin_password: Harbor12345
+      ```
+
+   3. 运行`install.sh`进行安装，最终运行起来还是以docker容器在运行
+
+3. 镜像仓库基本使用
+
+   1. 新建仓库
+
+   2. 将自己的镜像命名`harbor地址/项目名称/镜像名称：版本`
+
+   3. 修改`/etc/docker/daemon.json`文件，加上镜像仓库地址、修改完成重启docker服务`systemctl restart docker`
+
+      ```json
+      {
+                "exec-opts": ["native.cgroupdriver=systemd"]// 指定容器运行时的执行选项。
+                "insecure-registries": ["192.168.31.96:80"]// 允许 Docker 使用非安全的私有镜像仓库。
+      }
+      ```
+
+   4. 修改镜像名称`docker tag bce6b32dabf9 192.168.31.96:80/cs/jenkinssandqm:v1.0`
+
+   5. 登录镜像仓库`docker login -u admin -p Harbor12345 192.168.31.96:80`
+
+   6. 推送至镜像仓库`docker push 192.168.31.96:80/cs/jenkinssandqm:v1.0`
+
+   7. 之后就可以正常拉取，推送
+
+#### 在jenkins内部使用Harbor
+
+1. 在Jenkins内部安装docker
+
+2. 使用宿主机的docker
+
+   1. 修改`/var/run/`目录下的`docker.sock`文件的所属用户，用户组，全部改为root`chown root:root docker.sock`
+
+   2. 给所有用户`docker.sock`文件读和改的权限`chmod o+rw docker.sock`
+
+   3. 修改jenkins的启动yml，将docker的文件==`docker.sock`、`daemon.json`==和`/usr/bin/docker`映射到jenkns内部
+
+      ```yaml
+      volumeMounts:
+              - mountPath: /var/jenkins_home
+                name: jenkins-data
+              - mountPath: /var/run/docker.sock
+                subPath: docker.sock
+                name: jenkins-docker-sock
+              - mountPath: /usr/bin/docker
+                subPath: docker
+                name: jenkins-docker
+              - mountPath: /etc/docker/daemon.json
+                subPath: daemon.json
+                name: jenkins-docker-daemon
+            volumes:
+            - name: jenkins-data
+              hostPath:
+                path: /opt/jenkins
+                type: DirectoryOrCreate
+            - name: jenkins-docker-sock
+              hostPath:
+                path: /var/run/docker.sock
+                type: File
+            - name: jenkins-docker
+              hostPath:
+                path: /usr/bin/docker
+                type: File
+            - name: jenkins-docker-daemon
+              hostPath:
+                path: /etc/docker/daemon.json
+                type: File
+      ```
+
+      
+
 ### pipeline
 
 ==流水线构建模式==
