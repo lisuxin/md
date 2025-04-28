@@ -284,10 +284,32 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
         * **背景**：IP 转发允许系统充当路由器，将数据包从一个网络接口转发到另一个网络接口。Docker 需要启用 IP 转发，以便容器之间的通信能够正常工作，尤其是在使用桥接网络时。
         * **适用场景**：这是 Docker 正常运行所必需的配置。如果你没有启用 IP 转发，Docker 容器可能无法与其他容器或外部网络通信。
 
-  2. **利用yum安装docker**
+  2. **压缩包安装docker**
 
+     * 下载压缩包`download.docker.com`，上传到服务器，解压到`/usr/bin`目录下
+
+     * 在`/etc/docker`目录下创建配置文件
+  
+       ```json
+       # 创建docker配置文件
+       mkdir /etc/docker
+       touch /etc/docker/daemon.json
+       # 添加配置
+       vim /etc/docker/daemon.json
+       {
+         "registry-mirrors": ["https://qpr2tvq3.mirror.aliyuncs.com"],//公共仓库地址
+         "exec-opts": ["native.cgroupdriver=systemd"],// 指定容器运行时的执行选项。
+         "insecure-registries": ["192.168.31.96:80"]// 允许 Docker 使用非安全的私有镜像仓库。
+         "data-root":"/home/docker"//数据文件存放地址
+       }
+       ```
+  
+     * 到`/etc/systemd/system`目录下创建一个docker系统服务`docker.service`然后就可以启动docker了
+  
+  3. **利用yum安装docker**
+  
      * **配置yum仓库**
-
+  
        ```shell
        # 查看yum源中docker的可用版本
        yum list docker-ce --showduplicates | sort -r
@@ -300,11 +322,11 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
        # 安装docker20.10.6
        yum -y install docker-ce-[version]
        ```
-
+  
      * 执行`yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo`
-
+  
        1. 解决方案
-
+  
           ```shell
           # 检查当前的语言环境
           locale
@@ -317,9 +339,9 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
           vi /etc/locale.conf
           LANG=en_US.UTF-8
           ```
-
+  
      * **CentOS （使用 yum 进行安装)**
-
+  
        ```shell
        # step 1: 安装必要的一些系统工具
        sudo yum install -y yum-utils
@@ -350,11 +372,11 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
        # Step2: 安装指定版本的Docker-CE: (VERSION例如上面的17.03.0.ce.1-1.el7.centos)
        # sudo yum -y install docker-ce-[VERSION]
        ```
-
+  
      * **配置docker镜像**
-
+  
        ==使用 docker 首要操作就是获取镜像文件，默认下是从 Docker Hub 下栽，网速较慢，国内很多云服务商都提供了加速器服务，阿里云加速器， DaocIoud 加速器，灵雀云加速器。==
-
+  
        ```shell
        # 创建docker配置文件
        mkdir /etc/docker
@@ -371,7 +393,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
        ```
        
      * SHELL
-     
+  
        ```shell
        yum install -y bash-completion vim lrzsz wget expect net-tools nc nmap tree dos2unix htop iftop iotop unzip telnet sl psmisc nethogs glances bc openldap-devel yum-utils
        systemctl disable firewalld
@@ -391,8 +413,8 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
        yum -y install docker-ce-26.1.3
        docker version
        ```
-     
-  3. **启动测试docker**
+  
+  4. **启动测试docker**
   
      1. 启动docker服务
   
@@ -498,6 +520,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 * linux系统的组成：linux内核加发行版
   * linux内核:所有linux解析命令后运行硬件的系统
   * 发行版：centos、ubuntu、suse
+  * 基于`aipine`操作系统的镜像是超级轻量的linux操作系统,基础版只占用5M空间
 * docker运行linux系统原理：使用本身宿主机的linux的内核、加上docker下载的镜像
   * 运行`docker run -it 镜像ID bash`
   * `-i`交互式操作、发送一个命令立马可以得到一个结果
@@ -567,6 +590,51 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 5. 本地镜像导入导出
 6. 私有docker仓库
 
+### 制作一个docker基础镜像
+
+1. 下载linux系统压缩包`https://dl-cdn.alpinelinux.org/alpine/v3.18/releases/x86_64/`
+
+2. `alpine-minirootfs-3.18.2-x86_64.tar.gz`
+
+3. 解压文件`tar -xzf alpine-minirootfs-3.18.0-x86_64.tar.gz -C alpine-rootfs`
+
+4. 创建dockerfile
+
+   ```dockerfile
+   # 使用 scratch 作为基础（完全空白的基础镜像）
+   FROM scratch
+   # 将解压的 Alpine 根文件系统复制到镜像中
+   ADD alpine-rootfs/ /
+   # 设置默认命令（可选）
+   CMD ["/bin/sh"]
+   ```
+
+5. 构建镜像`docker build -t custom-alpine:3.18 .`
+
+6. dockerfile
+
+   ```dockerfile
+   # 使用 Alpine Linux 作为基础镜像
+   FROM alpine:3.18
+   # 维护者信息（可选）
+   LABEL maintainer="your-email@example.com"
+   # 安装必要的依赖
+   RUN apk add --no-cache bash && \
+       mkdir /opt/jdk
+   # 将本地的 JDK 8 压缩包复制到镜像中
+   COPY jdk-8u362-linux-x64.tar.gz /tmp/jdk-8u362-linux-x64.tar.gz
+   # 解压 JDK 到 /opt/jdk
+   RUN tar -xzf /tmp/jdk-8u362-linux-x64.tar.gz -C /opt/jdk --strip-components=1 && \
+       rm -rf /tmp/jdk-8u362-linux-x64.tar.gz
+   # 设置环境变量
+   ENV JAVA_HOME=/opt/jdk
+   ENV PATH=$JAVA_HOME/bin:$PATH
+   # 验证 JDK 安装
+   RUN java -version
+   # 设置默认命令（可选）
+   CMD ["/bin/sh"]
+   ```
+
 ### 查看docker镜像
 
 * 查看本地docker镜像：`docker images`
@@ -606,6 +674,53 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 * 查看镜像详细信息：`docker image inspect 镜像ID`
 * 清除空镜像`docker image prune -f`
 
+### 镜像管理
+
+- **`docker images [OPTIONS]`** 
+  列出本地镜像。使用 `-a` 显示所有镜像（包括中间层），`-q` 只显示镜像ID。
+
+- **`docker pull [IMAGE]`** 
+  从仓库拉取镜像到本地。
+
+- **`docker build [OPTIONS] PATH | URL | -`** 
+  使用 Dockerfile 构建镜像。可以使用 `-t` 标记镜像名称和标签。
+
+- **`docker rmi [IMAGE]`** 
+  删除一个或多个本地镜像。使用 `-f` 强制删除，即使有容器在使用该镜像。
+
+- **`docker tag [SOURCE_IMAGE] [TARGET_IMAGE]`** 
+  给镜像添加新的标签。
+
+### 卷管理
+
+- **`docker volume ls`** 
+  列出所有 Docker 卷。
+
+- **`docker volume create [VOLUME]`** 
+  创建一个新的卷。
+
+- **`docker volume inspect [VOLUME]`** 
+  查看卷的详细信息。
+
+- **`docker volume rm [VOLUME]`** 
+  删除一个或多个卷。
+
+### 其他命令
+
+- **`docker system prune [OPTIONS]`** 
+  清理未使用的数据，包括停止的容器、未打标签的镜像、未使用的网络和卷。使用 `-a` 选项还可以清理所有未使用的镜像。
+
+- **`docker stats [OPTIONS] [CONTAINERS]`** 
+  实时查看容器的资源使用情况，如 CPU、内存、网络 I/O 和块 I/O。
+
+- **`docker info`** 
+  显示系统范围的信息，包括 Docker 版本、存储驱动、插件等。
+
+- **`docker version`** 
+  显示 Docker 客户端和服务器的版本信息。
+
+- `docker [command] --help` 来查看详细的帮助文档。
+
 ## docker容器管理
 
 * `docker run`等于创建+启动
@@ -630,6 +745,49 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 * 容器的提交：`docker commit 容器ID 新镜像名字`
   * 在容器内进行了更改，保存对容器的更改，你需要将当前容器的状态提交为一个新的镜像
 * 查看正在运行的容器`docker ps`
+* 结束容器运行`docker stop`
+* **`docker run [OPTIONS] IMAGE [COMMAND] [ARG...]`** 
+  创建并启动一个新的容器。可以使用 `-d` 后台运行，`-p` 映射端口，`-v` 挂载卷等选项。
+* **`docker start [CONTAINER]`** 
+  启动一个或多个已经停止的容器。
+
+* **`docker stop [CONTAINER]`** 
+  停止一个或多个正在运行的容器。发送 `SIGTERM` 信号给容器内的主进程，默认等待 10 秒后强制停止。
+
+* **`docker restart [CONTAINER]`** 
+  重启一个或多个容器。
+
+* **`docker rm [CONTAINER]`** 
+  删除一个或多个已停止的容器。使用 `-f` 强制删除正在运行的容器。
+
+* **`docker ps [OPTIONS]`** 
+  列出所有正在运行的容器。使用 `-a` 显示所有容器（包括已停止的），`-q` 只显示容器ID。
+
+* **`docker exec [OPTIONS] CONTAINER COMMAND [ARG...]`** 
+  在运行中的容器内执行命令。常用 `-it` 选项以交互模式运行命令。
+
+* **`docker logs [CONTAINER]`** 
+  查看容器的日志输出。使用 `-f` 实时跟踪日志。
+
+* **`docker inspect [CONTAINER|IMAGE]`** 
+  获取容器或镜像的详细信息，包括配置和状态。
+
+### 网络管理
+
+- **`docker network ls`** 
+  列出所有 Docker 网络。
+
+- **`docker network create [OPTIONS] NETWORK`** 
+  创建自定义网络。
+
+- **`docker network connect [NETWORK] [CONTAINER]`** 
+  将容器连接到指定网络。
+
+- **`docker network disconnect [NETWORK] [CONTAINER]`** 
+  将容器从指定网络断开。
+
+- **`docker network inspect [NETWORK]`** 
+  查看网络的详细信息。
 
 ## dockerfile学习
 
@@ -999,19 +1157,6 @@ volumes:                 # 定义卷（可选）
 | `networks`    | 自定义网络，实现容器间通信。                             |
 | `environment` | 设置容器内的环境变量。                                   |
 | `depends_on`  | 定义服务启动顺序（仅控制启动顺序，不等待依赖服务就绪）。 |
-
-### 常用命令
-
-```bash
-# 启动服务（后台运行）
-docker-compose up -d
-
-# 停止并删除容器
-docker-compose down
-
-# 查看服务状态
-docker-compose ps
-```
 
 ### `docker-compose.yml`语法指南
 
@@ -1423,6 +1568,7 @@ kubectl create -f nginx.yml
 4. 查看 Service 端口映射`kubectl get svc gitlab-service`
 5. 删除Service`kubectl delete service gitlab-service`
 6. 确认资源已被删除`kubectl get deployments、 kubectl get services`
+7. 删除pod`kubectl delete pod 名称`
 
 **容器**
 
@@ -2485,101 +2631,6 @@ kubectl delete -f my-app.yaml
 - **适用场景**：定义容器化应用的部署、网络、配置和存储。
 
 通过灵活组合这些语法，可以轻松定义复杂的 Kubernetes 应用环境。
-
-## docker常用命令
-
-### 容器管理
-
-- **`docker run [OPTIONS] IMAGE [COMMAND] [ARG...]`** 
-  创建并启动一个新的容器。可以使用 `-d` 后台运行，`-p` 映射端口，`-v` 挂载卷等选项。
-
-- **`docker start [CONTAINER]`** 
-  启动一个或多个已经停止的容器。
-
-- **`docker stop [CONTAINER]`** 
-  停止一个或多个正在运行的容器。发送 `SIGTERM` 信号给容器内的主进程，默认等待 10 秒后强制停止。
-
-- **`docker restart [CONTAINER]`** 
-  重启一个或多个容器。
-
-- **`docker rm [CONTAINER]`** 
-  删除一个或多个已停止的容器。使用 `-f` 强制删除正在运行的容器。
-
-- **`docker ps [OPTIONS]`** 
-  列出所有正在运行的容器。使用 `-a` 显示所有容器（包括已停止的），`-q` 只显示容器ID。
-
-- **`docker exec [OPTIONS] CONTAINER COMMAND [ARG...]`** 
-  在运行中的容器内执行命令。常用 `-it` 选项以交互模式运行命令。
-
-- **`docker logs [CONTAINER]`** 
-  查看容器的日志输出。使用 `-f` 实时跟踪日志。
-
-- **`docker inspect [CONTAINER|IMAGE]`** 
-  获取容器或镜像的详细信息，包括配置和状态。
-
-### 镜像管理
-
-- **`docker images [OPTIONS]`** 
-  列出本地镜像。使用 `-a` 显示所有镜像（包括中间层），`-q` 只显示镜像ID。
-
-- **`docker pull [IMAGE]`** 
-  从仓库拉取镜像到本地。
-
-- **`docker build [OPTIONS] PATH | URL | -`** 
-  使用 Dockerfile 构建镜像。可以使用 `-t` 标记镜像名称和标签。
-
-- **`docker rmi [IMAGE]`** 
-  删除一个或多个本地镜像。使用 `-f` 强制删除，即使有容器在使用该镜像。
-
-- **`docker tag [SOURCE_IMAGE] [TARGET_IMAGE]`** 
-  给镜像添加新的标签。
-
-### 网络管理
-
-- **`docker network ls`** 
-  列出所有 Docker 网络。
-
-- **`docker network create [OPTIONS] NETWORK`** 
-  创建自定义网络。
-
-- **`docker network connect [NETWORK] [CONTAINER]`** 
-  将容器连接到指定网络。
-
-- **`docker network disconnect [NETWORK] [CONTAINER]`** 
-  将容器从指定网络断开。
-
-- **`docker network inspect [NETWORK]`** 
-  查看网络的详细信息。
-
-### 卷管理
-
-- **`docker volume ls`** 
-  列出所有 Docker 卷。
-
-- **`docker volume create [VOLUME]`** 
-  创建一个新的卷。
-
-- **`docker volume inspect [VOLUME]`** 
-  查看卷的详细信息。
-
-- **`docker volume rm [VOLUME]`** 
-  删除一个或多个卷。
-
-### 其他命令
-
-- **`docker system prune [OPTIONS]`** 
-  清理未使用的数据，包括停止的容器、未打标签的镜像、未使用的网络和卷。使用 `-a` 选项还可以清理所有未使用的镜像。
-
-- **`docker stats [OPTIONS] [CONTAINERS]`** 
-  实时查看容器的资源使用情况，如 CPU、内存、网络 I/O 和块 I/O。
-
-- **`docker info`** 
-  显示系统范围的信息，包括 Docker 版本、存储驱动、插件等。
-
-- **`docker version`** 
-  显示 Docker 客户端和服务器的版本信息。
-
-- `docker [command] --help` 来查看详细的帮助文档。
 
 ## K8s常用命令
 

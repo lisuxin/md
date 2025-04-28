@@ -379,6 +379,22 @@
 
 `awk` 能够对文本文件中的数据进行扫描、过滤、排序以及格式化输出等操作
 
+- `-F 分隔符`：指定字段分隔符，默认为空格或制表符。
+- `-v 变量=值`：定义变量并赋值。
+- `-f 脚本文件`：从脚本文件中读取 `awk` 命令。
+- 基本概念
+  1. 字段
+     * awk 将每一行按指定的分隔符分割成多个字段。
+     * `$1` 表示第一个字段，`$2` 表示第二个字段，依此类推。
+     * `$0` 表示整行内容。
+  2. 内置变量
+     * NF：当前行的字段数（Number of Fields）。
+     * NR：当前行号（Number of Records）。
+     * FS：字段分隔符（Field Separator），默认为空格。
+     * OFS：输出字段分隔符（Output Field Separator），默认为空格。
+     * RS：记录分隔符（Record Separator），默认为换行符。
+     * ORS：输出记录分隔符（Output Record Separator），默认为换行符。
+
 ### cd-pwd命令
 
 1. 我们可以通过cd命令,更改当前所在的工作目录 。
@@ -512,14 +528,17 @@
 ### which--find
 
 1. which:我们可以通过which命令，查看所使用的一系列命令的程序文件存放在哪里
-        * 语法：`which 要查找的命令`
+   
+    * 语法：`which 要查找的命令`
 1. find 在Linux系统中我们可以通过 find 命令去搜索指定的文件。
-        * 语法：`find 起始路径 -name "查找文件名"`
-            * find 命令-按文件大小查找文件
-          * 语法：`find 起始路径 -size + l-n[kMG]`
-          * +、-表示大于和小于
-          * n表示大小数字
-          * kMG 表示大小单位，k(小写字母）表kb,M表示mb,G 表示 GB
+   
+    * 语法：`find 起始路径 -name "查找文件名"`
+      * find 命令-按文件大小查找文件
+      * 语法：`find 起始路径 -size + l-n[kMG]`
+      *  +、-表示大于和小于
+      * n表示大小数字
+      * kMG 表示大小单位，k(小写字母）表kb,M表示mb,G 表示 GB
+    
        * `-name`
           * `-name` 是一个测试选项，用于根据文件名模式来查找文件。它允许用户指定一个文件名模板（支持通配符），`find` 会尝试匹配给定路径下的文件名与此模板。
           * `find [路径] -name "模式"`
@@ -626,136 +645,188 @@
         | 底线命令模式 |  ==:set nu==   |              显示行号               |
         | 底线命令模式 | ==:set paste== |            设置粘贴模式             |
 
-### 时间
+### sed
 
-#### **`date` 命令**
+1. 基本语法
 
-这是最常用的方法。`date` 命令会显示当前的日期和时间。
+   ````bash
+   sed [选项] '指令' 文件名
+   ````
 
-```bash
-date
-输出示例：
-Sun Dec 15 22:50:00 CST 2024
-```
+- **选项**：
 
-**格式化输出**
+  - `-n`：禁止自动打印模式空间的内容。
+  - `-e`：允许多个编辑指令。
+  - `-i`：直接修改文件内容（原地编辑）。
+  - `-r`：启用扩展正则表达式（GNU sed）。
 
-如果你想要以特定的格式显示日期和时间，可以使用 `date` 命令的格式化选项。例如：
-
-```bash
-# 显示年-月-日 时:分:秒
-  date +"%Y-%m-%d %H:%M:%S"
-# 只显示日期
-  date +"%Y-%m-%d"
-# 只显示时间**：
-date +"%H:%M:%S"
-# 显示时区信息**：
-date -R
-```
-
-#### **`time`命令**
-
-`time` 是一个在 Unix 和类 Unix 操作系统（如 Linux）中用于测量命令执行时间的内置命令。它能够报告命令消耗的时间，包括实际时间（real time）、用户时间（user time）和系统时间（sys time）。
-
-`time` 会输出三项时间信息：
-
-- **real**：指的是从命令开始执行到结束所经历的总时间，即挂钟时间（wall clock time）。这个时间包括了等待 I/O 完成、其他进程占用 CPU 等非活动时间。
-- **user**：指的是在这个过程中花费在用户模式下的 CPU 时间总量。这是你的程序直接使用的 CPU 时间。
-- **sys**：指的是在这个过程中花费在内核模式下的 CPU 时间总量。当程序执行需要操作系统提供服务的操作（如磁盘 I/O、网络请求等）时，就会消耗这部分时间。
-
-#### **`cal` 命令**
-
-`cal` 命令用于显示日历，默认情况下它会显示当前月份的日历。
-
-```bash
-cal
-输出示例：
-   December 2024
-Su Mo Tu We Th Fr Sa
-          1  2  3  4  5  6  7
- 8  9 10 11 12 13 14
-15 16 17 18 19 20 21
-22 23 24 25 26 27 28
-29 30 31
-```
-
-#### **`hwclock` 命令**
-
-`hwclock` 命令用于查看和设置硬件时钟（也称为 RTC，实时时钟）。硬件时钟是系统中的一个独立时钟，即使系统关闭或重启，它也会继续运行。
-
-- **查看硬件时钟的时间**：
-  
-  ```bash
-  hwclock --show
-  ```
-  
-- **将系统时间写入硬件时钟**：
-  ```bash
-  sudo hwclock --systohc
-  ```
-
-- **将硬件时钟时间同步到系统时间**：
-  ```bash
-  sudo hwclock --hctosys
-  ```
-
-#### **`timedatectl` 命令**
-
-`timedatectl` 是一个更现代的工具，用于管理系统的时间和日期配置。它可以显示当前的系统时间和时区信息，并且还可以用于配置 NTP（网络时间协议）同步。
-
-- **查看当前时间和服务状态**：
-  
-  ```bash
-  timedatectl
-  输出示例：
-                 Local time: Sun 2024-12-15 22:50:00 CST
-             Universal time: Sun 2024-12-15 14:50:00 UTC
-                   RTC time: n/a
-                  Time zone: Asia/Shanghai (CST, +0800)
-  System clock synchronized: yes
-                NTP service: active
-            RTC in local TZ: no
-  ```
-  
-- 时区
+- 指令
 
   ```bash
-  # 查看时区列表
-  timedatectl list-timezones
-  # 设置时区中国标准时间（CST，即 `Asia/Shanghai`）**：
-  timedatectl set-timezone Asia/Shanghai
-  # NTP 同步时间
-  # NTP（网络时间协议）用于通过网络同步系统时间。你可以安装并配置 NTP 客户端来确保系统时间与互联网时间服务器保持同步。
-  # 安装 NTP 客户端（以 Ubuntu 为例）：
-  apt-get install ntp
-  # 启动 NTP 服务
-  systemctl start ntp
-  # 检查 NTP 同步状态**：
-  ntpq -p
-  ```
-  
-- **ntp**时间同步、centos8默认不在支持ntp软件包
-
-  ```shell
-  # 添加wlnmp源
-  rpm -ivh http://mirrors.wlnmp.com/centos/wlnmp-release-centos.noarch.rpm
-  # 安装ntp服务
-  yum install wntp -y
-  # 时间同步
-  ntpdate ntp1.aliyun.com
+  sed '2,5d' file.txt  # 删除第2到第5行
   ```
 
-### **info**
+  **(1) 替换文本**
+
+  使用 `s` 命令替换文本：
+  ```bash
+  sed 's/旧字符串/新字符串/' 文件名
+  ```
+  - 默认只替换每行的第一个匹配项。
+  - 如果需要全局替换，添加 `g` 标志：
+    ```bash
+    sed 's/旧字符串/新字符串/g' 文件名
+    ```
+
+  示例：
+  ```bash
+  echo "hello world" | sed 's/world/universe/'
+  # 输出：hello universe
+  ```
+
+  **(2) 删除行**
+
+  使用 `d` 命令删除指定行或行范围：
+  ```bash
+  sed '2d' 文件名        # 删除第2行
+  sed '2,5d' 文件名      # 删除第2到第5行
+  sed '/pattern/d' 文件名 # 删除包含特定模式的行
+  ```
+
+  示例：
+  ```bash
+  echo -e "line1\nline2\nline3" | sed '2d'
+  # 输出：
+  # line1
+  # line3
+  ```
+
+  **(3) 插入和追加文本**
+
+  - 使用 `i` 命令在某行之前插入文本：
+    ```bash
+    sed '2i 新内容' 文件名
+    ```
+  - 使用 `a` 命令在某行之后追加文本：
+    ```bash
+    sed '2a 新内容' 文件名
+    ```
+
+  示例：
+  ```bash
+  echo -e "line1\nline2\nline3" | sed '2a inserted line'
+  # 输出：
+  # line1
+  # line2
+  # inserted line
+  # line3
+  ```
+
+  **(4) 打印特定行**
+
+  使用 `p` 命令打印特定行：
+  ```bash
+  sed -n '2p' 文件名       # 只打印第2行
+  sed -n '2,5p' 文件名     # 打印第2到第5行
+  sed -n '/pattern/p' 文件名 # 打印匹配模式的行
+  ```
+
+  示例：
+  ```bash
+  echo -e "line1\nline2\nline3" | sed -n '2p'
+  # 输出：
+  # line2
+  ```
+
+  **(5) 修改文本**
+
+  使用 `c` 命令替换整行：
+  ```bash
+  sed '2c 新内容' 文件名
+  ```
+
+  示例：
+  ```bash
+  echo -e "line1\nline2\nline3" | sed '2c replaced line'
+  # 输出：
+  # line1
+  # replaced line
+  # line3
+  ```
+
+  ---
+
+  **3. 地址范围**
+
+  `sed` 支持通过行号或模式指定地址范围：
+  - 行号范围：`2,5` 表示第2到第5行。
+  - 模式范围：`/start/,/end/` 表示从匹配 `start` 的行到匹配 `end` 的行。
+
+  示例：
+  ```bash
+  sed '/start/,/end/d' 文件名  # 删除从匹配 "start" 到 "end" 的所有行
+  ```
+
+  ---
+
+  **4. 正则表达式**
+
+  `sed` 支持基本正则表达式（BRE），也可以使用扩展正则表达式（ERE）：
+  - 基本正则表达式示例：
+    ```bash
+    sed 's/[0-9]\+/NUM/g' 文件名
+    ```
+  - 扩展正则表达式（使用 `-r` 选项）：
+    ```bash
+    sed -r 's/[0-9]+/NUM/g' 文件名
+    ```
+
+  ---
+
+  **5. 示例**
+
+  **(1) 替换文件中的内容并保存**
+
+  ```bash
+  sed -i 's/foo/bar/g' file.txt
+  ```
+  此命令会直接修改 `file.txt` 文件，将所有的 `foo` 替换为 `bar`。
+
+  **(2) 删除空白行**
+
+  ```bash
+  sed '/^$/d' 文件名
+  ```
+
+  **(3) 提取特定字段**
+
+  结合正则表达式提取字段：
+  ```bash
+  echo "Name: John Doe, Age: 30" | sed 's/.*Name: \(.*\), Age:.*/\1/'
+  # 输出：John Doe
+  ```
+
+  ---
+
+  **6. 注意事项**
+
+  - `sed` 是基于行的处理工具，默认不会修改原始文件，除非使用 `-i` 选项。
+  - 复杂的文本处理任务可以结合 `awk` 或其他工具完成。
+
+  通过熟练掌握 `sed`，可以高效地处理各种文本数据，尤其是在脚本中自动化文本操作时非常有用！
+
+### info
 
 `info` 命令是 Linux 系统中的一个文档查看工具，用于显示 GNU 项目提供的信息页面（info pages）。这些信息页面通常比 `man` 页面更详细，包含更多的背景信息和使用示例。`info` 命令主要用于浏览 GNU 软件的手册和文档。
 
-==使用 `info` 命令的基本语法==
+* ==使用 `info` 命令的基本语法==
 
-```bash
-info [选项] [主题]
-```
+  ```bash
+  info [选项] [主题]
+  ```
 
-- **`主题`**：你想要查看的命令或程序的名称。例如，`info tar` 会显示 `tar` 命令的信息页面。
+* **`主题`**：你想要查看的命令或程序的名称。例如，`info tar` 会显示 `tar` 命令的信息页面。
+
 - **`选项`**：可以指定一些选项来控制 `info` 的行为。
 
 ==常用选项==
@@ -1350,9 +1421,9 @@ info [选项] [主题]
    * 参数 1 ：被链接的文件或文件夹
    * 参数 2 ：要链接去的目的地
 
-### 日期和时区(date、ntp)
+### 日期和时区(date、ntp 、time、cal、hwclock、timedatectl)
 
-* date 命令查看日期时间
+* `date` 命令查看日期时间
 
    * 通过 date 命令可以在命令行中查看系统的时间
    * 语法： `date [-d][+格式化字符串]`
@@ -1379,6 +1450,33 @@ info [选项] [主题]
       * 当 ntpd 启动后会定期的帮助我们联网校准系统的时间
       * 也可以手动校准（需 root 权限）： `ntpdate -u ntp.aliyun.com`
       * 通过阿里云提供的服务网址配合 ntpdate （安装 ntp 后会附带这个命令）命令自动校准
+   * `ntp`时间同步、centos8默认不在支持ntp软件包
+      * 添加wlnmp源`rpm -ivh http://mirrors.wlnmp.com/centos/wlnmp-release-centos.noarch.rpm`
+      * 安装ntp服务：`yum install wntp -y`
+      * 时间同步`ntpdate ntp1.aliyun.com`
+
+* `time`命令
+  * `time` 是一个在 Unix 和类 Unix 操作系统（如 Linux）中用于测量命令执行时间的内置命令。它能够报告命令消耗的时间，包括实际时间（real time）、用户时间（user time）和系统时间（sys time）。
+  * `time` 会输出三项时间信息：
+    * real：指的是从命令开始执行到结束所经历的总时间，即挂钟时间（wall clock time）。这个时间包括了等待 I/O 完成、其他进程占用 CPU 等非活动时间
+    * user：指的是在这个过程中花费在用户模式下的 CPU 时间总量。这是你的程序直接使用的 CPU 时间。
+    * sys：指的是在这个过程中花费在内核模式下的 CPU 时间总量。当程序执行需要操作系统提供服务的操作（如磁盘 I/O、网络请求等）时，就会消耗这部分时间。
+* `cal` 命令
+  * `cal` 命令用于显示日历，默认情况下它会显示当前月份的日历。
+* `hwclock` 命令
+  * `hwclock` 命令用于查看和设置硬件时钟（也称为 RTC，实时时钟）。硬件时钟是系统中的一个独立时钟，即使系统关闭或重启，它也会继续运行。
+  * `hwclock --show`：查看硬件时钟的时间
+  * `sudo hwclock --systohc`：将系统时间写入硬件时钟
+  * `sudo hwclock --hctosys`：将硬件时钟时间同步到系统时间
+* `timedatectl` 命
+  * `timedatectl` 是一个更现代的工具，用于管理系统的时间和日期配置。它可以显示当前的系统时间和时区信息，并且还可以用于配置 NTP（网络时间协议）同步。
+  * `timedatectl`：查看当前时间和服务状态
+  * 时区
+    * 查看时区列表：`timedatectl list-timezones`
+    * 设置时区中国标准时间（CST，即 `Asia/Shanghai`）：`timedatectl set-timezone Asia/Shanghai`
+    * 安装 NTP 客户端（以 Ubuntu 为例）：`install ntp`
+    * 启动 NTP 服务：`systemctl start ntp`
+    * 检查 NTP 同步状态：`ntpq -p`
 
 ### IP地址和主机名
 
@@ -1502,7 +1600,7 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
       * **`TERM` (15)**：默认信号，请求进程正常终止。
       * **`HUP` (1)**：挂起信号，通常用于通知进程重新加载配置文件。
 
-### 主机状态监控（top、df、sar）
+### 主机状态监控（top、df、du、sar、free、htop、vmstat）
 
 * 查看主机运行状态的监控命令
 
@@ -1560,6 +1658,8 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
 
 * **磁盘信息监控**
 
+#### df
+
 * 使用 df 命令可以查看硬盘的使用情况
 
    * 语法： `df [-h]`
@@ -1572,21 +1672,89 @@ firewall-cmd --add-rich-rule='rule family=ipv4 source address="121.123.11.98" dr
      * `-x <type>`：排除指定类型的文件系统。
      * `-a` 或 `--all`：包括伪文件系统、重复文件系统等所有文件系统。
      * `-l` 或 `--local`：仅显示本地文件系统。
-
 * 使用 iostat 查看 CPU 、磁盘的相关信息
 
    * 语法： `iostat [-x] [num1] [num2]`
 
    * 选项：-x，显示更多信息
    * num1: 数字，刷新间隔， num2: 数字，刷新几次
-   
 * **网络信息监控**
-
 * 使用 sar 命令查看网络的相关统计（ sar 命令非常复杂，这里仅简单用于统计网络）
 
    * 语法： `sar -n DEV numl num2`
    * 选项： -n, 查看网络，DEV 表示查看网络接口
    * num1: 刷新间隔〈不填就查看一次结束 ), num2: 查看次数（不填无限次数）
+
+#### du
+
+* `du` 是 Linux 系统中用于统计文件或目录磁盘使用情况的命令
+* 基本语法:`du [选项] [文件或目录]`
+* 常用选项
+  * **-h, --human-readable**：以人类可读的格式（如 K、M、G）显示大小。
+  * **-s, --summarize**：仅显示指定文件或目录的总大小，不递归显示子目录。
+  * **-a, --all**：显示所有文件和目录的大小，包括隐藏文件。
+  * **-c, --total**：在显示各文件或目录大小后，额外显示总和。
+  * **-d, --max-depth=层数**：限制递归显示的目录层级深度。
+  * **--exclude=模式**：排除符合指定模式的文件或目录。
+  * **-x, --one-file-system**：仅统计指定文件或目录所在文件系统的使用情况，不跨文件系统统计。
+
+#### df和du的区别
+
+* du（Disk Usage）
+  * 用途：计算指定文件或目录的磁盘使用量。
+  * 工作原理：递归遍历目录，统计每个文件及子目录的大小，返回总和。
+  * 关注点：特定文件或目录占用的磁盘空间。
+* df（Disk Free）
+  * 用途：显示文件系统的磁盘空间使用情况。
+  * 工作原理：扫描文件系统，报告总容量、已用空间、可用空间等。
+  * 关注点：整个文件系统的磁盘空间利用情况。
+
+- **du**：关注具体文件或目录的磁盘使用量，帮助用户了解哪些文件占用了大量空间。
+- **df**：关注文件系统整体的磁盘空间情况，帮助用户监控磁盘分区的使用情况。
+
+#### free
+
+* 格式`free [参数] `
+
+  * 参数
+  *  `-h` 参数可以将内存大小转换为更易读的单位（如 GB、MB）
+  * `-t`仅显示总内存和空闲内存
+  * `-s 2` 参数可以设置刷新间隔（秒），例如每 2 秒刷新一次
+  *  `-w` 参数可以显示更详细的列信息
+
+  ```bash
+                 total        used        free      shared  buff/cache   available
+  Mem:        8000000     2000000     3000000      500000     3000000     4500000
+  Swap:       2000000           0     2000000
+  ```
+
+- 字段解释：
+  - `total`：总内存大小。
+  - `used`：已使用的内存。
+  - `free`：完全未被占用的内存。
+  - `shared`：多个进程共享的内存。
+  - `buff/cache`：用于缓存和缓冲的内存。
+  - `available`：估计可用的内存（操作系统可以分配给新进程的内存）。
+
+#### htop
+
+`htop` 是一个增强版的 `top` 命令，提供了更友好的交互式界面和更多的功能。相比 `top`，`htop` 更易用，支持鼠标操作，并且可以直观地显示系统资源的使用情况。
+
+* `htop` 的主要功能
+  * 动态显示进程信息：实时显示所有运行中的进程。
+  * 颜色区分资源使用：通过颜色直观展示 CPU 和内存的占用情况。
+  * 支持鼠标操作：可以用鼠标点击菜单或滚动查看进程。
+  * 排序功能：按 F6 键可以选择按 CPU、内存或其他指标排序
+  * 搜索进程：按 F3 键可以搜索特定的进程。
+  * 终止进程：按 F9 键可以发送信号终止某个进程。
+  * 树状视图：按 F5 键可以切换到树状视图，方便查看父子进程关系。
+
+#### vmstat
+
+`vmstat` 是一个用于报告系统虚拟内存统计信息的工具，同时也可以监控 CPU、内存、I/O 等资源的使用情况。
+
+* 格式 `vmstat`
+* 
 
 ### 环境变量 env
 

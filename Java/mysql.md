@@ -180,8 +180,8 @@
 
    1. drop 是直接删除表信息，速度最快，但是无法找回数据：`drop table 表名`
    2. 判断是否纯在在删除：`drop table if exists 表名`
-   3. if exists：是否存在；if not exists:不存在
-   3. truncate 是删除表数据，不删除表的结构，速度排第二，但不能与where一起使用:`truncate table 表名;`
+   3. `if exists`：是否存在；`if not exists`:不存在
+   3. `truncate` 是删除表数据，不删除表的结构，速度排第二，但不能与where一起使用:`truncate table 表名;`
 
 ### 对数据的操作
 
@@ -292,32 +292,31 @@
    
    * 条件查询
    
-     where子句后跟条件
+     * where子句后跟条件
    
-     运算符
+   * 运算符
    
-     <、<=、>=、=、<>
+     * <、<=、>=、=、<>
    
-     BETWEEN...AND：在之间的
+   * BETWEEN...AND：在之间的
    
-     IN（ 集合）：里面有的
+   * IN（ 集合）：里面有的
    
-     LIKE：模糊查询
+   * LIKE：模糊查询
    
-     IS NULL ：是空的，IS NOT NULL :不是空的
+   * IS NULL ：是空的，IS NOT NULL :不是空的
    
-     and 或 && ：什么和什么
+   * and 或 && ：什么和什么
    
-     or 或 || ：什么或者什么
+   * or 或 `||`：什么或者什么
    
-     not 或 ！不相等的
+   * not 或 ！不相等的
    
    * 模糊查询
    
-     like:模糊查询
-   
-     占位符`_`:占单个字符`%`：占多个字符
-   
+     * like:模糊查询
+     * 占位符`_`:占单个字符`%`：占多个字符
+     
      ```mysql
      select * from 表名 like '_%';
      ```
@@ -421,7 +420,7 @@
      * 左外链接
 
        ```mysql
-       语法: select字段列表 from 表 left [outer] join 表2 on条件;
+       语法: select 字段列表 from 表 left [outer] join 表2 on条件;
        查询的是左表所有数据以及其交集部分。
        ```
 

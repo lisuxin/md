@@ -758,8 +758,240 @@
                 type: File
       ```
 
-      
+3. 使用jenkins推送镜像到镜像仓库
 
-### pipeline
+   ```bash
+   cd Dockerfile
+   mv ../target/*.jar ./
+   docker build -t jenkinssandqm:$tag . 
+   docker tag jenkinssandqm:$tag 192.168.31.96:80/cs/jenkinssandqm:$tag
+   docker login -u admin -p Harbor12345 192.168.31.96:80
+   docker push 192.168.31.96:80/cs/jenkinssandqm:$tag
+   ```
+
+   ![image-20250425161113725](../typoratuxiang/yunwei/harbor1.png)
+
+4. 写shell脚本进行构建后操作
+
+   ```bash
+   #/bin/bash
+   harbor_address=$1
+   harbor_warehouse=$2
+   harbor_mirror=$3
+   harbor_tag=$4
+   imageName=$harbor_address/$harbor_warehouse/$harbor_mirror:$harbor_tag
+   docker_ps_id=`docker ps -a | grep ${harbor_mirror} | awk '{print $1}'`
+   echo $docker_ps_id
+   if [ "$docker_ps_id" != "" ]; then
+           kubectl delete deployment $harbor_mirror-deployment
+           kubectl delete service $harbor_mirror-service
+   fi
+   docker_image_tag=`docker images | grep ${harbor_mirror}|awk '{print $2}'`
+   echo $docker_image_tag
+   if [[ "$docker_image_tag" =~ "$harbor_tag" ]]; then
+           docker rmi -f $imageName
+   fi
+   docker login -u admin -p Harbor12345 192.168.31.96:80
+   docker pull $imageName
+   kubectl apply -f /export/gitlabssh/Dockerfile/$harbor_mirror-deployment.yml
+   echo "SUCCESS"
+   ```
+
+5. 在jenkins里面添加构建后操作
+
+   ![image-20250426052151332](../typoratuxiang/yunwei/jenkins3.png)
+
+## pipeline
 
 ==流水线构建模式==
+
+### 语法
+
+```java
+//所有的脚本命令都在pipeline中执行
+pipeline {
+    agent any//指定任务在那个集群节点中执行
+    
+    environment {//指定全局变量，方便后面使用
+        key = 'value' //使用全局变量的方式 ${key}
+    }
+    
+    stages {
+        stage('Hello') {//给当前步骤命名
+            steps {
+                echo 'Hello World'//执行当前步骤的流水线语法
+            }
+        }
+        stage('Hello') {//给当前步骤命名
+            steps {
+                echo 'Hello World'//执行当前步骤的流水线语法
+            }
+    }
+    post{//配置推送远端
+        success{//成功
+            robot:''//配置的推送远端的名称
+            type: 'MARKDOWN' //推送远端的语法格式
+            title: ""//推送远端输出的文本
+        }
+        failure{//失败
+            robot:''//配置的推送远端的名称
+            type: 'MARKDOWN' //推送远端的语法格式
+            title: ""//推送远端输出的文本
+        } 
+    }
+}
+
+```
+
+### 使用方法
+
+1. 同样可以使用参数化构建过程，添加相应参数、例如版本信息等等
+
+2. 可以在代码仓库里面写jenkinsfile文件，也就是流水线语法的文件、jenkins和会使用这个文件作为执行文件进行执行
+
+   * jenkins(J一定要大写)
+
+3. jenkinfile使用版本控制工具（git）
+
+   ![image-20250428170345512](../typoratuxiang/yunwei/jenkins8.png)
+
+4. 使用maven(sh)
+
+   ![image-20250428171445523](../typoratuxiang/yunwei/jenkins9.png)
+
+5. sonarqube和harbor同maven一样使用shell命令
+
+6. 部署使用
+
+   ![image-20250428225655251](../typoratuxiang/yunwei/jenkins10.png)
+   
+   * `execCommand: "sh /export/sh/testcicd.sh ${harboraddress} ${harborwarehouse} ${harbormirror} ${tag}",`这个地方必须使用一行双引号
+
+### 构建完整语法
+
+```
+pipeline {
+
+    agent any
+
+    environment{
+        harboruser = 'admin'
+        harboraddress = '192.168.31.96:80'
+        harborwarehouse = 'cs'
+        harbormirror = 'jenkinssandqm'
+        harborpassword = 'Harbor12345'
+    }
+
+    stages {
+        stage('git') {
+            steps {
+                checkout poll: false, scm: scmGit(branches: [[name: "${tag}"]], extensions: [], userRemoteConfigs: [[credentialsId: '21537b59-4ce9-49c0-8190-abd0ac87c8dc', url: 'http://192.168.31.96:30080/root/jenkinslll.git']])
+                }
+            }
+        stage('maven') {
+            steps {
+                sh '/var/jenkins_home/maven/bin/mvn clean package -DskipTests'
+                }
+            }
+        stage('sonarqube') {
+            steps {
+                sh '/var/jenkins_home/sonar-scanner/bin/sonar-scanner -Dsonar.sources=./ -Dsonar.projectname="${harbormirror}" -Dsonar.login=65458c9c525ac232732f364656b894297aa54fd6 -Dsonar.projectKey=jenkinssandqm-key -Dsonar.java.binaries=./target/'
+                }
+            }
+        stage('docker镜像') {
+            steps {
+                sh '''mv ./target/*.jar ./Dockerfile/
+                docker build -t "${harbormirror}":"${tag}" ./Dockerfile/'''
+                }
+            }
+        stage('推送harbor') {
+            steps {
+                sh '''docker tag ${harbormirror}:"${tag}" "${harboraddress}"/"${harborwarehouse}"/"${harbormirror}":"${tag}"
+                docker login -u "${harboruser}" -p "${harborpassword}" "${harboraddress}"
+                docker push "${harboraddress}"/"${harborwarehouse}"/"${harbormirror}":"${tag}"'''
+                }
+            }
+        stage('部署') {
+            steps {
+                sshPublisher(publishers: [
+                    sshPublisherDesc(
+                        configName: 'k8s-master-98',
+                        transfers: [
+                            sshTransfer(
+                                cleanRemote: false,
+                                excludes: '',
+                                sourceFiles: 'Dockerfile/*.yml',
+                                execCommand: "sh /export/sh/testcicd.sh ${harboraddress} ${harborwarehouse} ${harbormirror} ${tag}",
+                                execTimeout: 120000,
+                                flatten: false,
+                                makeEmptyDirs: false,
+                                noDefaultExcludes: false,
+                                patternSeparator: '[, ]+',
+                                remoteDirectory: '',
+                                remoteDirectorySDF: false,
+                                removePrefix: '')],
+                                usePromotionTimestamp: false,
+                                useWorkspaceInPromotion: false,
+                                verbose: true)])
+                }
+            }
+        }
+    post{
+        success{
+            dingtalk(
+                robot:'dingding',
+                type: 'MARKDOWN',
+                title: "SUCCESS",
+                text:["构建成功"]
+            )
+        }
+        failure{
+            dingtalk(
+                robot:'dingding',
+                type: 'MARKDOWN',
+                title: "FAILURE",
+                text:["构建失败"]
+            )
+        }
+    }
+}
+```
+
+### 推送消息、外部软件
+
+1. 下载插件、钉钉、微信或是其他
+
+   * 钉钉机器人配置
+
+     ![image-20250428160004496](../typoratuxiang/yunwei/jenkins6.png)
+
+   * 复制webhook地址`https://oapi.dingtalk.com/robot/send?access_token=06266e012f6f175e9a618fa622a254e87540ea3eaa9c296772fdf2cbdffed3d5`
+
+     ![image-20250428160144996](../typoratuxiang/yunwei/jenkins7.png)
+
+2. 然后在系统配置里面进行配置
+
+   ![image-20250428154041184](../typoratuxiang/yunwei/jenkins4.png)
+
+   ![image-20250428160555462](../typoratuxiang/yunwei/jenkins5.png)
+
+3. 流水线语法
+
+   ```java
+      post{//配置推送远端
+           success{//成功
+               robot:'',//配置的推送远端的名称
+               type: 'MARKDOWN', //推送远端的语法格式
+               title: "",//推送远端输出的文本
+               text:["构建成功"]
+           }
+           failure{//失败
+               robot:'',//配置的推送远端的名称
+               type: 'MARKDOWN', //推送远端的语法格式
+               title: "",//推送远端输出的文本
+               text:["构建失败"],
+           } 
+       }
+   ```
+   
+   
