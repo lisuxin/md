@@ -1550,14 +1550,16 @@ kubectl create -f nginx.yml
 
 1. 通过yaml运行pod`kubectl create -f ./kube-flannel.yml  或者  kubectl apply -f ./kube-flannel.yml`
 2. 检查Pod状态`kubectl get pods -o wide`
-3. 检查服务状态： 确认GitLab服务是否正确创建并分配了端口。`kubectl get svc`
-4. 查看Pod事件和详细信息：获取特定GitLab Pod的详细信息，包括最近的事件和状态`kubectl describe pod <gitlab-pod-name>`
-5. 查看容器日志`kubectl logs <gitlab-pod-name>`如果容器曾经崩溃过，你可能还需要查看之前实例的日志：`kubectl logs <gitlab-pod-name> --previous`
-6. 检查网络配置和服务端点：
+3. 查看命名空间`kubectl get ns`、查看命名空间内的资源`kubectl get all -n 命名空间`
+   * 没有设置命名空间，默认`default`命名空间下
+4. 检查服务状态： 确认GitLab服务是否正确创建并分配了端口。`kubectl get svc`
+5. 查看Pod事件和详细信息：获取特定GitLab Pod的详细信息，包括最近的事件和状态`kubectl describe pod <gitlab-pod-name>`
+6. 查看容器日志`kubectl logs <gitlab-pod-name>`如果容器曾经崩溃过，你可能还需要查看之前实例的日志：`kubectl logs <gitlab-pod-name> --previous`
+7. 检查网络配置和服务端点：
    * 确保Kubernetes服务正确地指向了Pod，并且端口转发设置无误：
      - 验证Service是否正确选择了你的Pod：`kubectl get endpoints gitlab-service`
      - 在节点上使用`curl`测试从本地访问GitLab服务：`curl http://localhost:30081/`
-7. 查看集群中运行的所有容器：`kubectl get pods -A`
+8. 查看集群中运行的所有容器：`kubectl get pods -A`
 
 **删除pod并停止k8s自动创建**
 
@@ -1575,6 +1577,13 @@ kubectl create -f nginx.yml
 1. 进入容器`kubectl exec -it 容器名 -- /bin/bash`
 1. 检查Kubernetes 集群的 DNS 服务`kubectl get pods -n kube-system | grep coredns`
 1. 重启节点`systemctl reboot`
+
+**Deployment**
+
+1. 启动多个 Pod 实例：
+   * 调整yml文件中 Deployment 中的 `replicas` 字段即可，然后apply
+   * 通过命令调整副本数`kubectl scale deployment my-app --replicas=5`
+   * 如果已经有对应的 Service，它会自动将流量分发到所有这些 Pod 上（默认是轮询方式，除非你更改了服务的 `sessionAffinity` 或使用其他代理策略）。
 
 ## K8s集群安装部署
 
@@ -2631,6 +2640,37 @@ kubectl delete -f my-app.yaml
 - **适用场景**：定义容器化应用的部署、网络、配置和存储。
 
 通过灵活组合这些语法，可以轻松定义复杂的 Kubernetes 应用环境。
+
+## k8s图形化
+
+### buboard(图形化软件)
+
+1. 安装kuboard(Kuboard官方推荐使用Helm来安装Kuboard。如果你还没有安装Helm，请先安装Helm。然后添加Kuboard的chart仓库，并安装Kuboard。)
+
+   ```bash
+   # 添加Kuboard chart仓库
+   helm repo add kuboard https://kuboard.cn/chart-repo/
+   
+   # 更新本地chart仓库缓存
+   helm repo update
+   
+   # 安装Kuboard
+   helm install kuboard kuboard/kuboard --namespace kube-system --create-namespace
+   ```
+
+2. 获取访问地址
+
+   ```bash
+   export NODE_PORT=$(kubectl get --namespace kube-system -o jsonpath="{.spec.ports[0].nodePort}" services kuboard)
+   export NODE_IP=$(kubectl get nodes --namespace kube-system -o jsonpath="{.items[0].status.addresses[0].address}")
+   echo http://$NODE_IP:$NODE_PORT
+   ```
+
+3. 使用令牌进行登录
+
+   ```bash
+   kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+   ```
 
 ## K8s常用命令
 

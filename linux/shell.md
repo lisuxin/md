@@ -795,5 +795,79 @@ print_aa
 ## 提升：详解shell环境与函数执行
 ## 提升：图解函数脚本处理传入参数
 ## 函数脚本开发：检测网站存活
+
 ## 趣谈rsync起停脚本开发
 
+## 开机自启脚本
+
+在Linux系统中，有多种方法可以设置开机自启脚本。以下是几种常见的方法：
+
+### 方法一：使用 `systemd` 服务
+
+1. **创建一个Systemd服务单元文件**：
+   - 在 `/etc/systemd/system/` 目录下创建一个新的服务文件，例如 `myscript.service`。
+   ```bash
+   sudo nano /etc/systemd/system/myscript.service
+   ```
+
+2. **编辑服务文件**，加入以下内容（根据需要修改路径和命令）：
+   ```ini
+   [Unit]
+   Description=My Script Service
+   After=network.target
+   
+   [Service]
+   ExecStart=/path/to/your/script.sh
+   ExecReload=/bin/kill -HUP $MAINPID
+   ExecStop=/bin/kill -SIGINT $MAINPID
+   Restart=on-failure
+   
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+3. **重新加载Systemd配置并启用服务**：
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable myscript.service
+   ```
+
+4. **启动服务**（可选，如果希望立即运行而不是等到下次重启）：
+   ```bash
+   sudo systemctl start myscript.service
+   ```
+
+### 方法二：使用 `crontab`
+
+1. **编辑当前用户的crontab文件**：
+   ```bash
+   crontab -e
+   ```
+
+2. **添加一行以@reboot为前缀的命令来指定开机时执行的脚本**：
+   ```bash
+   @reboot /path/to/your/script.sh
+   ```
+
+### 方法三：使用 `/etc/rc.local`
+
+1. **确保 `/etc/rc.local` 文件存在并且是可执行的**。如果没有这个文件，你可以创建它，并给予相应的权限：
+   ```bash
+   sudo touch /etc/rc.local
+   sudo chmod +x /etc/rc.local
+   ```
+
+2. **编辑 `/etc/rc.local` 文件**，并在其中添加你想要执行的命令或脚本路径，比如：
+   ```bash
+   #!/bin/bash
+   /path/to/your/script.sh
+   exit 0
+   ```
+
+### 注意事项
+
+- 确保你的脚本具有可执行权限：`chmod +x /path/to/your/script.sh`
+- 根据不同的Linux发行版和个人需求选择适合的方法。
+- 如果使用 `systemd` 服务方式，请注意正确配置依赖关系（如 `After=network.target`），以保证服务在正确的时机启动。
+
+以上就是在Linux上实现开机自启脚本的一些常见方法。选择最适合您需求的方式进行设置即可。

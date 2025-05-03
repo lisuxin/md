@@ -994,4 +994,25 @@ pipeline {
        }
    ```
    
-   
+
+## 自动化CI
+
+1. 在jenkins中配置《构建触发器》
+
+   ![image-20250503200108436](../typoratuxiang/yunwei/gitlab4.png)
+
+2. 在gitlab中配置webhook、(也就是系统钩子、粘贴构建触发器的地址)
+
+   ![image-20250503172200403](../typoratuxiang/yunwei/gitlab2.png)
+
+3. 在gitlab中配置允许本地请求、设置里面
+
+   ![image-20250503172030486](../typoratuxiang/yunwei/gitlab1.png)
+
+4. 在jenkins中配置允许gitlab访问，开启安全认证（下载gitlab插件、取消勾选）
+
+   ![image-20250503195914936](../typoratuxiang/yunwei/gitlab3.png)
+
+5. 取消Jenkins的参数化构建、并修改Jenkins里面使用的版本信息`{tag}`，修改为`*/master`表示以最新的推送进行更新部署
+
+6. 如果jenkinsfile文件没有进行改变那么容器就不会进行更新、需要使用k8s命令`kubect rollout restart 容器deployment名称 -n 容器的命名空间`进行更新

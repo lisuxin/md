@@ -1158,10 +1158,13 @@
 
 #### 日志分析工具
 
-- **`rsyslog`**：是一个增强的日志处理系统，支持复杂的过滤规则、远程日志传输等功能。
-- **`ELK Stack` (Elasticsearch, Logstash, Kibana)**：用于收集、解析、索引和可视化日志数据的强大工具集。
-- **`Graylog`**：类似于 ELK Stack 的开源日志管理平台，易于设置和使用。
-- **`Splunk`**：商业级的日志分析平台，提供强大的搜索和分析功能。
+- `rsyslog`：是一个增强的日志处理系统，支持复杂的过滤规则、远程日志传输等功能。
+- `ELK Stack` (Elasticsearch, Logstash, Kibana)**：用于收集、解析、索引和可视化日志数据的强大工具集。
+- `Graylog`：类似于 ELK Stack 的开源日志管理平台，易于设置和使用。
+- `Splunk`：商业级的日志分析平台，提供强大的搜索和分析功能。
+- `split`：用于将大文件分割成较小的部分
+  * 基本语法`split [选项] [输入文件] [前缀]`
+  * 假设你有一个20G的日志文件，并希望将其分割成每个1GB的小文件：`split -b 1G your_log_file.log your_log_file_split_`
 
 ## 网络管理
 
