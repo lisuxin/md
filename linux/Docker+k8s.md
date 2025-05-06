@@ -1188,7 +1188,7 @@ volumes:        # 定义数据卷，便于持久化存储或共享数据
     driver: local  # 使用本地驱动管理卷
 ```
 
-### 核心字段详解
+#### 核心字段详解
 
 - **`version`**：指定 Compose 文件格式版本。
   ```yaml
@@ -1287,7 +1287,7 @@ volumes:        # 定义数据卷，便于持久化存储或共享数据
       max-file: "3"
   ```
 
-### 高级配置
+#### 高级配置
 
 - **`configs`**：将配置文件挂载到容器内。
   ```yaml
@@ -1314,7 +1314,8 @@ volumes:        # 定义数据卷，便于持久化存储或共享数据
     com.example.description: "My Web App"
   ```
 
-### 完整示例
+#### 完整示例
+
 ```yaml
 # 定义版本，这里使用的是3.8，确保兼容性
 version: '3.8'
@@ -1351,7 +1352,7 @@ volumes:
     driver: local  # 使用本地卷驱动，保存数据库数据
 ```
 
-### **常用命令**
+#### **常用命令**
 
 ```bash
 # 启动服务（后台运行）
@@ -1552,6 +1553,7 @@ kubectl create -f nginx.yml
 2. 检查Pod状态`kubectl get pods -o wide`
 3. 查看命名空间`kubectl get ns`、查看命名空间内的资源`kubectl get all -n 命名空间`
    * 没有设置命名空间，默认`default`命名空间下
+   * 删除命名空间及其所有资源`kubectl delete namespace kuboard`
 4. 检查服务状态： 确认GitLab服务是否正确创建并分配了端口。`kubectl get svc`
 5. 查看Pod事件和详细信息：获取特定GitLab Pod的详细信息，包括最近的事件和状态`kubectl describe pod <gitlab-pod-name>`
 6. 查看容器日志`kubectl logs <gitlab-pod-name>`如果容器曾经崩溃过，你可能还需要查看之前实例的日志：`kubectl logs <gitlab-pod-name> --previous`
@@ -1577,12 +1579,13 @@ kubectl create -f nginx.yml
 1. 进入容器`kubectl exec -it 容器名 -- /bin/bash`
 1. 检查Kubernetes 集群的 DNS 服务`kubectl get pods -n kube-system | grep coredns`
 1. 重启节点`systemctl reboot`
+1. 删除正在运行的容器`kubectl delete -f kuboard-v3.yml`
 
 **Deployment**
 
 1. 启动多个 Pod 实例：
    * 调整yml文件中 Deployment 中的 `replicas` 字段即可，然后apply
-   * 通过命令调整副本数`kubectl scale deployment my-app --replicas=5`
+   * 通过命令调整副本数(扩缩容)`kubectl scale deployment my-app --replicas=5`
    * 如果已经有对应的 Service，它会自动将流量分发到所有这些 Pod 上（默认是轮询方式，除非你更改了服务的 `sessionAffinity` 或使用其他代理策略）。
 
 ## K8s集群安装部署
@@ -1597,6 +1600,25 @@ kubectl create -f nginx.yml
 3. 名称空间
    * namespace：K8s在创建资源的时候，可以单独创建一个资源组
      * 所用到的Pod都放在一个资源组下面
+
+### kubernetes分类
+
+1. 安装方式分类
+   1. 手动二进制安装、使用大量自动化工具
+   2. kubeadm容器化安装方式、运行多个容器
+2. 部署方式分类
+   1. 单主分布式
+   2. 多主分布式
+3. 环境分类（网络）
+   1. 主机节点(物理节点网络)网络（10.0.0.0/24）：基础：本地网络
+   2. pod本身环境（10.244.0.0/16）：容器应用访问：pod网络
+   3. 应用服务环境（10.96.0.0/12）：集群内外通信：service网络
+4. 角色
+   1. master
+   2. node
+5. 集群版本、操作容器
+   1. 1.23：集群自己直接操作容器
+   2. 1.24：集群需要加入`cri-xxx`服务，使用服务来操作容器
 
 ### 部署
 
@@ -1707,6 +1729,21 @@ kubectl create -f nginx.yml
    sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
    ```
 
+   1. swap两种方式
+
+      1. 临时禁用`swapoff -a`关闭：防止开机自动挂载 swap 分区
+
+      2. 永久禁用`sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab`
+
+      3. 调整内核参数(在所有主机执行)
+
+         ```bash
+         cat >> /etc/sysctl.d/k8s.conf << EOF
+         vm.swappiness=0
+         EOF
+         sysctl -p /etc/sysctl.d/k8s.conf
+         ```
+
 8. 设置yum源（阿里云）
 
    ```shell
@@ -1777,7 +1814,9 @@ kubectl create -f nginx.yml
 ==（docker都是开机自启）==
 
 ```shell
+#安装常用工具
 yum install -y bash-completion vim lrzsz wget expect net-tools nc nmap tree dos2unix htop iftop iotop unzip telnet sl psmisc nethogs glances bc openldap-devel yum-utils
+#禁用防火墙
 systemctl disable firewalld
 systemctl stop firewalld
 cat <<EOF > /etc/sysctl.d/docker.conf
@@ -1787,11 +1826,15 @@ net.ipv4.conf.default.rp_filter = 0
 net.ipv4.conf.all.rp_filter = 0
 net.ipv4.ip_forward = 1
 EOF
+# 加载 br_netfilter 内核模块
 modprobe br_netfilter
+# 从指定的文件中加载内核参数设置
 sysctl -p /etc/sysctl.d/docker.conf
 wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-vault-8.5.2111.repo
+# 配置docker的repo文件（docker源）
 yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo -y
 yum clean all && yum makecache
+# 安装docker
 yum -y install docker-ce-26.1.3
 docker version
 
@@ -1814,6 +1857,79 @@ systemctl enable docker
    ```
 
 4. 然后重启 Docker 服务以应用更改`systemctl restart docker`
+
+#### cri-docker
+
+1. 下载解压cri-docker
+
+   ```bash
+   wget http://mirrors.aliyun.com/docker-ce/linux/static/stable/x86_64/cri-dockerd-<version>.tar.gz
+   tar -zxvf cri-dockerd-<version>.tar.gz
+   ```
+
+2. 将软件放到`/usr/local/bin`目录下
+
+3. 检查测试版本`cri-docker --version`
+
+4. 定制配置文件：文件链接`https://github.com/Mirantis/cri-dockerd/tree/master/packaging/systemd`
+
+5. cri-docker启动文件
+
+   1. `/usr/lib/systemd/`**作用**：此目录包含由软件包管理器安装的单元文件（如服务、套接字、设备、挂载点等）。这些单元文件是由软件包提供者预先定义好的默认配置。
+   2. `/etc/systemd/`**作用**：此目录用于存放系统管理员为自定义需求而创建或修改的单元文件和服务配置。它允许管理员覆盖或扩展默认设置。
+
+   ```bash
+   [root@vms41 ~]# cat /etc/systemd/system/cri-docker.service
+   [Unit]
+   Description=CRI Interface for Docker Application Container Engine
+   Documentation=https://docs.mirantis.com
+   After=network-online.target firewalld.service docker.service
+   Wants=network-online.target
+   Requires=cri-docker.socket
+   
+   [Service]
+   Type=notify
+   ExecStart=/usr/bin/cri-dockerd --network-plugin=cni --pod-infra-container-image=registry.aliyuncs.com/google_containers/pause:3.7
+   ExecReload=/bin/kill -s HUP $MAINPID
+   TimeoutSec=0
+   RestartSec=2
+   Restart=always
+   StartLimitBurst=3
+   StartLimitInterval=60s
+   LimitNOFILE=infinity
+   LimitNPROC=infinity
+   LimitCORE=infinity
+   TasksMax=infinity
+   Delegate=yes
+   KillMode=process
+   [Install]
+   WantedBy=multi-user.target
+   EOF
+   ```
+
+6. 定制配置(创建启动文件)
+
+   ```bash
+   [root@vms41 ~]# cat /etc/systemd/system/cri-docker.socket
+   [Unit]
+   Description=CRI Docker Socket for the API
+   PartOf=cri-docker.service
+   [Socket]
+   ListenStream=%t/cri-dockerd.sock
+   SocketMode=0660
+   SocketUser=root
+   SocketGroup=docker
+   [Install]
+   WantedBy=sockets.target
+   ```
+
+7. 设置开机自启
+
+   ```
+   systemctl daemon-reload
+   systemctl enable cri-dockerd.service
+   systemctl restart cri-dockerd.service
+   ```
 
 #### master
 
@@ -1925,6 +2041,8 @@ systemctl enable docker
      --ignore-preflight-errors=NumCPU  # 忽略CPU数量检查错误，即使不满足官方推荐的最低CPU核心数要求也继续进行安装。
      
      # k8s版本1.24以后不在默认支持docker、需要支持docker需要安装cri-dockerd
+     # 1.24以后初始化需要加入、node节点在加入集群的时候也需要容器引擎
+     --cri-socket=unix:///var/run/cri-dockerd.sock
      # docker和Kubelet使用的驱动程序必须一致
      kubeadm init \
      --apiserver-advertise-address=192.168.31.98 \
@@ -2004,8 +2122,11 @@ systemctl enable docker
      # 您可以通过运行以下命令将工作节点加入集群。请确保在每个工作节点上以 root 用户身份执行此命令
      kubeadm join 192.168.31.98:6443 --token xrm89c.zr177t414q60mky3 \
              --discovery-token-ca-cert-hash sha256:e666659ce327b5619a6d65a7d426eb50fcc3c006a8eb251316210987913a5b6a
+     # 1.24版本以后需要加入容器引擎
+      kubeadm join 192.168.31.98:6443 --token xrm89c.zr177t414q60mky3 \
+             --discovery-token-ca-cert-hash sha256:e666659ce327b5619a6d65a7d426eb50fcc3c006a8eb251316210987913a5b6a --cri-socket=unix:///var/run/cri-dockerd.sock
      ```
-
+     
      - `kubeadm join`：用于将节点加入现有的 Kubernetes 集群。
      - `192.168.31.98:6443`：API Server 的地址和端口。
      - `--token xrm89c.zr177t414q60mky3`：加入集群时使用的令牌。这个令牌是在 `kubeadm init` 输出中提供的。
@@ -2378,6 +2499,45 @@ systemctl enable docker
    kubectl apply -f pod-definition.yaml
    ````
 
+### 手动安装etcd
+
+1. github上下载`https://github.com/etcd-io/etcd/releases/download/`
+
+   ```bash
+   ETCD_VER=v3.5.4
+   
+   # 下载并解压
+   rm -f /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz
+   rm -rf /tmp/test-etcd && mkdir -p /tmp/test-etcd
+   
+   wget https://github.com/etcd-io/etcd/releases/download/${ETCD_VER}/etcd-${ETCD_VER}-linux-amd64.tar.gz -O /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz
+   tar xzvf /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz -C /tmp/test-etcd --strip-components=1
+   
+   # 将 etcdctl 移动到系统路径中
+   sudo cp /tmp/test-etcd/etcdctl /usr/local/bin/
+   ```
+
+2. 验证安装是否成功`etcdctl --version`
+
+### 命名空间
+
+资源隔离
+
+* 查看命名空间`kubectl get ns`
+
+* 默认命名空间`default`
+
+* yaml创建命名空间
+
+  ```yaml
+  apiVersion: v1
+  kind/XMLSchema: Namespace
+  metadata:
+    name: your-namespace-name #命名空间名称
+  ```
+
+* 资源对象在yaml里面使用`---`进行隔离
+
 ###  `pod-definition.yml` 语法指南
 
 Kubernetes 使用 YAML 文件定义资源（如 Pod、Deployment、Service 等），以下是启动镜像的核心语法及其详细说明：
@@ -2470,6 +2630,10 @@ spec:
       port: 80      # Service 端口
       targetPort: 80  # 容器端口
   type: ClusterIP   # 服务类型（ClusterIP、NodePort、LoadBalancer）
+# 使用 ClusterIP 可以方便地让集群内的其他服务发现并通信。
+# NodePort 为从集群外部访问服务提供了一种简单的方式，但可能需要额外处理端口冲突和负载均衡问题。
+# LoadBalancer 自动与云环境集成，简化了对外暴露服务的过程，但可能会产生额外成本。
+# ExternalName 提供了一种轻松连接到外部服务的方法，无需手动管理服务端点。
 ```
 
 ```yaml

@@ -1067,10 +1067,17 @@
 * 使用 chown 命令，可以修改文件、文件夹的所属用户和用户组==普通用户无法修改所属为其它用户或组，所以此命令只适用于 root 用户执行==
 * 语法：`chown [-R ][用户][:][用户组]文件或文件夹`
   * 选顶， -R, 同chmod, 对文件夹内全部内容应用相同规则
-    * 
   * 选项，用户，修改所属用户
   * 选项，用户组，修改所属用户组
   * `：`用于分隔用户和用户组
+
+### ssh密钥
+
+使用ssh远程，无密码方式
+
+1. 在本机上生成目录`.ssh`：`ssh-keygen -t rsa`
+2. 上传公钥到目标机器（需要远程到的机器）`ssh-copy-id root@192.168.157.146`
+3. 重启 SSH服务命令使其生效`service sshd restart`
 
 ### 日志
 
@@ -1165,6 +1172,103 @@
 - `split`：用于将大文件分割成较小的部分
   * 基本语法`split [选项] [输入文件] [前缀]`
   * 假设你有一个20G的日志文件，并希望将其分割成每个1GB的小文件：`split -b 1G your_log_file.log your_log_file_split_`
+
+### 服务启动配置文件
+
+在Linux系统中，服务的启动配置文件通常与`systemd`相关联，因为它是大多数现代Linux发行版使用的初始化系统和服务管理器。`systemd`使用单元（unit）文件来定义如何启动和管理服务。以下是关于服务启动配置文件的主要信息：
+
+**单元文件的位置**
+
+1. **/etc/systemd/system/**: 这个目录用于存放用户自定义的服务单元文件。如果你需要覆盖默认设置或添加新的服务配置，应该将你的单元文件放在这里。
+   
+2. **/usr/lib/systemd/system/** 或 **/lib/systemd/system/**: 这些目录包含由软件包安装的服务单元文件。这些文件不应该被直接修改，因为它们会在软件包更新时被覆盖。
+
+**单元文件的基本结构**
+
+一个典型的`.service`单元文件包括以下几个部分：
+
+- **[Unit]**：提供有关服务的基本信息，如描述、文档位置、依赖关系等。
+  
+  示例：
+  ```ini
+  [Unit]
+  Description=Example service
+  Documentation=http://example.com/docs
+  After=network.target
+  ```
+
+  [Unit] 段主要用于定义服务元数据和依赖关系。
+  
+  - **Description**: 服务的描述。
+  - **Documentation**: 文档链接。
+  - **Requires**: 列出此单元所依赖的所有其他单元，如果其中任何一个失败，该单元也将无法启动。
+  - **Wants**: 类似于 Requires，但不强求依赖单元成功启动。
+  - **After**: 定义此单元应在哪些单元之后启动，但不创建依赖关系。
+  - **Before**: 定义此单元应在哪些单元之前启动。
+  - **Conflicts**: 指定与本单元冲突的单元，如果列出的单元正在运行，则本单元不能启动。
+  - **Condition...**: 如 `ConditionPathExists`, `ConditionDirectoryNotEmpty` 等条件语句，当条件满足时才启动服务。
+  
+- **[Service]**：指定如何启动服务，以及服务运行时的行为。
+  
+  示例：
+  ```ini
+  [Service]
+  ExecStart=/usr/bin/example-service
+  Restart=always
+  User=nobody
+  Environment=SECRET_KEY=your_secret_key
+  ```
+
+  [Service] 段用于指定服务的具体行为。
+  
+  - **Type**: 定义启动过程的类型（simple, exec, forking, oneshot, notify, dbus）。
+  - **ExecStart**: 启动服务时执行的命令或脚本。
+  - **ExecStartPre** / **ExecStartPost**: 在启动服务前后执行的命令。
+  - **ExecReload**: 重新加载服务时执行的命令。
+  - **ExecStop**: 停止服务时执行的命令。
+  - **Restart**: 定义在什么情况下重启服务（always, on-success, on-failure, on-abnormal, on-watchdog, on-abort）。
+  - **User** / **Group**: 运行服务的用户和组。
+  - **Environment** / **EnvironmentFile**: 设置环境变量或指定环境变量文件。
+  - **WorkingDirectory**: 设定工作目录。
+  - **StandardOutput** / **StandardError**: 定义标准输出和错误输出的位置。
+  
+- **[Install]**：定义服务如何被启用或禁用。它包含了服务在不同目标(target)中的行为。
+  
+  示例：
+  ```ini
+  [Install]
+  WantedBy=multi-user.target
+  ```
+  
+  [Install] 段用于定义如何启用服务。
+  
+  - **WantedBy**: 定义在哪个目标（target）下启用该服务，例如 `multi-user.target` 表示多用户模式下自动启动。
+  - **RequiredBy**: 类似 WantedBy，但是表示该服务是必需的。
+  - **Alias**: 提供一个别名，使得可以通过不同的名称来引用该服务。
+  - **Also**: 当此服务被启用时，也同时启用列表中的其他服务。
+
+**常用命令**
+
+- **重新加载systemd配置**：当你修改了单元文件后，可以使用以下命令让systemd重新加载所有单元文件而无需重启系统。
+  
+  ```bash
+  sudo systemctl daemon-reload
+  ```
+  
+- **启用服务**：使服务开机自动启动。
+  ```bash
+  sudo systemctl enable example.service
+  ```
+
+- **启动服务**：立即启动服务。
+  ```bash
+  sudo systemctl start example.service
+  ```
+
+- **查看服务状态**：检查服务当前的状态。
+  ```bash
+  sudo systemctl status example.service
+  ```
 
 ## 网络管理
 
@@ -1448,8 +1552,8 @@
    * 我们可以通过 ntp 程序自动校准系统时间
    * 安装 ntp: `yum -y install ntp`
    * 启动并设置开机自启：
-      * systemctl start ntpd
-      * systemctl enable ntpd
+      * `systemctl start ntpd`
+      * `systemctl enable ntpd`
       * 当 ntpd 启动后会定期的帮助我们联网校准系统的时间
       * 也可以手动校准（需 root 权限）： `ntpdate -u ntp.aliyun.com`
       * 通过阿里云提供的服务网址配合 ntpdate （安装 ntp 后会附带这个命令）命令自动校准

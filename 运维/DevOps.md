@@ -687,9 +687,13 @@
       # 注释掉https
       # 查看harbor的密码
       harbor_admin_password: Harbor12345
+      # 还可以修改数据目录
+      data_volume
       ```
 
    3. 运行`install.sh`进行安装，最终运行起来还是以docker容器在运行
+
+   4. 定制harbor服务启动文件`/etc/systemd/system/harbor.service`
 
 3. 镜像仓库基本使用
 
@@ -1013,6 +1017,110 @@ pipeline {
 
    ![image-20250503195914936](../typoratuxiang/yunwei/gitlab3.png)
 
-5. 取消Jenkins的参数化构建、并修改Jenkins里面使用的版本信息`{tag}`，修改为`*/master`表示以最新的推送进行更新部署
+5. 取消Jenkins的参数化构建、并修改Jenkins里面使用的版本信息`${tag}`
+
+   * 第一个`${tag}`修改为`*/master`表示使用master分支的最新更改
+   * 其余`${tag}`全部修改为同一个版本，或者修改为latest，表示最新版本
 
 6. 如果jenkinsfile文件没有进行改变那么容器就不会进行更新、需要使用k8s命令`kubect rollout restart 容器deployment名称 -n 容器的命名空间`进行更新
+
+7. 在部署阶段可能存在找不到命令，加上命令的绝对路径`/usr/bin/kubectl`
+
+8. 使用ssh远程，无密码方式
+
+   1. 在本机上生成目录`.ssh`：`ssh-keygen -t rsa`
+      * 容器需要使用容器内的`.ssh`
+   2. 上传公钥到目标机器（需要远程到的机器）`ssh-copy-id root@192.168.157.146`
+   3. 重启 SSH服务命令使其生效`service sshd restart`
+
+### 全CI的jenkinsfile
+
+```
+pipeline {
+
+    agent any
+
+    environment{
+        harboruser = 'admin'
+        harboraddress = '192.168.31.96:80'
+        harborwarehouse = 'cs'
+        harbormirror = 'jenkinssandqm'
+        harborpassword = 'Harbor12345'
+    }
+
+    stages {
+        stage('git') {
+            steps {
+                checkout poll: false, scm: scmGit(branches: [[name: "*/master"]], extensions: [], userRemoteConfigs: [[credentialsId: '21537b59-4ce9-49c0-8190-abd0ac87c8dc', url: 'http://192.168.31.96:30080/root/jenkinslll.git']])
+                }
+            }
+        stage('maven') {
+            steps {
+                sh '/var/jenkins_home/maven/bin/mvn clean package -DskipTests'
+                }
+            }
+        stage('sonarqube') {
+            steps {
+                sh '/var/jenkins_home/sonar-scanner/bin/sonar-scanner -Dsonar.sources=./ -Dsonar.projectname="${harbormirror}" -Dsonar.login=65458c9c525ac232732f364656b894297aa54fd6 -Dsonar.projectKey=jenkinssandqm-key -Dsonar.java.binaries=./target/'
+                }
+            }
+        stage('docker镜像') {
+            steps {
+                sh '''mv ./target/*.jar ./Dockerfile/
+                docker build -t "${harbormirror}":"v4.0.0" ./Dockerfile/'''
+                }
+            }
+        stage('推送harbor') {
+            steps {
+                sh '''docker tag ${harbormirror}:"v4.0.0" "${harboraddress}"/"${harborwarehouse}"/"${harbormirror}":"v4.0.0"
+                docker login -u "${harboruser}" -p "${harborpassword}" "${harboraddress}"
+                docker push "${harboraddress}"/"${harborwarehouse}"/"${harbormirror}":"v4.0.0"'''
+                }
+            }
+        stage('部署') {
+            steps {
+                sshPublisher(publishers: [
+                    sshPublisherDesc(
+                        configName: 'k8s-master-98',
+                        transfers: [sshTransfer(
+                            cleanRemote: false,
+                            excludes: '',
+                            execCommand: '''cd /export/gitlabssh/Dockerfile
+                                            /usr/bin/kubectl apply -f ./jenkinssandqm-deployment.yml
+                                            /usr/bin/kubectl rollout restart deployment jenkinssandqm-deployment -n default''',
+                                            execTimeout: 120000,
+                                            flatten: false,
+                                            makeEmptyDirs: false,
+                                            noDefaultExcludes: false,
+                                            patternSeparator: '[, ]+',
+                                            remoteDirectory: '',
+                                            remoteDirectorySDF: false,
+                                            removePrefix: '',
+                                            sourceFiles: 'Dockerfile/*.yml')],
+                                            usePromotionTimestamp: false,
+                                            useWorkspaceInPromotion: false,
+                                            verbose: false)])
+                }
+            }
+        }
+    post{
+        success{
+            dingtalk(
+                robot:'dingding',
+                type: 'MARKDOWN',
+                title: "SUCCESS",
+                text:["构建成功"]
+            )
+        }
+        failure{
+            dingtalk(
+                robot:'dingding',
+                type: 'MARKDOWN',
+                title: "FAILURE",
+                text:["构建失败"]
+            )
+        }
+    }
+}
+```
+
