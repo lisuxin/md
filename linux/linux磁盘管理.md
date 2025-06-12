@@ -405,10 +405,6 @@
 
 在Linux系统中，`vgcreate`、`vgscan`、`vgdisplay`、`vgreduce`、`vgextend` 和 `vgremove` 是与 LVM（逻辑卷管理，Logical Volume Manager）相关的命令。这些命令用于管理卷组（Volume Group），它是LVM的核心组件之一。
 
-以下是这些命令的详细介绍：
-
----
-
 #### vgcreate创建卷组
 
 *  创建一个新的卷组（Volume Group），并将一个或多个物理卷（Physical Volume）添加到该卷组中。

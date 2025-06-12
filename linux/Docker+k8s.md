@@ -813,11 +813,7 @@ Docker 是一个开源的平台，用于自动化开发、部署和运行应用�
 * 容器启动时执行指令 `CMD ["/bin/bash"]`
   * `CMD 在容器内启动一个程序`
 
-==官方提供的 dockerfile 实例==
-
-```shell
-https://github.com/CentOS/CentOS-Dockerfi1es
-```
+==官方提供的 dockerfile 实例==`https://github.com/CentOS/CentOS-Dockerfi1es`
 
 **dockerfile文件创建及使用**
 
